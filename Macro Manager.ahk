@@ -52,12 +52,12 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.6"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.7"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/main/version.json"
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+ReleaseNotes := "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable.`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -3484,16 +3484,23 @@ VerNewer(a, b) {
 }
 
 Sha256(f) {
-    out := A_Temp "\mm-hash.txt"
-    try FileDelete out
-    try RunWait(A_ComSpec ' /c certutil -hashfile "' f '" SHA256 > "' out '"', , "Hide")
-    txt := ""
-    try txt := FileRead(out)
-    try FileDelete out
-    ln := StrSplit(txt, "`n")
-    if (ln.Length < 2)
-        return ""
-    return StrLower(StrReplace(Trim(ln[2], " `r`t"), " ", ""))
+    hProv := 0, hHash := 0, res := ""
+    try {
+        data := FileRead(f, "RAW")
+        DllCall("advapi32\CryptAcquireContextW", "Ptr*", &hProv, "Ptr", 0, "Ptr", 0, "UInt", 24, "UInt", 0xF0000000)     ; PROV_RSA_AES, VERIFYCONTEXT
+        DllCall("advapi32\CryptCreateHash", "Ptr", hProv, "UInt", 0x800C, "Ptr", 0, "UInt", 0, "Ptr*", &hHash)         ; CALG_SHA_256
+        DllCall("advapi32\CryptHashData", "Ptr", hHash, "Ptr", data, "UInt", data.Size, "UInt", 0)
+        len := 32
+        buf := Buffer(32)
+        DllCall("advapi32\CryptGetHashParam", "Ptr", hHash, "UInt", 2, "Ptr", buf, "UInt*", &len, "UInt", 0)         ; HP_HASHVAL
+        loop 32
+            res .= Format("{:02x}", NumGet(buf, A_Index - 1, "UChar"))
+    }
+    if hHash
+        DllCall("advapi32\CryptDestroyHash", "Ptr", hHash)
+    if hProv
+        DllCall("advapi32\CryptReleaseContext", "Ptr", hProv, "UInt", 0)
+    return res
 }
 
 ; ask GitHub for the newest version; sets the banner icon.  returns "new", "latest" or "error"
@@ -3556,9 +3563,12 @@ InstallUpdate() {
         Mb("The download failed. Try again later.", "Updates", "Iconx")
         return
     }
-    if (Sha256(tmp) != sha) {
+    got := Sha256(tmp)
+    if (got != sha) {
+        sz := 0
+        try sz := FileGetSize(tmp)
         try FileDelete tmp
-        Mb("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.", "Updates", "Iconx")
+        Mb("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: " SubStr(sha, 1, 16) "...`nReceived: " (got = "" ? "(could not compute)" : SubStr(got, 1, 16) "...") "  (" sz " bytes)", "Updates", "Iconx")
         return
     }
     txt := ""
