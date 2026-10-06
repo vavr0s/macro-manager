@@ -52,12 +52,16 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.10.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.10.2"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
-UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/version.json"
+UpdRepo := "vavr0s/macro-manager"
+UpdBranch := "beta"      ; the test (beta) build uses "beta"
+UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/version.json"      ; fallback (cached by GitHub for ~5 min)
+UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
+UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Test (beta) channel added for new versions before release.`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+ReleaseNotes := "BETA build - for testing.`n- Faster update detection: the update arrow now turns green about 2 minutes after a new version is released (before it could take 15 minutes or more).`n- Updates are now downloaded straight from GitHub, so they work right after a release without waiting for GitHub to refresh."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -196,7 +200,7 @@ ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)
-SetTimer(AutoCheck, 60000)         ; background check (at most every 15 minutes)
+SetTimer(AutoCheck, 60000)         ; background check (every 2 minutes)
 return
 
 ; ============ window handlers ============
@@ -3471,6 +3475,48 @@ HttpGet(url) {
     return ""
 }
 
+; GET with extra headers; returns the text (200) or "" ; status / ETag are returned through the by-ref parameters
+HttpReq(url, hdrs, &status, &etag) {
+    status := 0, etag := ""
+    try {
+        r := ComObject("WinHttp.WinHttpRequest.5.1")
+        r.SetTimeouts(2000, 2000, 3000, 3000)
+        r.Open("GET", url, false)
+        r.SetRequestHeader("User-Agent", "MacroManager")
+        for k, v in hdrs
+            r.SetRequestHeader(k, v)
+        r.Send()
+        status := r.Status
+        try etag := r.GetResponseHeader("ETag")
+        if (status = 200)
+            return r.ResponseText
+    }
+    return ""
+}
+
+; download a repository file through the GitHub API (always fresh, not cached like raw.githubusercontent.com)
+GhDownload(file, dest) {
+    try {
+        r := ComObject("WinHttp.WinHttpRequest.5.1")
+        r.SetTimeouts(3000, 3000, 8000, 15000)
+        r.Open("GET", "https://api.github.com/repos/" UpdRepo "/contents/" file "?ref=" UpdBranch, false)
+        r.SetRequestHeader("User-Agent", "MacroManager")
+        r.SetRequestHeader("Accept", "application/vnd.github.raw+json")
+        r.Send()
+        if (r.Status != 200)
+            return false
+        body := r.ResponseBody
+        sa := ComObjValue(body)
+        pData := NumGet(sa, 8 + A_PtrSize, "Ptr")
+        size := NumGet(sa, 8 + 2 * A_PtrSize, "UInt")
+        f := FileOpen(dest, "w")
+        f.RawWrite(pData, size)
+        f.Close()
+        return size > 0
+    }
+    return false
+}
+
 ; is version a newer than version b?  (1.10 > 1.9)
 VerNewer(a, b) {
     pa := StrSplit(Trim(a), "."), pb := StrSplit(Trim(b), ".")
@@ -3504,7 +3550,7 @@ Sha256(f) {
 }
 
 ; silent background check: keeps the banner arrow up to date while the app keeps running
-AutoCheck(minAge := 900000) {
+AutoCheck(minAge := 120000) {
     static last := -10000000
     if (!AutoUpd || Rec.mode != "" || A_TickCount - last < minAge)
         return
@@ -3515,7 +3561,17 @@ AutoCheck(minAge := 900000) {
 ; ask GitHub for the newest version; sets the banner icon.  returns "new", "latest" or "error"
 QueryUpdate() {
     global UpdAvail, UpdInfo
-    info := HttpGet(UpdateUrl "?t=" A_TickCount)
+    global UpdEtag, UpdBody
+    hdr := Map("Accept", "application/vnd.github.raw+json")
+    if (UpdEtag != "")
+        hdr["If-None-Match"] := UpdEtag
+    info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    if (st = 304)
+        info := UpdBody
+    else if (st = 200 && info != "")
+        UpdEtag := et, UpdBody := info
+    else
+        info := HttpGet(UpdateUrl "?t=" A_TickCount)      ; API unavailable or rate limited: use the (cached) raw file
     if (!RegExMatch(info, '"version"\s*:\s*"([^"]+)"', &mv)
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
         || !RegExMatch(info, '"sha256"\s*:\s*"([0-9a-fA-F]{64})"', &ms))
@@ -3567,7 +3623,8 @@ InstallUpdate() {
     url := UpdInfo["url"], sha := UpdInfo["sha"]
     tmp := A_Temp "\MacroManager-update.ahk"
     try FileDelete tmp
-    try Download(url "?t=" A_TickCount, tmp)
+    if !GhDownload("Macro%20Manager.ahk", tmp)
+        try Download(url "?t=" A_TickCount, tmp)
     if !FileExist(tmp) {
         Mb("The download failed. Try again later.", "Updates", "Iconx")
         return
