@@ -52,12 +52,12 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.8"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.9.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
-UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/main/version.json"
+UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/version.json"
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+ReleaseNotes := "BETA build - for testing.`n- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -98,7 +98,7 @@ RegisterUninstall()
 Load()
 
 ; ============ main window ============
-Main := Gui(, "Macro Manager")
+Main := Gui(, "Macro Manager (beta)")
 Main.SetFont("s9", "Segoe UI")
 try {
     Main.AddPicture("x10 y8 w820 h72", LogoWideFile)      ; black rounded banner with the logo
@@ -129,7 +129,7 @@ try {
 }
 try {
     TraySetIcon(IconFile)
-    A_IconTip := "Macro Manager v" AppVersion
+    A_IconTip := "Macro Manager BETA v" AppVersion
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header
@@ -644,7 +644,7 @@ ScriptPath(m) => ScriptsDir "\" m["file"]
 ; Installs "Macro Manager.ahk" and - when Ahk2Exe is available - compiles it to "Macro Manager.exe"
 ; (own icon + name in Explorer, taskbar and Task Manager instead of AutoHotkey's).
 Bootstrap() {
-    reg := "HKCU\Software\MacroManager"
+    reg := "HKCU\Software\MacroManagerBeta"
     prev := RegRead(reg, "InstallDir", "")
     if (prev != "" && FileExist(prev "\config\.installed") && FindInstalled(prev) != "") {
         r := MsgBox("Macro Manager is already installed in:`n" prev "`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit", "Macro Manager setup", "YesNoCancel 64")
@@ -664,7 +664,7 @@ Bootstrap() {
     dir := DirSelect("*" A_ProgramFiles, 1, "Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there.")
     if (dir = "")
         return
-    target := RTrim(dir, "\") "\MacroManager"
+    target := RTrim(dir, "\") "\MacroManagerBeta"
     compiled := false
     try {
         DirCreate(target "\config\assets")
@@ -680,9 +680,9 @@ Bootstrap() {
 
     icon := target "\config\assets\app.ico"
     if (MsgBox("Create a Start Menu shortcut?", "Macro Manager setup", "YesNo 32") = "Yes")
-        MakeShortcut(A_Programs "\Macro Manager.lnk", target, icon)
+        MakeShortcut(A_Programs "\Macro Manager Beta.lnk", target, icon)
     if (MsgBox("Create a Desktop shortcut?", "Macro Manager setup", "YesNo 32") = "Yes")
-        MakeShortcut(A_Desktop "\Macro Manager.lnk", target, icon)
+        MakeShortcut(A_Desktop "\Macro Manager Beta.lnk", target, icon)
     MsgBox "Installed to:`n" target "`n`nYour macros and settings are stored in:`n" target "\config", "Macro Manager setup", 64
     LaunchInstalled(target)
 }
@@ -712,7 +712,7 @@ InstallProgram(target) {
             try {
                 DirCreate(target "\runtime")
                 FileCopy(A_AhkPath, target "\runtime\AutoHotkey.exe", 1)
-                RegWrite(target "\runtime\AutoHotkey.exe", "REG_SZ", "HKCU\Software\MacroManager", "AhkPath")
+                RegWrite(target "\runtime\AutoHotkey.exe", "REG_SZ", "HKCU\Software\MacroManagerBeta", "AhkPath")
             }
             return true
         }
@@ -752,7 +752,7 @@ FindInstalled(dir) {
 AhkExe() {
     if !A_IsCompiled
         return A_AhkPath
-    p := RegRead("HKCU\Software\MacroManager", "AhkPath", "")
+    p := RegRead("HKCU\Software\MacroManagerBeta", "AhkPath", "")
     if (p != "" && FileExist(p))
         return p
     for c in [A_ProgramFiles "\AutoHotkey\v2\AutoHotkey64.exe", A_ProgramFiles "\AutoHotkey\v2\AutoHotkey32.exe"]
@@ -927,19 +927,19 @@ BuildVersionInfo() {
 ; ============ uninstaller ============
 ; adds the app to Windows "Apps & features" (per-user) and remembers where it lives
 RegisterUninstall() {
-    k := "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager"
+    k := "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManagerBeta"
     cmd := A_IsCompiled ? '"' A_ScriptFullPath '" /uninstall' : '"' A_AhkPath '" "' A_ScriptFullPath '" /uninstall'
     if !A_IsCompiled
-        try RegWrite(A_AhkPath, "REG_SZ", "HKCU\Software\MacroManager", "AhkPath")
+        try RegWrite(A_AhkPath, "REG_SZ", "HKCU\Software\MacroManagerBeta", "AhkPath")
     try {
-        RegWrite("Macro Manager", "REG_SZ", k, "DisplayName")
+        RegWrite("Macro Manager (beta)", "REG_SZ", k, "DisplayName")
         RegWrite("Macro Manager", "REG_SZ", k, "Publisher")
         RegWrite(cmd, "REG_SZ", k, "UninstallString")
         RegWrite(A_ScriptDir, "REG_SZ", k, "InstallLocation")
         RegWrite(FileExist(IconFile) ? IconFile : (A_IsCompiled ? A_ScriptFullPath : A_AhkPath), "REG_SZ", k, "DisplayIcon")
         RegWrite(1, "REG_DWORD", k, "NoModify")
         RegWrite(1, "REG_DWORD", k, "NoRepair")
-        RegWrite(A_ScriptDir, "REG_SZ", "HKCU\Software\MacroManager", "InstallDir")
+        RegWrite(A_ScriptDir, "REG_SZ", "HKCU\Software\MacroManagerBeta", "InstallDir")
     }
 }
 
@@ -978,10 +978,10 @@ UninstallApp(fromArg := false) {
     for m, pid in Procs
         try ProcessClose(pid)
     ; remove registry entries and the Start Menu / Desktop shortcuts
-    try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager")
-    try RegDeleteKey("HKCU\Software\MacroManager")
-    try FileDelete(A_Programs "\Macro Manager.lnk")
-    try FileDelete(A_Desktop "\Macro Manager.lnk")
+    try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManagerBeta")
+    try RegDeleteKey("HKCU\Software\MacroManagerBeta")
+    try FileDelete(A_Programs "\Macro Manager Beta.lnk")
+    try FileDelete(A_Desktop "\Macro Manager Beta.lnk")
     MsgBox "Macro Manager has been uninstalled.`nThe folder will be removed in a moment.", "Uninstall Macro Manager", 64
     ; a separate hidden process deletes the folder after this app has exited
     Run(A_ComSpec ' /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "' dir '"', A_Temp, "Hide")
