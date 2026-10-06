@@ -1,6 +1,6 @@
 {
-  "version": "1.10.2",
+  "version": "1.11.3",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "b37590a7894c91dc81db530bb7129be1904638c81589f7045117633592eabbbb",
-  "notes": "BETA build - for testing.\n- Faster update detection: the update arrow now turns green about 2 minutes after a new version is released (before it could take 15 minutes or more).\n- Updates are now downloaded straight from GitHub, so they work right after a release without waiting for GitHub to refresh."
+  "sha256": "9ee0b7d946ac3339b9773e823230d9f49f8ebbc8a9e961adecef146abaf01c71",
+  "notes": "BETA build - for testing.\n- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
 }

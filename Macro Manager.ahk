@@ -52,7 +52,7 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.10.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.11.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -61,7 +61,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Faster update detection: the update arrow now turns green about 2 minutes after a new version is released (before it could take 15 minutes or more).`n- Updates are now downloaded straight from GitHub, so they work right after a release without waiting for GitHub to refresh."
+ReleaseNotes := "BETA build - for testing.`n- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
