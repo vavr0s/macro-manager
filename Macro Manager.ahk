@@ -52,12 +52,12 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.7"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.8"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/main/version.json"
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable.`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+ReleaseNotes := "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -180,7 +180,7 @@ for msg in [0x233, 0x4A, 0x49]
     DllCall("ChangeWindowMessageFilterEx", "Ptr", Main.Hwnd, "UInt", msg, "UInt", 1, "Ptr", 0)
 
 A_TrayMenu.Delete()
-A_TrayMenu.Add("Open window", (*) => Main.Show())
+A_TrayMenu.Add("Open window", (*) => (Main.Show(), AutoCheck(120000)))
 A_TrayMenu.Add("Check for updates...", OnUpdIcon)
 A_TrayMenu.Add("Check for updates at start", ToggleAutoUpd)
 if AutoUpd
@@ -195,8 +195,8 @@ Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 Main.Show()
-if AutoUpd
-    SetTimer(() => QueryUpdate(), -4000)
+SetTimer(() => AutoCheck(), -4000)
+SetTimer(AutoCheck, 60000)         ; background check (at most every 15 minutes)
 return
 
 ; ============ window handlers ============
@@ -3460,7 +3460,7 @@ ToggleAutoUpd(*) {
 HttpGet(url) {
     try {
         r := ComObject("WinHttp.WinHttpRequest.5.1")
-        r.SetTimeouts(4000, 5000, 8000, 8000)
+        r.SetTimeouts(2000, 2000, 3000, 3000)
         r.Open("GET", url, false)
         r.SetRequestHeader("Cache-Control", "no-cache")
         r.SetRequestHeader("User-Agent", "MacroManager")
@@ -3501,6 +3501,15 @@ Sha256(f) {
     if hProv
         DllCall("advapi32\CryptReleaseContext", "Ptr", hProv, "UInt", 0)
     return res
+}
+
+; silent background check: keeps the banner arrow up to date while the app keeps running
+AutoCheck(minAge := 900000) {
+    static last := -10000000
+    if (!AutoUpd || Rec.mode != "" || A_TickCount - last < minAge)
+        return
+    last := A_TickCount
+    QueryUpdate()
 }
 
 ; ask GitHub for the newest version; sets the banner icon.  returns "new", "latest" or "error"
