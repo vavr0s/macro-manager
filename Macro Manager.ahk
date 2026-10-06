@@ -52,12 +52,12 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.9.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.10.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdateUrl := "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/version.json"
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+ReleaseNotes := "BETA build - for testing.`n- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.`n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.`n- Redesigned macro list with reliable check boxes, no flicker and themed selection.`n- Explained delays in the editor, new prefilled examples, windows open over the main window.`n- Help shows these release notes; a glowing yellow ! marks them after an update until you have read them.`n- Update checksum check made more reliable; the update arrow also turns green while the app keeps running (checked every 15 minutes).`n- Test (beta) channel added for new versions before release.`n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -166,7 +166,7 @@ MKst := Map("key", MasterKey)
 bMKey := AddBtn(Main, "x+8 yp w386 h36", KeyLabel("All macros toggle key:  ", MKst["key"]), (*) => CaptureKey(bMKey, MKst, "key", true, "All macros toggle key:  ", OnMasterKey))
 AddHint(Main, "x10 y+16 w700", "Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit).")
 bUninst := AddBtn(Main, "x740 yp w90 h28", "Uninstall", (*) => UninstallApp(), "btnghost")
-verTxt := AddHint(Main, "x740 y+4 w90 Center", "v" AppVersion)
+verTxt := AddHint(Main, "x726 y+4 w104 Center", "beta v" AppVersion)
 
 LV.OnEvent("ItemCheck", OnCheck)
 OnMessage(0x201, OnLvLDown)
