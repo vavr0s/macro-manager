@@ -52,7 +52,7 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.12.4"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.12.5"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -1267,11 +1267,11 @@ EditMacro(idx) {
 
     ; a macro that belongs to several profiles: apply the change everywhere, or only in the current profile
     Detach() {
-        if (isNew || pv["v"] != origProfs || !HasProf(origProfs, CurProfile) || StrSplit(origProfs, "|").Length < 2)
+        if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
             return true
-        r := MsgBox("This macro is also in other profiles (" ProfLabel(origProfs) ").`n`n"
+        r := MsgBox("This macro is in several profiles (" ProfLabel(pv["v"]) ").`n`n"
             . "Yes = apply the change to all of them`n"
-            . "No = only in the current profile (" CurProfile "); the other profiles keep the old version",
+            . "No = only in the current profile (" CurProfile "); the other profiles keep (or get) the old, unchanged version",
             "Macro Manager", 0x23)
         if (r = "Cancel")
             return false
@@ -1280,7 +1280,7 @@ EditMacro(idx) {
         old := m
         StopScript(old)
         rest := []
-        for p in StrSplit(old["profiles"], "|")
+        for p in StrSplit(pv["v"], "|")
             if (p != CurProfile)
                 rest.Push(p)
         old["profiles"] := JoinProfs(rest)
