@@ -55,7 +55,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "9"     ; bump when the embedded logo/icon change
-AppVersion := "1.12.9"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.12.10"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -64,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile. It highlights when you point at it."
+ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile. It highlights when you point at it; if Discord cannot be opened the link is copied instead."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -3723,9 +3723,20 @@ HelpTopics() {
 }
 
 OpenDiscord(*) {
-    try Run("discord://-/users/" DiscordId)
-    catch
-        try Run("https://discord.com/users/" DiscordId)
+    static last := 0
+    if (A_TickCount - last < 800)                 ; click event + mouse polling may both fire
+        return
+    last := A_TickCount
+    try {
+        Run("discord://-/users/" DiscordId)
+        return
+    }
+    try {
+        Run("https://discord.com/users/" DiscordId)
+        return
+    }
+    A_Clipboard := "https://discord.com/users/" DiscordId
+    MsgBox "Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`nhttps://discord.com/users/" DiscordId, "Macro Manager", 64
 }
 
 OpenHelp(*) {
@@ -3753,7 +3764,7 @@ OpenHelp(*) {
         dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
         Roles[dc.Hwnd] := "skip"
         dc.OnEvent("Click", OpenDiscord)
-        hov := false
+        hov := false, wasDown := false
         SetTimer(DcHover, 40)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
@@ -3804,6 +3815,10 @@ OpenHelp(*) {
         }
         if on
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
+        down := GetKeyState("LButton", "P")
+        if (on && down && !wasDown)               ; own click detection (works even if the control sends no click event)
+            SetTimer(OpenDiscord, -1)
+        wasDown := down
         if (on = hov)
             return
         hov := on
