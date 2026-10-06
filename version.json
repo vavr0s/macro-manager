@@ -1,0 +1,6 @@
+{
+  "version": "1.5",
+  "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
+  "sha256": "7c788e6ce88deac50a0efdc158890cada99cd6d14b4988c6d8ce7e42a452f7d4",
+  "notes": "- Updates are optional: the arrow icon in the banner is grey when you are up to date and green when a new version is available. Click it to read what is new and update. Your macros and settings are never changed by an update.\n- Mouse buttons as trigger keys: right / middle / side buttons X1 X2 / wheel, also as combinations like Ctrl+XButton1.\n- Redesigned macro list with reliable check boxes, no flicker and themed selection.\n- Explained delays in the editor, new prefilled examples, windows open over the main window.\n- Help shows these release notes; a yellow ! marks them after an update until you have read them.\n- Help and update icons sit together at the right edge of the banner; the version number is shown under Uninstall."
+}
