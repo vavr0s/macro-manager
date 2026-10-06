@@ -1,6 +1,6 @@
 {
-  "version": "1.12.8",
+  "version": "1.12.9",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "fff05e331e3ca4d93b76c348614f6d46865c1b203e7ff1d33b3e138c01e662cb",
-  "notes": "BETA build - for testing.\n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.\n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile."
+  "sha256": "0a4ab00f4e4652efaec38bef8105933b629eea89ad9575fbe5c714910b85afe2",
+  "notes": "BETA build - for testing.\n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.\n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile. It highlights when you point at it."
 }

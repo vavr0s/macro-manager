@@ -49,12 +49,13 @@ CbLightFile := AssetsDir "\cb_light.png"
 BadgeMainFile := AssetsDir "\badge_main.png"     ; yellow ! with glow (banner / dark window / light window)
 BadgeDkFile := AssetsDir "\badge_dk.png"
 BadgeLtFile := AssetsDir "\badge_lt.png"
-DiscordFile := AssetsDir "\discord.png"           ; Discord symbol (help banner)
+DiscordFile := AssetsDir "\discord.png"
+DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
 DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "8"     ; bump when the embedded logo/icon change
-AppVersion := "1.12.8"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "9"     ; bump when the embedded logo/icon change
+AppVersion := "1.12.9"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -63,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile."
+ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile. It highlights when you point at it."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1703,7 +1704,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile)) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile)) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -1715,6 +1716,7 @@ EnsureAssets() {
             B64ToFile(BadgeDkB64(), BadgeDkFile)
             B64ToFile(BadgeLtB64(), BadgeLtFile)
             B64ToFile(DiscordB64(), DiscordFile)
+            B64ToFile(DiscordHovB64(), DiscordHovFile)
             WriteText(verFile, AssetVersion)
         }
     }
@@ -3751,6 +3753,8 @@ OpenHelp(*) {
         dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
         Roles[dc.Hwnd] := "skip"
         dc.OnEvent("Click", OpenDiscord)
+        hov := false
+        SetTimer(DcHover, 40)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -3782,8 +3786,33 @@ OpenHelp(*) {
             try bBadge.Visible := false
         }
     }
+    ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
+    DcHover() {
+        if !IsSet(g) || !WinExist("ahk_id " g.Hwnd) {
+            SetTimer(DcHover, 0)
+            return
+        }
+        MouseGetPos(&mx, &my)
+        on := false
+        if true {
+            WinGetClientPos(&cx, &cy, , , "ahk_id " g.Hwnd)
+            for c in [sup, dc] {
+                c.GetPos(&px, &py, &pw, &ph)
+                if (mx - cx >= px && mx - cx < px + pw && my - cy >= py && my - cy < py + ph)
+                    on := true
+            }
+        }
+        if on
+            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
+        if (on = hov)
+            return
+        hov := on
+        sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
+        dc.Value := on ? DiscordHovFile : DiscordFile
+    }
     HelpClose(*) {
         global HelpGui
+        SetTimer(DcHover, 0)
         HelpGui := 0
         g.Destroy()
     }
@@ -4245,5 +4274,165 @@ ttFqqP/d493be7q3j2e6p+BpTkvDcuF6CiqxtmFD6+K7G1s3J1LLhXAZTCF/
 9oXtN2bHeq5wBXW+skrVXL3l7p3SCgtpk/FGhw+cOfGTE0efO9v75kTg4CO9
 fWX5hVPLs6R0G1s+dd0t3773kZ7FSx+Ekip/Lzs/AGDl2m/e9+jJ6275dmPL
 p6R0p0YVyxvn//8XojpMAZbadgAAAABJRU5ErkJggg==
+)"
+}
+
+DiscordHovB64() {
+    return "
+(Join
+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
+AAAAAElFTkSuQmCC
 )"
 }
