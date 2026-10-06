@@ -1,6 +1,6 @@
 {
-  "version": "1.11.3",
+  "version": "1.12.4",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "9ee0b7d946ac3339b9773e823230d9f49f8ebbc8a9e961adecef146abaf01c71",
-  "notes": "BETA build - for testing.\n- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
+  "sha256": "5fc2eea359a7d7529d91f8044e13918985da7287fd554a4a6235dadd9396cf14",
+  "notes": "BETA build - for testing.\n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.\n- New Help topic: Support."
 }

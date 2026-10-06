@@ -52,7 +52,7 @@ BadgeLtFile := AssetsDir "\badge_lt.png"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.11.3"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.12.4"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -61,7 +61,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
+ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- New Help topic: Support."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1163,6 +1163,7 @@ EditMacro(idx) {
     if isNew
         m["profiles"] := CurProfile
     pv := Map("v", m["profiles"])
+    origProfs := m["profiles"]
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", isNew ? "New macro" : "Edit macro")
     g.SetFont("s9", "Segoe UI")
     try {
@@ -1264,6 +1265,32 @@ EditMacro(idx) {
             c.Visible := (t != 3)
     }
 
+    ; a macro that belongs to several profiles: apply the change everywhere, or only in the current profile
+    Detach() {
+        if (isNew || pv["v"] != origProfs || !HasProf(origProfs, CurProfile) || StrSplit(origProfs, "|").Length < 2)
+            return true
+        r := MsgBox("This macro is also in other profiles (" ProfLabel(origProfs) ").`n`n"
+            . "Yes = apply the change to all of them`n"
+            . "No = only in the current profile (" CurProfile "); the other profiles keep the old version",
+            "Macro Manager", 0x23)
+        if (r = "Cancel")
+            return false
+        if (r = "Yes")
+            return true
+        old := m
+        StopScript(old)
+        rest := []
+        for p in StrSplit(old["profiles"], "|")
+            if (p != CurProfile)
+                rest.Push(p)
+        old["profiles"] := JoinProfs(rest)
+        m := old.Clone()
+        m["file"] := ""
+        pv["v"] := CurProfile
+        isNew := true
+        return true
+    }
+
     Commit(*) {
         FinishRec()
         t := tsel
@@ -1274,6 +1301,8 @@ EditMacro(idx) {
                 MsgBox "Paste or write a script first.", "Macro Manager", 48
                 return
             }
+            if !Detach()
+                return
             StopScript(m)
             if (m["file"] = "" || !FileExist(ScriptPath(m)))
                 m["file"] := NewScriptFile()
@@ -1286,6 +1315,8 @@ EditMacro(idx) {
                 MsgBox "Enter a trigger key.", "Macro Manager", 48
                 return
             }
+            if !Detach()
+                return
             StopScript(m)
             m["hotkey"] := key
             m["app"] := Trim(eApp.Value)
@@ -3674,13 +3705,15 @@ HelpTopics() {
     order.Push("Keys and recording")
     t["Keys and recording"] := "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.`n`nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.`nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.`n`nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.`n`nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).`nThe same works by typing it in the fields: a,Shift+4,d"
     order.Push("Profiles")
-    t["Profiles"] := "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro.`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile."
+    t["Profiles"] := "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro. When you change a macro that belongs to several profiles, the app asks: apply the change to all of them, or only to the current profile (the other profiles keep the old version).`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile."
     order.Push("Toggle keys")
     t["Toggle keys"] := "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys."
     order.Push("Order, export, backup")
     t["Order, export, backup"] := "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first."
     order.Push("Updates")
     t["Updates"] := "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access to github.com."
+    order.Push("Support")
+    t["Support"] := "If you need support, add me on Discord - vavr0s"
     order.Push("Tips and problems")
     t["Tips and problems"] := "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys or different profiles.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app."
     return [order, t]
