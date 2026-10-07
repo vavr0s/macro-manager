@@ -55,7 +55,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "9"     ; bump when the embedded logo/icon change
-AppVersion := "1.12.10"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.13.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -64,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you change it, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a Discord icon with a short support note in the banner opens the author's Discord profile. It highlights when you point at it; if Discord cannot be opened the link is copied instead."
+ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
