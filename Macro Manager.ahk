@@ -49,10 +49,13 @@ CbLightFile := AssetsDir "\cb_light.png"
 BadgeMainFile := AssetsDir "\badge_main.png"     ; yellow ! with glow (banner / dark window / light window)
 BadgeDkFile := AssetsDir "\badge_dk.png"
 BadgeLtFile := AssetsDir "\badge_lt.png"
+DiscordFile := AssetsDir "\discord.png"
+DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
+DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "7"     ; bump when the embedded logo/icon change
-AppVersion := "1.11"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "9"     ; bump when the embedded logo/icon change
+AppVersion := "1.12"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -61,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
+ReleaseNotes := "- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1163,6 +1166,7 @@ EditMacro(idx) {
     if isNew
         m["profiles"] := CurProfile
     pv := Map("v", m["profiles"])
+    origProfs := m["profiles"]
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", isNew ? "New macro" : "Edit macro")
     g.SetFont("s9", "Segoe UI")
     try {
@@ -1264,6 +1268,32 @@ EditMacro(idx) {
             c.Visible := (t != 3)
     }
 
+    ; a macro that belongs to several profiles: apply the change everywhere, or only in the current profile
+    Detach() {
+        if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
+            return true
+        r := MsgBox("This macro is in several profiles (" ProfLabel(pv["v"]) ").`n`n"
+            . "Yes = apply the change to all of them`n"
+            . "No = only in the current profile (" CurProfile "); the other profiles keep (or get) the old, unchanged version",
+            "Macro Manager", 0x23)
+        if (r = "Cancel")
+            return false
+        if (r = "Yes")
+            return true
+        old := m
+        StopScript(old)
+        rest := []
+        for p in StrSplit(pv["v"], "|")
+            if (p != CurProfile)
+                rest.Push(p)
+        old["profiles"] := JoinProfs(rest)
+        m := old.Clone()
+        m["file"] := ""
+        pv["v"] := CurProfile
+        isNew := true
+        return true
+    }
+
     Commit(*) {
         FinishRec()
         t := tsel
@@ -1274,6 +1304,8 @@ EditMacro(idx) {
                 MsgBox "Paste or write a script first.", "Macro Manager", 48
                 return
             }
+            if !Detach()
+                return
             StopScript(m)
             if (m["file"] = "" || !FileExist(ScriptPath(m)))
                 m["file"] := NewScriptFile()
@@ -1286,6 +1318,8 @@ EditMacro(idx) {
                 MsgBox "Enter a trigger key.", "Macro Manager", 48
                 return
             }
+            if !Detach()
+                return
             StopScript(m)
             m["hotkey"] := key
             m["app"] := Trim(eApp.Value)
@@ -1670,7 +1704,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile)) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile)) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -1681,6 +1715,8 @@ EnsureAssets() {
             B64ToFile(BadgeMainB64(), BadgeMainFile)
             B64ToFile(BadgeDkB64(), BadgeDkFile)
             B64ToFile(BadgeLtB64(), BadgeLtFile)
+            B64ToFile(DiscordB64(), DiscordFile)
+            B64ToFile(DiscordHovB64(), DiscordHovFile)
             WriteText(verFile, AssetVersion)
         }
     }
@@ -3666,7 +3702,7 @@ HelpTopics() {
     order.Push("Add / edit a macro")
     t["Add / edit a macro"] := "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately).`n`nSave stores the macro, Cancel throws changes away."
     order.Push("Move + actions")
-    t["Move + actions"] := "Made for games where you keep moving (for example A and D) and cast spells in between.`n`nDirections - the movement keys, in order, for example: a,d`nActions in order - the keys to press, one per cycle, for example: 1,ě,1,F7,1,F8`n`nEvery cycle does this, with the delays you set:`n  1. direction down`n  2. (delay 1) action down`n  3. (delay 2) direction up`n  4. (delay 3) action up`n  5. (delay 4) pause, then the next direction + next action`n`nThe lists repeat from the start when they end. If Directions is empty, only the actions are pressed: hold time = delay 2, pause = delay 4.`nIf a game ignores the macro, raise the delays (20-30 ms is common)."
+    t["Move + actions"] := "Made for games where you keep moving (for example A and D) and cast spells in between.`n`nDirections - the movement keys, in order, for example: a,d`nActions in order - the keys to press, one per cycle, for example: 1,2,1,F7,1,F8`n`nEvery cycle does this, with the delays you set:`n  1. direction down`n  2. (delay 1) action down`n  3. (delay 2) direction up`n  4. (delay 3) action up`n  5. (delay 4) pause, then the next direction + next action`n`nThe lists repeat from the start when they end. If Directions is empty, only the actions are pressed: hold time = delay 2, pause = delay 4.`nIf a game ignores the macro, raise the delays (20-30 ms is common)."
     order.Push("Sequence")
     t["Sequence"] := "A free list of steps. Write one step per line:`n`n  down KEY PAUSE   - press and hold the key`n  up KEY PAUSE     - release the key`n  tap KEY PAUSE    - press and release at once`n`nPAUSE is the wait after the step in milliseconds (empty = 0).`n`nExample - quick A / D change:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nExample - attack and spells:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nExample - two keys together:`n  tap Shift+4 50`n`nWith Run = Repeat the lines play in a loop while the trigger key is held; with Once they play one time.`nKeys that are still held when you release the trigger are released automatically."
     order.Push("Script (.ahk)")
@@ -3674,7 +3710,7 @@ HelpTopics() {
     order.Push("Keys and recording")
     t["Keys and recording"] := "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.`n`nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.`nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.`n`nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.`n`nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).`nThe same works by typing it in the fields: a,Shift+4,d"
     order.Push("Profiles")
-    t["Profiles"] := "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro.`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile."
+    t["Profiles"] := "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro. When you change a macro that belongs to several profiles, the app asks: apply the change to all of them, or only to the current profile (the other profiles keep the old version).`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile."
     order.Push("Toggle keys")
     t["Toggle keys"] := "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys."
     order.Push("Order, export, backup")
@@ -3684,6 +3720,23 @@ HelpTopics() {
     order.Push("Tips and problems")
     t["Tips and problems"] := "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys or different profiles.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app."
     return [order, t]
+}
+
+OpenDiscord(*) {
+    static last := 0
+    if (A_TickCount - last < 800)                 ; click event + mouse polling may both fire
+        return
+    last := A_TickCount
+    try {
+        Run("discord://-/users/" DiscordId)
+        return
+    }
+    try {
+        Run("https://discord.com/users/" DiscordId)
+        return
+    }
+    A_Clipboard := "https://discord.com/users/" DiscordId
+    MsgBox "Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`nhttps://discord.com/users/" DiscordId, "Macro Manager", 64
 }
 
 OpenHelp(*) {
@@ -3704,6 +3757,15 @@ OpenHelp(*) {
         g.SetFont("s16 bold cD0AE6B", "Segoe UI")
         ttl := g.AddText("x100 y29 w400 BackgroundTrans", "Help")
         Roles[ttl.Hwnd] := "skip"
+        g.SetFont("s10 norm cD8D8DC", "Segoe UI")
+        sup := g.AddText("x330 y36 w250 h24 Right BackgroundTrans", "For support click here " Chr(0x2192))
+        Roles[sup.Hwnd] := "skip"
+        sup.OnEvent("Click", OpenDiscord)
+        dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
+        Roles[dc.Hwnd] := "skip"
+        dc.OnEvent("Click", OpenDiscord)
+        hov := false, wasDown := false
+        SetTimer(DcHover, 40)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -3735,8 +3797,37 @@ OpenHelp(*) {
             try bBadge.Visible := false
         }
     }
+    ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
+    DcHover() {
+        if !IsSet(g) || !WinExist("ahk_id " g.Hwnd) {
+            SetTimer(DcHover, 0)
+            return
+        }
+        MouseGetPos(&mx, &my)
+        on := false
+        if true {
+            WinGetClientPos(&cx, &cy, , , "ahk_id " g.Hwnd)
+            for c in [sup, dc] {
+                c.GetPos(&px, &py, &pw, &ph)
+                if (mx - cx >= px && mx - cx < px + pw && my - cy >= py && my - cy < py + ph)
+                    on := true
+            }
+        }
+        if on
+            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
+        down := GetKeyState("LButton", "P")
+        if (on && down && !wasDown)               ; own click detection (works even if the control sends no click event)
+            SetTimer(OpenDiscord, -1)
+        wasDown := down
+        if (on = hov)
+            return
+        hov := on
+        sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
+        dc.Value := on ? DiscordHovFile : DiscordFile
+    }
     HelpClose(*) {
         global HelpGui
+        SetTimer(DcHover, 0)
         HelpGui := 0
         g.Destroy()
     }
@@ -4045,5 +4136,318 @@ mYCQVJEEU0ndnrByFtHHZMzUrFwRZfWMaU5/yORNWc0DyoNmtg1Lx3fmjnCol0JSn61SRVx9kxTRotST
 WjzGobKZuJ8RoYcKIhiQtOgWQJrsJ/W3qb26S9naZVUCm/ZRvT4P1h04k7V8TkB/4t5ozUGTT8dtqejWWs11Iofa3Ks1vdTIp3stvlJ2Pdpu4EZwR7aVT2oc
 21O6y0fiUr7wXO/ccTN0oPY2dd2/pyN/lprWU4OS23C5vRd+FvozdqdrDgRIWr2t9zfTVlgec5vhyP0tfx8V85Ed9vtdYLdndvm1UnrjEvUGcbbDHr+mUY62
 mvrv8/r9/wNv5WChYRKmeQAAAABJRU5ErkJggg==
+)"
+}
+
+DiscordB64() {
+    return "
+(Join
+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
+)"
+}
+
+DiscordHovB64() {
+    return "
+(Join
+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
+AAAAAElFTkSuQmCC
 )"
 }

@@ -1,6 +1,6 @@
 {
-  "version": "1.11",
+  "version": "1.12",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
-  "sha256": "8c1eea7566473c7e1eb9a6f60c8f856068e1a992f30149641618badff99a48e7",
-  "notes": "- Test release: no changes in the app. It only checks that the update arrow turns green and that updating works."
+  "sha256": "deb80ea217d8b1cd0189b1dbb96281a30cb5566605063f78e49fc82df9636e45",
+  "notes": "- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.\n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
 }
