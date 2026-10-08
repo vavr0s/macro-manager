@@ -1,6 +1,6 @@
 {
-  "version": "1.13",
+  "version": "1.14",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
-  "sha256": "08d63a9f47708cf624cb1cecbf761aba6649dc1d7d1b9209763c427a7734d067",
-  "notes": "- Dragging selected macros: once you grab a selected row, the selection stays as it is, so rows you drag over are no longer selected or deselected."
+  "sha256": "3b8c57a0b14954f79641bbc431238772d9f22c9cbc713ed39e4dd49a88db2d0b",
+  "notes": "- Fix: a macro on Left Ctrl no longer fires (or repeats) when you press AltGr on keyboards that have it (Czech, Polish, German, ...).\n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.\n- The editor labels got a little more room for longer translations."
 }
