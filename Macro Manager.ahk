@@ -83,7 +83,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.14.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.14.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -92,7 +92,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.`n- The editor labels got a little more room for longer translations."
+ReleaseNotes := "BETA build - for testing.`n- Fix: a macro on Left Ctrl no longer fires (or repeats) when you press AltGr on keyboards that have it (Czech, Polish, German, ...).`n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.`n- The editor labels got a little more room for longer translations."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1541,9 +1541,27 @@ StopScript(m) {
 }
 
 MakeCond(m) => (*) => (m["app"] = "" || WinActive("ahk_exe " m["app"]))
-MakeRun(m, trig) => (*) => (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
 
-Active(m, trig) => GetKeyState(TrigMain(trig), "P") && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+
+; Keyboards with an AltGr key (Czech, Polish, German, ...) send AltGr as a fake Left Ctrl + Right Alt.
+; A macro on Left Ctrl must not react to that fake Left Ctrl.
+IsLCtrlTok(t) => RegExMatch(Trim(t), "i)^L(Ctrl|Control)$")
+AltGrFake(trig, mainToo := false) {
+    if !GetKeyState("RAlt", "P")
+        return false
+    parts := StrSplit(Trim(trig), "+")
+    for i, p in parts {
+        if (Trim(p) = "" )
+            continue
+        if RegExMatch(Trim(p), "i)^R(Alt|Menu)$")
+            return false
+        if (IsLCtrlTok(p) && (mainToo || i < parts.Length))
+            return true
+    }
+    return false
+}
 
 ; ---- trigger keys: "XButton1", "WheelUp", "sc01e", or a combination such as "LCtrl+XButton1" ----
 IsModTok(t) => RegExMatch(t, "i)^[LR]?(Control|Ctrl|Shift|Alt|Win)$")
@@ -1570,9 +1588,10 @@ TrigHot(trig) {
             sym := RegExMatch(r[2], "i)^Con|^Ctrl") ? "^" : (RegExMatch(r[2], "i)^Shift") ? "+" : (RegExMatch(r[2], "i)^Alt") ? "!" : "#"))
             pre .= side sym
         }
-        return "*" pre Trim(parts[parts.Length])
+        last := Trim(parts[parts.Length])
+        return "*" pre (IsLCtrlTok(last) ? "sc01D" : last)
     }
-    return "*" trig
+    return "*" (IsLCtrlTok(trig) ? "sc01D" : trig)
 }
 
 ; modifiers that are physically held right now, as "LCtrl", "RShift", ...

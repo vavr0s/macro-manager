@@ -1,6 +1,6 @@
 {
-  "version": "1.14.2",
+  "version": "1.14.3",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "67fa51997adfc1dbf3436402ce920738f3c51a92ca8686babdd966d6db141b05",
-  "notes": "BETA build - for testing.\n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.\n- The editor labels got a little more room for longer translations."
+  "sha256": "55d0cd7a4ad97686f0b3f0ca1eb59a694e50c66468c363c97ea83805088a8bbf",
+  "notes": "BETA build - for testing.\n- Fix: a macro on Left Ctrl no longer fires (or repeats) when you press AltGr on keyboards that have it (Czech, Polish, German, ...).\n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.\n- The editor labels got a little more room for longer translations."
 }
