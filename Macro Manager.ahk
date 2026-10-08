@@ -55,7 +55,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "9"     ; bump when the embedded logo/icon change
-AppVersion := "1.12"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.13"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -64,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
+ReleaseNotes := "- Dragging selected macros: once you grab a selected row, the selection stays as it is, so rows you drag over are no longer selected or deselected."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -76,7 +76,7 @@ HoverHwnd := 0
 Recording := false
 DragOut := false
 DragEnd := 0
-DragStart := Map("row", 0, "x", 0, "y", 0, "last", "")
+DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
 TogReg := []           ; registered toggle hotkeys
 Profiles := ["Default"]
@@ -3861,6 +3861,9 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
     DllCall("GetCursorPos", "Ptr", pt)
     DragStart["x"] := NumGet(pt, 0, "Int"), DragStart["y"] := NumGet(pt, 4, "Int")
     DragStart["last"] := ""
+    ; pressing a row that is already selected (without Ctrl / Shift) = grab the selection: it stays as it is while dragging
+    DragStart["lock"] := (SendMessage(0x102C, hit[1] - 1, 0x0002, LV) & 0x0002) != 0       ; LVM_GETITEMSTATE, LVIS_SELECTED
+        && !GetKeyState("Ctrl", "P") && !GetKeyState("Shift", "P")
     SetTimer(DragTick, 15)
 }
 
@@ -3891,6 +3894,8 @@ DragTick() {
     cx := NumGet(cp, 0, "Int"), cy := NumGet(cp, 4, "Int")
     inside := (cx >= 0 && cy >= 0 && cx < NumGet(rc, 8, "Int") && cy < NumGet(rc, 12, "Int"))
     if inside {
+        if DragStart["lock"]                              ; dragging a selected row: the selection is locked, nothing else gets selected
+            return
         cur := LvHit(Max(cx, 1), cy)[1]
         if (cur < 1)                                     ; below the last row / above the first one
             cur := (cy > 0 && View.Length) ? View.Length : 1
