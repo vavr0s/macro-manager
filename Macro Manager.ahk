@@ -82,8 +82,8 @@ DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help 
 DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "b9"     ; bump when the embedded logo/icon change
-AppVersion := "1.14.1"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "b10"    ; bump when the embedded logo/icon change
+AppVersion := "1.14.2"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -92,7 +92,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.`n- The editor labels got a little more room for longer translations."
+ReleaseNotes := "BETA build - for testing.`n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.`n- The editor labels got a little more room for longer translations."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -101,6 +101,7 @@ Registered := []
 Populating := false
 DarkOn := false
 HoverHwnd := 0
+BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
 DragOut := false
 DragEnd := 0
@@ -156,7 +157,11 @@ try {
     swMaster.OnEvent("Click", OnMaster)
     swMaster.OnEvent("DoubleClick", OnMaster)
     bProf := AddBtn(Main, "x330 y27 w150 h28", ProfBtnText(), ProfileMenu, "btnbanner")
-    bLang := AddBtn(Main, "x490 y27 w96 h28", LangNames[Lang] "  ▾", LangMenu, "btnbanner")
+    bLang := AddBtn(Main, "x490 y27 w108 h28 Left", "            " LangNames[Lang] "  ▾", LangMenu, "btnbanner")
+    flB := Main.AddPicture("x498 y33 w24 h16", FlagFile(Lang))              ; flag of the current language
+    flB.OnEvent("Click", LangMenu)
+    Roles[flB.Hwnd] := "skip"
+    BtnAlias[flB.Hwnd] := bLang.Hwnd
     Main.SetFont("s13 bold", "Segoe UI")
     bHelp := AddBtn(Main, "x782 y14 w28 h28", "?", OpenHelp, "btnbanner")                 ; help on top, updates below (same size)
     bBadge := Main.AddPicture("x810 y12 w16 h16", BadgeMainFile)      ; yellow ! with glow beside the help icon: release notes not read yet
@@ -1738,7 +1743,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile)) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -1751,6 +1756,8 @@ EnsureAssets() {
             B64ToFile(BadgeLtB64(), BadgeLtFile)
             B64ToFile(DiscordB64(), DiscordFile)
             B64ToFile(DiscordHovB64(), DiscordHovFile)
+            for c in LangOrder
+                B64ToFile(FlagB64(c), FlagFile(c))
             WriteText(verFile, AssetVersion)
         }
     }
@@ -2639,6 +2646,8 @@ HoverTick() {
     global HoverHwnd
     h := 0
     try MouseGetPos(, , , &h, 2)
+    if (h && BtnAlias.Has(h))
+        h := BtnAlias[h]
     nh := (h && Roles.Has(h) && SubStr(Roles[h], 1, 3) = "btn") ? h : 0
     if (nh = HoverHwnd)
         return
@@ -3445,7 +3454,11 @@ LangMenu(*) {
     y := 1
     for code in LangOrder {
         cur := (code = Lang)
-        AddBtn(g, "x1 y" y " w" W " h32 Left", (cur ? "  ✓   " : "       ") LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn")
+        b := AddBtn(g, "x1 y" y " w" W " h32 Left", "             " LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn")
+        fl := g.AddPicture("x10 y" (y + 8) " w24 h16", FlagFile(code))
+        fl.OnEvent("Click", SetLang.Bind(code))
+        Roles[fl.Hwnd] := "skip"
+        BtnAlias[fl.Hwnd] := b.Hwnd
         y += 32
     }
     ApplyTheme(g)
@@ -4391,6 +4404,18 @@ WjzGobKZuJ8RoYcKIhiQtOgWQJrsJ/W3qb26S9naZVUCm/ZRvT4P1h04k7V8TkB/4t5ozUGTT8dtqejW
 21O6y0fiUr7wXO/ccTN0oPY2dd2/pyN/lprWU4OS23C5vRd+FvozdqdrDgRIWr2t9zfTVlgec5vhyP0tfx8V85Ed9vtdYLdndvm1UnrjEvUGcbbDHr+mUY62
 mvrv8/r9/wNv5WChYRKmeQAAAABJRU5ErkJggg==
 )"
+}
+
+FlagFile(c) => AssetsDir "\flag_" c ".png"
+
+FlagB64(c) {
+    if (c = "cs")
+        return "iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAABvElEQVR42s2YPUtCURjHz9vV640Sq6U1aKxJF1uajJaKIHAsyIaGgqClEoIa+gD1AQoJitZqCzJqKSP6AmJyFS2v2HX0nKfhQmGYL9fLPT6c+fDjx/P8n8PBkcgs6qViCKG0f/JwbWZhahwhxLmglMiimZ6eIwih3MfX4nZiaf+8YJiUEi4EAMhiIggh1cMGB7TTm1Q4dnx5+0YJwRhzLqQBCQAuxLC/r1iuRuNnywcXBaMqS9Vvu9S48Cos0O87uX4Ox45kqarr315Q1WCg5KpqPOESVTWLHCmqWmSg+6raCmU3VbW7JVxT1dnaaqYKwIHTKVBDVUXDpJQgjB041ra3UZYq1askrp7uXtN76/PRiREKwrq02+eHvRIArMbVoUDOqKZiG2HxbnV4V0SjYzaBKADHuKRowYoez94HTb0sqAMtbQ+IgTCp1wO1zezjaj7lgVqJ+ih1ZtaYTTGmvptJBk29wtQq8VBwLJBYV2IUjYGgjuYQ60YMA+eTmvWImLaA3BTTGshlMc2ApIj5F0iWmAZAcsX8BZIupg4IEP5UtJCp72SSIUli6oAIgq3sw0r+RaKYn8K99h3zDUdy4kUbCE0JAAAAAElFTkSuQmCC"
+    if (c = "pl")
+        return "iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAAV0lEQVR42mN0c/NjGEyAhYGBYefOjYPENe7u/kwMgwyMOmjUQaMOGnXQqINGHTTqIBo0P+6K2g4W5xgJjUbZqINGHTTqoFEHjTpo1EEjofmRZSQ0eBwEAHwWBkHb25DwAAAAAElFTkSuQmCC"
+    if (c = "de")
+        return "iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAAUUlEQVR42u3YQQ0AIAwEwStBCWL6xAcOUIkDvPBHwRF2FUxyjyaNzC6rrECZvcgsQIAAfQeqkraNZjAZIECAAL1xOtqy4UwmAwQIEKC7cHvHHMs0Bldf+x2dAAAAAElFTkSuQmCC"
+    return "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"
 }
 
 DiscordB64() {
