@@ -55,7 +55,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b9"     ; bump when the embedded logo/icon change
-AppVersion := "1.13.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.13.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -76,7 +76,7 @@ HoverHwnd := 0
 Recording := false
 DragOut := false
 DragEnd := 0
-DragStart := Map("row", 0, "x", 0, "y", 0, "last", "")
+DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
 TogReg := []           ; registered toggle hotkeys
 Profiles := ["Default"]
@@ -4039,6 +4039,9 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
     DllCall("GetCursorPos", "Ptr", pt)
     DragStart["x"] := NumGet(pt, 0, "Int"), DragStart["y"] := NumGet(pt, 4, "Int")
     DragStart["last"] := ""
+    ; pressing a row that is already selected (without Ctrl / Shift) = grab the selection: it stays as it is while dragging
+    DragStart["lock"] := (SendMessage(0x102C, hit[1] - 1, 0x0002, LV) & 0x0002) != 0       ; LVM_GETITEMSTATE, LVIS_SELECTED
+        && !GetKeyState("Ctrl", "P") && !GetKeyState("Shift", "P")
     SetTimer(DragTick, 15)
 }
 
@@ -4069,6 +4072,8 @@ DragTick() {
     cx := NumGet(cp, 0, "Int"), cy := NumGet(cp, 4, "Int")
     inside := (cx >= 0 && cy >= 0 && cx < NumGet(rc, 8, "Int") && cy < NumGet(rc, 12, "Int"))
     if inside {
+        if DragStart["lock"]                              ; dragging a selected row: the selection is locked, nothing else gets selected
+            return
         cur := LvHit(Max(cx, 1), cy)[1]
         if (cur < 1)                                     ; below the last row / above the first one
             cur := (cy > 0 && View.Length) ? View.Length : 1
