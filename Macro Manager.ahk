@@ -64,7 +64,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
+ReleaseNotes := "BETA build - for testing.`n- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.`n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile.`n- Dragging selected macros: once you grab a selected row, the selection stays as it is, so rows you drag over are no longer selected or deselected."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []

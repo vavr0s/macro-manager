@@ -1,6 +1,6 @@
 {
   "version": "1.13.3",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "e6ddcd4afc9c4ab638eaf4fd274d53e4961bd518a559fb8d8756018e9b0800b5",
-  "notes": "BETA build - for testing.\n- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.\n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile."
+  "sha256": "fc1020fa5db98d6239210be67ce84bf95870352826196181c81dfa19812c5900",
+  "notes": "BETA build - for testing.\n- When a macro belongs to several profiles and you save a change, the app now asks: apply the change to all of its profiles, or only to the current one.\n- Help window: a For support click here link with the Discord icon in the banner. It opens the author's Discord profile.\n- Dragging selected macros: once you grab a selected row, the selection stays as it is, so rows you drag over are no longer selected or deselected."
 }
