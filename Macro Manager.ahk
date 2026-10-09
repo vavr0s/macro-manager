@@ -13,6 +13,7 @@ Persistent
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+#HotIfTimeout 150      ; the keyboard hook waits at most this long for "only in app" checks (default 1000 ms stalls all keys)
 
 ; ============ language ============
 ; English text is the key: _T("English text") returns the translation when one exists, else the English text itself.
@@ -88,7 +89,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15.6"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.16.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -97,7 +98,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes.`n- New: Backup... (next to Uninstall) saves all macros, profiles, settings and script files into one file and restores them - for a new PC or a reinstall.`n- New: a search box above the list shows only the macros whose name, key or application contains the text."
+ReleaseNotes := "BETA build - for testing.`n- Fix: a repeating macro with very short (or 0 ms) delays could flood Windows with key presses, so the whole keyboard stopped responding for a while - even after the app was closed. One cycle of a repeated macro now takes at least 10 ms.`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro.`n- The keyboard no longer waits up to a second for the app when it is busy (only in app checks give up after 0.15 s)."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -111,6 +112,7 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+HeldKeys := Map()      ; keys a macro holds down right now
 MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
 Profiles := ["Default"]
@@ -263,6 +265,7 @@ OnMainClose(*) {
 }
 
 ExitHandler(*) {
+    ReleaseHeld()                                  ; keys a macro was holding when the app was closed
     for m, pid in Procs
         try ProcessClose(pid)
     try DirDelete(A_Temp "\MacroManager-drag", 1)
@@ -1149,25 +1152,28 @@ TplMove() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
+        t0 := A_TickCount
         n++
         key := acts[ai]
         if dirs.Length {
             dir := dirs[di]
             Send Down(dir)
-            Sleep g1
+            Sleep g1 > 0 ? g1 : -1
             Send Down(key)
-            Sleep g2
+            Sleep g2 > 0 ? g2 : -1
             Send Up(dir)
-            Sleep g3
+            Sleep g3 > 0 ? g3 : -1
             Send Up(key)
             di := di >= dirs.Length ? 1 : di + 1
         } else {
             Send Down(key)
-            Sleep g2
+            Sleep g2 > 0 ? g2 : -1
             Send Up(key)
         }
-        Sleep ge
+        Sleep ge > 0 ? ge : -1
         ai := ai >= acts.Length ? 1 : ai + 1
+        if (rep && A_TickCount - t0 < 10)
+            Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
     }
     for k in dirs
         Send Up(k)
@@ -1188,6 +1194,7 @@ TplSeq() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
+        t0 := A_TickCount
         for s in steps {
             if (rep && !Active()) {
                 stop := true
@@ -1199,10 +1206,12 @@ TplSeq() {
                 Send Up(s[2])
             else
                 Send Down(s[2]) Up(s[2])
-            Sleep s[3]
+            Sleep s[3] > 0 ? s[3] : -1
         }
         if (!rep)
             stop := true
+        else if (!stop && A_TickCount - t0 < 10)
+            Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
     }
     for s in steps
         Send Up(s[2])
@@ -1859,7 +1868,41 @@ UpStr(parts) {
 
 ReleaseAll(arr) {
     for parts in arr
-        Send UpStr(parts)
+        KeyUp(parts)
+}
+
+; keys the macros are holding down right now (HeldKeys, released when the app exits in the middle of a macro)
+KeyDown(parts) {
+    Send DownStr(parts)
+    for k in parts
+        HeldKeys[k] := true
+}
+KeyUp(parts) {
+    Send UpStr(parts)
+    for k in parts
+        if HeldKeys.Has(k)
+            HeldKeys.Delete(k)
+}
+ReleaseHeld() {
+    for k in HeldKeys.Clone()
+        try Send "{" k " up}"
+    HeldKeys.Clear()
+}
+
+; a pause between steps: 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait)
+StepWait(ms) {
+    if (ms > 0)
+        Sleep ms
+    else
+        Sleep -1
+}
+
+; repeated macros: one cycle takes at least this long, so a macro with 0 ms delays can't flood
+; Windows with thousands of key events per second (that blocks the whole keyboard, even after the app is closed)
+CycleFloor(t0) {
+    rest := 10 - (A_TickCount - t0)
+    if (rest > 0)
+        Sleep rest
 }
 
 ; ============ type: move + actions ============
@@ -1880,25 +1923,28 @@ RunMove2(m, trig) {
     di := 1, ai := 1, n := 0
     rep := m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
+        t0 := A_TickCount
         n++
         key := acts[ai]
         if dirs.Length {
             dir := dirs[di]
-            Send DownStr(dir)      ; 1. direction down (all keys of a chord together)
-            Sleep g1
-            Send DownStr(key)      ; 2. action down
-            Sleep g2
-            Send UpStr(dir)        ; 3. direction up
-            Sleep g3
-            Send UpStr(key)        ; 4. action up
+            KeyDown(dir)      ; 1. direction down (all keys of a chord together)
+            StepWait(g1)
+            KeyDown(key)      ; 2. action down
+            StepWait(g2)
+            KeyUp(dir)        ; 3. direction up
+            StepWait(g3)
+            KeyUp(key)        ; 4. action up
             di := di >= dirs.Length ? 1 : di + 1
         } else {                   ; no movement: action only
-            Send DownStr(key)
-            Sleep g2
-            Send UpStr(key)
+            KeyDown(key)
+            StepWait(g2)
+            KeyUp(key)
         }
-        Sleep ge
+        StepWait(ge)
         ai := ai >= acts.Length ? 1 : ai + 1
+        if rep
+            CycleFloor(t0)
     }
     ReleaseAll(dirs)
     ReleaseAll(acts)
@@ -1931,21 +1977,26 @@ RunSeq2(m, trig) {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
+        t0 := A_TickCount
         for s in steps {
             if (rep && !Active(m, trig)) {
                 stop := true
                 break
             }
             if (s[1] = "down")
-                Send DownStr(s[2])
+                KeyDown(s[2])
             else if (s[1] = "up")
-                Send UpStr(s[2])
-            else
-                Send DownStr(s[2]) UpStr(s[2])
-            Sleep s[3]
+                KeyUp(s[2])
+            else {
+                KeyDown(s[2])
+                KeyUp(s[2])
+            }
+            StepWait(s[3])
         }
         if !rep
             stop := true
+        else if !stop
+            CycleFloor(t0)
     }
     ReleaseAll(used)
     DllCall("winmm\timeEndPeriod", "UInt", 1)

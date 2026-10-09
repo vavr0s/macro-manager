@@ -58,7 +58,41 @@ UpStr(parts) {
 
 ReleaseAll(arr) {
     for parts in arr
-        Send UpStr(parts)
+        KeyUp(parts)
+}
+
+; keys the macros are holding down right now (HeldKeys, released when the app exits in the middle of a macro)
+KeyDown(parts) {
+    Send DownStr(parts)
+    for k in parts
+        HeldKeys[k] := true
+}
+KeyUp(parts) {
+    Send UpStr(parts)
+    for k in parts
+        if HeldKeys.Has(k)
+            HeldKeys.Delete(k)
+}
+ReleaseHeld() {
+    for k in HeldKeys.Clone()
+        try Send "{" k " up}"
+    HeldKeys.Clear()
+}
+
+; a pause between steps: 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait)
+StepWait(ms) {
+    if (ms > 0)
+        Sleep ms
+    else
+        Sleep -1
+}
+
+; repeated macros: one cycle takes at least this long, so a macro with 0 ms delays can't flood
+; Windows with thousands of key events per second (that blocks the whole keyboard, even after the app is closed)
+CycleFloor(t0) {
+    rest := 10 - (A_TickCount - t0)
+    if (rest > 0)
+        Sleep rest
 }
 
 ; ============ type: move + actions ============
@@ -79,25 +113,28 @@ RunMove2(m, trig) {
     di := 1, ai := 1, n := 0
     rep := m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
+        t0 := A_TickCount
         n++
         key := acts[ai]
         if dirs.Length {
             dir := dirs[di]
-            Send DownStr(dir)      ; 1. direction down (all keys of a chord together)
-            Sleep g1
-            Send DownStr(key)      ; 2. action down
-            Sleep g2
-            Send UpStr(dir)        ; 3. direction up
-            Sleep g3
-            Send UpStr(key)        ; 4. action up
+            KeyDown(dir)      ; 1. direction down (all keys of a chord together)
+            StepWait(g1)
+            KeyDown(key)      ; 2. action down
+            StepWait(g2)
+            KeyUp(dir)        ; 3. direction up
+            StepWait(g3)
+            KeyUp(key)        ; 4. action up
             di := di >= dirs.Length ? 1 : di + 1
         } else {                   ; no movement: action only
-            Send DownStr(key)
-            Sleep g2
-            Send UpStr(key)
+            KeyDown(key)
+            StepWait(g2)
+            KeyUp(key)
         }
-        Sleep ge
+        StepWait(ge)
         ai := ai >= acts.Length ? 1 : ai + 1
+        if rep
+            CycleFloor(t0)
     }
     ReleaseAll(dirs)
     ReleaseAll(acts)
@@ -130,21 +167,26 @@ RunSeq2(m, trig) {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
+        t0 := A_TickCount
         for s in steps {
             if (rep && !Active(m, trig)) {
                 stop := true
                 break
             }
             if (s[1] = "down")
-                Send DownStr(s[2])
+                KeyDown(s[2])
             else if (s[1] = "up")
-                Send UpStr(s[2])
-            else
-                Send DownStr(s[2]) UpStr(s[2])
-            Sleep s[3]
+                KeyUp(s[2])
+            else {
+                KeyDown(s[2])
+                KeyUp(s[2])
+            }
+            StepWait(s[3])
         }
         if !rep
             stop := true
+        else if !stop
+            CycleFloor(t0)
     }
     ReleaseAll(used)
     DllCall("winmm\timeEndPeriod", "UInt", 1)

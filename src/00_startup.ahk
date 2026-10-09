@@ -12,6 +12,7 @@ Persistent
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+#HotIfTimeout 150      ; the keyboard hook waits at most this long for "only in app" checks (default 1000 ms stalls all keys)
 
 ; ============ language ============
 ; English text is the key: _T("English text") returns the translation when one exists, else the English text itself.
@@ -87,7 +88,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.14"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -96,7 +97,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes.`n- New: Backup... (next to Uninstall) saves all macros, profiles, settings and script files into one file and restores them - for a new PC or a reinstall.`n- New: a search box above the list shows only the macros whose name, key or application contains the text."
+ReleaseNotes := "- Fix: a repeating macro with very short (or 0 ms) delays could flood Windows with key presses, so the whole keyboard stopped responding for a while - even after the app was closed. One cycle of a repeated macro now takes at least 10 ms.`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro.`n- The keyboard no longer waits up to a second for the app when it is busy (only in app checks give up after 0.15 s)."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -110,6 +111,7 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+HeldKeys := Map()      ; keys a macro holds down right now
 MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
 Profiles := ["Default"]
