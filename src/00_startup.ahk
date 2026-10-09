@@ -88,7 +88,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.16"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -97,7 +97,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Fix: while a repeating macro was held (above all in a game), the whole keyboard could stop responding for a while - even after the app was closed. The keyboard no longer has to wait for the app when you press a trigger key, and a repeated macro can no longer flood Windows with key presses (one cycle now takes at least 10 ms).`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro."
+ReleaseNotes := "- Minor performance fixes"
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
