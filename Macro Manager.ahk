@@ -83,7 +83,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15.2"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -92,7 +92,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates."
+ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -262,7 +262,13 @@ ExitHandler(*) {
 OnCheck(ctrl, item, checked) {
     if Populating
         return
-    View[item]["enabled"] := checked ? 1 : 0
+    m := View[item]
+    if (checked && NeedsTrust(m)) {             ; imported script: ask first (after this handler has returned)
+        LV.Modify(item, "-Check")
+        SetTimer(TrustAndEnable.Bind(m), -10)
+        return
+    }
+    m["enabled"] := checked ? 1 : 0
     Save()
     Apply()
 }
@@ -392,6 +398,10 @@ ToggleMaster(*) {
 }
 
 ToggleMacro(m, *) {
+    if (!m["enabled"] && NeedsTrust(m)) {
+        TrustAndEnable(m)
+        return
+    }
     m["enabled"] := m["enabled"] ? 0 : 1
     Save()
     Apply()
@@ -666,6 +676,7 @@ ImportOne(path) {
             && Mb(_T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"), "Macro Manager", "YesNo 48") != "Yes")
             return false
         m["type"] := "script"
+        m["trusted"] := 0                           ; someone else's code: asked before it runs for the first time
         m["file"] := NewScriptFile()
         WriteText(ScriptPath(m), text)
         m["hotkey"] := DetectKey(text)
@@ -1329,6 +1340,7 @@ EditMacro(idx) {
             WriteText(ScriptPath(m), txt)
             m["hotkey"] := DetectKey(txt)
             m["type"] := "script"
+            m["trusted"] := 1                       ; written / pasted here, the code was in front of the user
         } else {
             key := Trim(st["key"])
             if (key = "") {
@@ -1379,7 +1391,7 @@ Num(v) => IsInteger(v) ? Integer(v) : 0
 Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
-        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "")
+        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1)
 }
 
 Load() {
@@ -1412,7 +1424,7 @@ Load() {
         m := Defaults()
         for k, v in Defaults()
             m[k] := IniRead(IniFile, s, k, v)
-        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat"]
+        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted"]
             m[k] := Num(m[k])
         m["file"] := RegExReplace(m["file"], "^.*\\", "")   ; keep only the file name
         if (Trim(m["profiles"]) = "")
@@ -1510,12 +1522,106 @@ RegToggle(key, fn) {
 SyncScript(m) {
     if (Procs.Has(m) && !ProcessExist(Procs[m]))
         Procs.Delete(m)
-    want := MasterOn && m["enabled"] && InProfile(m)
+    want := MasterOn && m["enabled"] && InProfile(m) && !NeedsTrust(m)
     running := Procs.Has(m)
     if (want && !running)
         StartScript(m)
     else if (!want && running)
         StopScript(m)
+}
+
+; ============ imported scripts: ask before they run for the first time ============
+; a script macro runs as its own process with the rights of this app (administrator), so it can do anything on the PC
+NeedsTrust(m) => (m["type"] = "script" && !m["trusted"])
+
+TrustAndEnable(m) {
+    if !IndexOf(m)
+        return
+    code := ""
+    if (m["file"] != "" && FileExist(ScriptPath(m)))
+        try code := FileRead(ScriptPath(m), "UTF-8")
+    r := ConfirmScript(m["name"], code)
+    if (r = "code") {
+        Main.Show()
+        for i, v in View
+            if (v == m)
+                return EditMacro(i)
+        return
+    }
+    if (r != "on")
+        return
+    m["trusted"] := 1
+    m["enabled"] := 1
+    Save()
+    Apply()
+    Refresh()
+}
+
+; what the code can do, in plain words (a quick look for the usual commands, not a real security check)
+ScriptRisks(code) {
+    code := RegExReplace(code, "s)/\*.*?\*/", "")            ; block comments
+    code := RegExReplace(code, "m)(^|\s);.*$", "")             ; line comments
+    checks := [
+        ["\b(Run|RunWait|ShellExecute)\b", _T("starts other programs or commands")],
+        ["\b(Download|URLDownloadToFile|WinHttp|XMLHTTP)\b|https?://", _T("connects to the internet or downloads files")],
+        ["\b(FileDelete|DirDelete|FileRecycle|FileRecycleEmpty)\b", _T("deletes files or folders")],
+        ["\b(FileAppend|FileOpen|FileCopy|FileMove|DirCopy|DirMove|FileSetAttrib)\b", _T("writes, copies or moves files")],
+        ["\b(RegWrite|RegDelete|RegDeleteKey)\b", _T("changes the Windows registry")],
+        ["\b(DllCall|ComObject|ComObjCreate|ComObjGet|ComCall)\b", _T("calls Windows functions directly")],
+        ["\b(InputHook|ClipboardAll|A_Clipboard|Clipboard)\b", _T("reads what you type or the clipboard")],
+        ["\b(ProcessClose|Shutdown|WinKill)\b", _T("closes programs or shuts the PC down")],
+        ["#Include\b", _T("loads code from other files")],
+        ["%\s*\w+\s*%\s*\(|%\s*[`"']", _T("calls commands by a computed name (can hide what it does)")]
+    ]
+    out := []
+    for c in checks
+        if RegExMatch(code, "i)" c[1])
+            out.Push(c[2])
+    return out
+}
+
+; themed dialog: "on" (turn it on), "code" (show the code in the editor) or "" (cancel)
+ConfirmScript(name, code) {
+    res := "", done := false
+    risks := ScriptRisks(code)
+    owner := (DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0)
+    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", _T("Imported script"))
+    g.SetFont("s10 bold", "Segoe UI")
+    g.AddText("x16 y14 w468", _T("Turn on `"{1}`"?", name))
+    g.SetFont("s9 norm", "Segoe UI")
+    g.AddText("x16 y+8 w468", _T("This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."))
+    if risks.Length {
+        g.SetFont("s9 bold", "Segoe UI")
+        g.AddText("x16 y+12 w468", _T("Found in the code - the script:"))
+        g.SetFont("s9 norm", "Segoe UI")
+        for x in risks
+            g.AddText("x28 y+4 w456", Chr(0x2022) "  " x)
+    } else
+        AddHint(g, "x16 y+12 w468", _T("No risky commands were found. This is only a quick check, not a guarantee."))
+    btnY := 0
+    g.AddText("x16 y+16 w1 h1").GetPos(, &btnY)                ; buttons go below the last line
+    DoOn(*) {
+        res := "on"
+        Close()
+    }
+    DoCode(*) {
+        res := "code"
+        Close()
+    }
+    Close(*) {
+        done := true
+        g.Destroy()
+    }
+    AddBtn(g, "x16 y" btnY " w140 h32", _T("Show the code"), DoCode)
+    AddBtn(g, "x254 y" btnY " w120 h32", _T("Turn on"), DoOn, "btndanger")
+    AddBtn(g, "x384 y" btnY " w100 h32", _T("Cancel"), Close, "btnprimary")
+    g.OnEvent("Close", Close)
+    g.OnEvent("Escape", Close)
+    ApplyTheme(g)
+    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
+    while !done
+        Sleep 50
+    return res
 }
 
 StartScript(m) {
@@ -4072,7 +4178,7 @@ HelpTopics() {
     order.Push("Sequence")
     t["Sequence"] := _TL("hlp_seq", "A free list of steps. Write one step per line:`n`n  down KEY PAUSE   - press and hold the key`n  up KEY PAUSE     - release the key`n  tap KEY PAUSE    - press and release at once`n`nPAUSE is the wait after the step in milliseconds (empty = 0).`n`nExample - quick A / D change:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nExample - attack and spells:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nExample - two keys together:`n  tap Shift+4 50`n`nWith Run = Repeat the lines play in a loop while the trigger key is held; with Once they play one time.`nKeys that are still held when you release the trigger are released automatically.")
     order.Push("Script (.ahk)")
-    t["Script (.ahk)"] := _TL("hlp_script", "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.`n`n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.`n- It must be AutoHotkey v2 code (v1 scripts will not work).`n- Trigger key and application filter are not used, your script does that itself.`n- Imported .ahk files that were not made by Macro Manager become Script macros.")
+    t["Script (.ahk)"] := _TL("hlp_script", "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.`n`n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.`n- It must be AutoHotkey v2 code (v1 scripts will not work).`n- Trigger key and application filter are not used, your script does that itself.`n- Imported .ahk files that were not made by Macro Manager become Script macros.`n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.")
     order.Push("Keys and recording")
     t["Keys and recording"] := _TL("hlp_keys", "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.`n`nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.`nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.`n`nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.`n`nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).`nThe same works by typing it in the fields: a,Shift+4,d")
     order.Push("Profiles")
@@ -4973,7 +5079,7 @@ TrCs() {
     m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě).`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
-    m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil Macro Manager, se stanou skriptovými makry."
+    m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil Macro Manager, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
     m["hlp_keys"] := "Názvy kláves odpovídají názvům v AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlávesu lze zapsat i jako scan kód, například sc002 - jde o fyzickou klávesu bez ohledu na rozložení. Klávesy jako čárka, plus, & a | se takto ukládají automaticky.`n`nMyš: spouštěcí klávesa, přepínač i klávesa Všechna makra může být také tlačítko myši: RButton, MButton (klik kolečkem), XButton1 / XButton2 (dvě boční tlačítka) nebo samotné kolečko (WheelUp / WheelDown / WheelLeft / WheelRight). Kolečko nelze držet, proto se makra na kolečku vždy přehrají jednou. Levé tlačítko se nenabízí.`nHerní / MMO myši: Windows zná jen pět tlačítek myši, další boční tlačítka obsluhuje software myši (G HUB, Synapse, iCUE, ...). Nastav jim tam klávesy, nejlépe F13 - F24 (nebo Ctrl+Alt+číslo); Macro Manager je pak vidí jako obyčejné klávesy, takže klikni do pole spouštěcí klávesy a stiskni boční tlačítko.`n`nNahrát (vedle Směrů a Akcí): stiskni Nahrát, mačkej klávesy v požadovaném pořadí a pak stiskni Hotovo. Pole se plní průběžně. Během nahrávání jsou makra pozastavená.`n`nKlávesy současně: klávesy, které držíš zároveň, se uloží jako jeden krok spojený pomocí +, například Shift+4. Při přehrávání se všechny stisknou společně a společně se i uvolní (ne nejdřív Shift a pak 4).`nStejně to funguje i při psaní do polí: a,Shift+4,d"
     m["hlp_profiles"] := "Profily udržují různé sady maker odděleně (například jeden na hru).`n`n- Tlačítko profilu v horní liště ukazuje aktuální profil. Kliknutím přepneš profil nebo vytvoříš / přejmenuješ / smažeš profil.`n- Seznam ukazuje jen makra aktuálního profilu a jen ta jsou aktivní.`n- V editoru můžeš v Profily vybrat pro makro jeden nebo více profilů. Když změníš makro, které patří do více profilů, aplikace se zeptá: použít změnu ve všech, nebo jen v aktuálním profilu (ostatní profily si ponechají starou verzi).`n- Zaškrtnutí makra je ve všech profilech stejné; přepnutím profilu se jen mění, která makra jsou ve hře.`n- Smazáním profilu se makra, která patřila jen jemu, přesunou do prvního zbývajícího profilu."
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
@@ -4994,6 +5100,23 @@ TrCs() {
     m["Order, export, backup"] := "Pořadí, export, záloha"
     m["Tips and problems"] := "Tipy a problémy"
     m["Saving the settings failed: {1}"] := "Uložení nastavení se nezdařilo: {1}"
+    m["starts other programs or commands"] := "spouští jiné programy nebo příkazy"
+    m["connects to the internet or downloads files"] := "připojuje se k internetu nebo stahuje soubory"
+    m["deletes files or folders"] := "maže soubory nebo složky"
+    m["writes, copies or moves files"] := "zapisuje, kopíruje nebo přesouvá soubory"
+    m["changes the Windows registry"] := "mění registr Windows"
+    m["calls Windows functions directly"] := "volá funkce Windows napřímo"
+    m["reads what you type or the clipboard"] := "čte, co píšeš, nebo schránku"
+    m["closes programs or shuts the PC down"] := "zavírá programy nebo vypíná počítač"
+    m["loads code from other files"] := "načítá kód z jiných souborů"
+    m["calls commands by a computed name (can hide what it does)"] := "volá příkazy podle vypočteného názvu (může skrývat, co dělá)"
+    m["Imported script"] := "Importovaný skript"
+    m["Turn on `"{1}`"?"] := "Zapnout „{1}“?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Tento skript byl importován. Běží s právy správce, takže může na tomto počítači udělat cokoli. Zapni ho, jen pokud věříš tomu, od koho pochází."
+    m["Found in the code - the script:"] := "Nalezeno v kódu – skript:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka."
+    m["Show the code"] := "Zobrazit kód"
+    m["Turn on"] := "Zapnout"
     return m
 }
 TrPl() {
@@ -5133,7 +5256,7 @@ TrPl() {
     m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast).`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
-    m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez Macro Manager, stają się makrami skryptowymi."
+    m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez Macro Manager, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
     m["hlp_keys"] := "Nazwy klawiszy to nazwy z AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlawisz można też zapisać jako kod skanowania, na przykład sc002 - to fizyczny klawisz, niezależnie od układu. Klawisze takie jak przecinek, plus, & i | są zapisywane w ten sposób automatycznie.`n`nMysz: klawisz wyzwalający, przełącznik i klawisz Wszystkie makra mogą być też przyciskiem myszy: RButton, MButton (kliknięcie kółkiem), XButton1 / XButton2 (dwa przyciski boczne) lub samo kółko (WheelUp / WheelDown / WheelLeft / WheelRight). Kółko nie ma przytrzymania, więc makra na kółku zawsze odtwarzają się raz. Lewy przycisk nie jest dostępny.`nMyszy dla graczy / MMO: Windows zna tylko pięć przycisków myszy, dodatkowymi przyciskami bocznymi zajmuje się oprogramowanie myszy (G HUB, Synapse, iCUE, ...). Ustaw je tam na klawisze, najlepiej F13 - F24 (lub Ctrl+Alt+cyfra); Macro Manager widzi je wtedy jako zwykłe klawisze, więc kliknij pole klawisza wyzwalającego i naciśnij przycisk boczny.`n`nNagraj (obok Kierunków i Akcji): naciśnij Nagraj, naciskaj klawisze w żądanej kolejności, potem naciśnij Gotowe. Pole wypełnia się na żywo. Podczas nagrywania makra są wstrzymane.`n`nKlawisze jednocześnie: klawisze trzymane razem są zapisywane jako jeden krok połączony znakiem +, na przykład Shift+4. Przy odtwarzaniu makra wszystkie idą w dół razem i są puszczane razem (nie najpierw Shift, a potem 4).`nTo samo działa przy wpisywaniu w polach: a,Shift+4,d"
     m["hlp_profiles"] := "Profile oddzielają od siebie różne zestawy makr (na przykład jeden na grę).`n`n- Przycisk profilu w nagłówku pokazuje bieżący profil. Kliknij go, aby przełączyć profil albo utworzyć / zmienić nazwę / usunąć profil.`n- Lista pokazuje tylko makra bieżącego profilu i tylko one są aktywne.`n- W edytorze Profile pozwalają wybrać jeden lub kilka profili dla makra. Gdy zmieniasz makro należące do kilku profili, aplikacja pyta: zastosować zmianę we wszystkich, czy tylko w bieżącym profilu (pozostałe profile zachowają starą wersję).`n- Stan zaznaczenia makra jest taki sam w każdym profilu; zmiana profilu zmienia tylko to, które makra są w grze.`n- Usunięcie profilu przenosi makra, które należały tylko do niego, do pierwszego pozostałego profilu."
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
@@ -5154,6 +5277,23 @@ TrPl() {
     m["Order, export, backup"] := "Kolejność i eksport"
     m["Tips and problems"] := "Wskazówki i problemy"
     m["Saving the settings failed: {1}"] := "Nie udało się zapisać ustawień: {1}"
+    m["starts other programs or commands"] := "uruchamia inne programy lub polecenia"
+    m["connects to the internet or downloads files"] := "łączy się z internetem lub pobiera pliki"
+    m["deletes files or folders"] := "usuwa pliki lub foldery"
+    m["writes, copies or moves files"] := "zapisuje, kopiuje lub przenosi pliki"
+    m["changes the Windows registry"] := "zmienia rejestr Windows"
+    m["calls Windows functions directly"] := "wywołuje funkcje Windows bezpośrednio"
+    m["reads what you type or the clipboard"] := "odczytuje to, co piszesz, lub schowek"
+    m["closes programs or shuts the PC down"] := "zamyka programy lub wyłącza komputer"
+    m["loads code from other files"] := "wczytuje kod z innych plików"
+    m["calls commands by a computed name (can hide what it does)"] := "wywołuje polecenia przez wyliczoną nazwę (może ukrywać, co robi)"
+    m["Imported script"] := "Zaimportowany skrypt"
+    m["Turn on `"{1}`"?"] := "Włączyć „{1}”?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Ten skrypt został zaimportowany. Działa z uprawnieniami administratora, więc może zrobić na tym komputerze wszystko. Włącz go tylko wtedy, gdy ufasz osobie, od której pochodzi."
+    m["Found in the code - the script:"] := "Znaleziono w kodzie – skrypt:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nie znaleziono ryzykownych poleceń. To tylko szybkie sprawdzenie, a nie gwarancja."
+    m["Show the code"] := "Pokaż kod"
+    m["Turn on"] := "Włącz"
     return m
 }
 TrDe() {
@@ -5293,7 +5433,7 @@ TrDe() {
     m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort).`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
     m["hlp_move"] := "Gedacht für Spiele, in denen du dich ständig bewegst (zum Beispiel A und D) und dazwischen Zauber wirkst.`n`nRichtungen - die Bewegungstasten in Reihenfolge, zum Beispiel: a,d`nAktionen in Folge - die zu drückenden Tasten, eine pro Zyklus, zum Beispiel: 1,2,1,F7,1,F8`n`nJeder Zyklus läuft so ab, mit den eingestellten Verzögerungen:`n  1. Richtung runter`n  2. (Verzögerung 1) Aktion runter`n  3. (Verzögerung 2) Richtung hoch`n  4. (Verzögerung 3) Aktion hoch`n  5. (Verzögerung 4) Pause, dann die nächste Richtung + nächste Aktion`n`nDie Listen beginnen am Ende wieder von vorn. Wenn Richtungen leer ist, werden nur die Aktionen gedrückt: Haltezeit = Verzögerung 2, Pause = Verzögerung 4.`nWenn ein Spiel das Makro ignoriert, erhöhe die Verzögerungen (20-30 ms sind üblich)."
     m["hlp_seq"] := "Eine freie Liste von Schritten. Schreibe einen Schritt pro Zeile:`n`n  down KEY PAUSE   - Taste drücken und halten`n  up KEY PAUSE     - Taste loslassen`n  tap KEY PAUSE    - sofort drücken und loslassen`n`nPAUSE ist die Wartezeit nach dem Schritt in Millisekunden (leer = 0).`n`nBeispiel - schneller A / D-Wechsel:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nBeispiel - Angriff und Zauber:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nBeispiel - zwei Tasten zusammen:`n  tap Shift+4 50`n`nBei Ausführung = Wiederholen laufen die Zeilen in einer Schleife, solange die Auslösetaste gehalten wird; bei Einmal werden sie einmal abgespielt.`nTasten, die beim Loslassen der Auslösetaste noch gehalten werden, werden automatisch losgelassen."
-    m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von Macro Manager erstellt wurden, werden zu Skript-Makros."
+    m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von Macro Manager erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
     m["hlp_keys"] := "Tastennamen sind die AutoHotkey-Namen: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nEine Taste kann auch als Scancode geschrieben werden, zum Beispiel sc002 - das ist die physische Taste, unabhängig vom Layout. Tasten wie Komma, Plus, & und | werden automatisch so gespeichert.`n`nMaus: Auslöse-, Ein/Aus-Taste und die Taste für Alle Makros können auch eine Maustaste sein: RButton, MButton (Radklick), XButton1 / XButton2 (die zwei Seitentasten) oder das Rad selbst (WheelUp / WheelDown / WheelLeft / WheelRight). Ein Rad kann nicht gehalten werden, daher laufen Rad-Makros immer nur einmal. Die linke Taste steht nicht zur Auswahl.`nGaming- / MMO-Mäuse: Windows kennt nur fünf Maustasten, die zusätzlichen Seitentasten werden von der Maussoftware (G HUB, Synapse, iCUE, ...) verwaltet. Belege sie dort mit Tasten, am besten F13 - F24 (oder Ctrl+Alt+Zahl); Macro Manager sieht sie dann als normale Tasten, klicke also in das Feld Auslösetaste und drücke die Seitentaste.`n`nAufnehmen (neben Richtungen und Aktionen): Drücke Aufnehmen, drücke die Tasten in der gewünschten Reihenfolge und dann Fertig. Das Feld füllt sich live. Makros sind während der Aufnahme pausiert.`n`nTasten gleichzeitig: Tasten, die du zusammen hältst, werden als ein Schritt gespeichert und mit + verbunden, zum Beispiel Shift+4. Beim Abspielen gehen alle zusammen runter und werden zusammen losgelassen (nicht erst Shift und danach 4).`nDasselbe funktioniert durch Eintippen in die Felder: a,Shift+4,d"
     m["hlp_profiles"] := "Profile halten verschiedene Makro-Sets getrennt (zum Beispiel eines pro Spiel).`n`n- Die Profilschaltfläche in der Kopfzeile zeigt das aktuelle Profil. Klicke darauf, um zu wechseln oder ein Profil anzulegen / umzubenennen / zu löschen.`n- Die Liste zeigt nur die Makros des aktuellen Profils, und nur diese sind aktiv.`n- Im Editor kannst du unter Profile ein oder mehrere Profile für das Makro wählen. Wenn du ein Makro änderst, das zu mehreren Profilen gehört, fragt die App: Änderung auf alle anwenden oder nur auf das aktuelle Profil (die anderen Profile behalten die alte Version).`n- Der Haken-Status eines Makros bleibt in jedem Profil gleich; ein Profilwechsel ändert nur, welche Makros im Spiel sind.`n- Beim Löschen eines Profils werden Makros, die nur dazu gehörten, in das erste verbleibende Profil verschoben."
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
@@ -5314,6 +5454,23 @@ TrDe() {
     m["Order, export, backup"] := "Ordnung, Export, Backup"
     m["Tips and problems"] := "Tipps und Probleme"
     m["Saving the settings failed: {1}"] := "Speichern der Einstellungen fehlgeschlagen: {1}"
+    m["starts other programs or commands"] := "startet andere Programme oder Befehle"
+    m["connects to the internet or downloads files"] := "verbindet sich mit dem Internet oder lädt Dateien herunter"
+    m["deletes files or folders"] := "löscht Dateien oder Ordner"
+    m["writes, copies or moves files"] := "schreibt, kopiert oder verschiebt Dateien"
+    m["changes the Windows registry"] := "ändert die Windows-Registrierung"
+    m["calls Windows functions directly"] := "ruft Windows-Funktionen direkt auf"
+    m["reads what you type or the clipboard"] := "liest, was du tippst, oder die Zwischenablage"
+    m["closes programs or shuts the PC down"] := "schließt Programme oder fährt den PC herunter"
+    m["loads code from other files"] := "lädt Code aus anderen Dateien"
+    m["calls commands by a computed name (can hide what it does)"] := "ruft Befehle über einen berechneten Namen auf (kann verbergen, was es tut)"
+    m["Imported script"] := "Importiertes Skript"
+    m["Turn on `"{1}`"?"] := "„{1}“ einschalten?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Dieses Skript wurde importiert. Es läuft mit Administratorrechten und kann daher auf diesem PC alles tun. Schalte es nur ein, wenn du der Person vertraust, von der es stammt."
+    m["Found in the code - the script:"] := "Im Code gefunden – das Skript:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie."
+    m["Show the code"] := "Code anzeigen"
+    m["Turn on"] := "Einschalten"
     return m
 }
 ; ===== END TRANSLATIONS =====

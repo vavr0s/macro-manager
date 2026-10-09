@@ -1,6 +1,6 @@
 {
-  "version": "1.15.1",
+  "version": "1.15.2",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "27349452386714ceaa7bc97da8a6a90b715622dcd3ed1d6db007301495f2d38f",
-  "notes": "BETA build - for testing.\n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.\n- Checking for updates no longer pauses a macro that is running.\n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\\macros.ini.bak).\n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates."
+  "sha256": "3dfe7bca1eecf9229b522ed06181252382fe2d38b3451580a508491b832aeebe",
+  "notes": "BETA build - for testing.\n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.\n- Checking for updates no longer pauses a macro that is running.\n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\\macros.ini.bak).\n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.\n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected."
 }
