@@ -232,14 +232,20 @@ SortCmp(a, b, asc) {
 
 TypeLabel(t) => t = "move" ? _T("Move + actions") : (t = "seq" ? _T("Sequence") : _T("Script (.ahk)"))
 
+ClearSearch() {
+    eSearch.Value := ""
+    Refresh()
+}
+
 Refresh() {
     global Populating
     Populating := true
     LV.Delete()
     global View
     View := []
+    q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
     for m in Macros
-        if InProfile(m)
+        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
         LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))

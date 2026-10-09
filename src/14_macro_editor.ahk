@@ -179,8 +179,11 @@ EditMacro(idx) {
         m["name"] := nm = "" ? "Macro" : nm
         m["profiles"] := pv["v"] = "" ? CurProfile : pv["v"]
         m["tkey"] := st["tkey"]
-        if isNew
+        if isNew {
             Macros.Push(m)
+            if (eSearch.Value != "")
+                eSearch.Value := ""               ; the new macro must be visible
+        }
         g.Destroy()
         Save()
         Apply()

@@ -13,11 +13,17 @@
   ],
   "max_chars": 15
  },
+ "Search (name, key or application)": {
+  "en": "Search (name, key or application)",
+  "ctx": [
+   "SendMessage(0x1501, 1, StrPtr(_T(\"Search (name, key or application)\")), eSearch)     ; EM_SETCUEBANNER: grey hint text"
+  ]
+ },
  "Name": {
   "en": "Name",
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
    "g.AddText(\"x10 y100 w136 +0x200 h26\", _T(\"Name\"))"
   ],
   "max_chars": 21
@@ -26,14 +32,14 @@
   "en": "Key",
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])"
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])"
   ]
  },
  "Application": {
   "en": "Application",
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
    "lv := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
   ]
  },
@@ -41,7 +47,7 @@
   "en": "Type",
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
    "g.AddText(\"x10 y208 w136 +0x200 h26\", _T(\"Type\"))"
   ],
   "max_chars": 21
@@ -122,7 +128,13 @@
  "Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit).": {
   "en": "Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit).",
   "ctx": [
-   "AddHint(Main, \"x10 y+16 w700\", _T(\"Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; dr"
+   "AddHint(Main, \"x10 y+16 w620\", _T(\"Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; dr"
+  ]
+ },
+ "Backup...": {
+  "en": "Backup...",
+  "ctx": [
+   "bBackup := AddBtn(Main, \"x645 yp w90 h28\", _T(\"Backup...\"), OnBackupBtn, \"btnghost\")"
   ]
  },
  "Uninstall": {
@@ -193,7 +205,9 @@
    "AddBtn(p, \"x216 y\" (y + 10) \" w90 h32\", _T(\"Cancel\"), Close)",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Browse for the .exe\"), \"browse\", \"btn\"], [_T(\"Running applications\"), \"list\", \"btnprimary\"]], false)",
    "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)",
-   "AddBtn(g, \"x284 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)"
+   "AddBtn(g, \"x284 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)",
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)",
+   ", [[_T(\"Restore\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")"
   ],
   "max_chars": 13
  },
@@ -1107,7 +1121,7 @@
   ]
  },
  "hlp_start": {
-  "en": "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.\n\n- Tick a macro in the list to turn it on, untick to turn it off.\n- The switch All macros in the banner turns every macro on or off at once.\n- Dark mode switches the look of the app.\n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.\n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.\n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.\n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.\n- The app always runs as administrator, so macros also work in games that run elevated.",
+  "en": "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.\n\n- Tick a macro in the list to turn it on, untick to turn it off.\n- The switch All macros in the banner turns every macro on or off at once.\n- Dark mode switches the look of the app.\n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.\n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.\n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.\n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.\n- The app always runs as administrator, so macros also work in games that run elevated.\n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1155,7 +1169,7 @@
   ]
  },
  "hlp_order": {
-  "en": "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).\n\nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).\nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.\nExport all... writes every macro to a folder, one file each.\n\nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.",
+  "en": "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).\n\nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).\nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.\nExport all... writes every macro to a folder, one file each.\n\nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\\backup-before-restore.mmbackup.\n\nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1207,6 +1221,98 @@
   "en": "Dragging the macro out failed:\n{1}",
   "ctx": [
    "ThemedNote(_T(\"Dragging the macro out failed:`n{1}\", e.Message), , true)"
+  ]
+ },
+ "Backup": {
+  "en": "Backup",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Backup\"), _T(\"Backup and restore\"), _T(\"Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.\")"
+  ]
+ },
+ "Backup and restore": {
+  "en": "Backup and restore",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Backup\"), _T(\"Backup and restore\"), _T(\"Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.\")"
+  ]
+ },
+ "Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.": {
+  "en": "Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Backup\"), _T(\"Backup and restore\"), _T(\"Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.\")"
+  ]
+ },
+ "Restore...": {
+  "en": "Restore...",
+  "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Create backup...": {
+  "en": "Create backup...",
+  "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Create backup": {
+  "en": "Create backup",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+  ]
+ },
+ "Macro Manager backup (*.mmbackup)": {
+  "en": "Macro Manager backup (*.mmbackup)",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+  ]
+ },
+ "Backup saved to:\n{1}": {
+  "en": "Backup saved to:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path))"
+  ]
+ },
+ "The backup could not be saved:\n{1}": {
+  "en": "The backup could not be saved:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), , true)"
+  ]
+ },
+ "Restore from backup": {
+  "en": "Restore from backup",
+  "ctx": [
+   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "if (ThemedAsk(_T(\"Restore from backup\"), _T(\"Restore this backup?\")"
+  ]
+ },
+ "This is not a Macro Manager backup file:\n{1}": {
+  "en": "This is not a Macro Manager backup file:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"This is not a Macro Manager backup file:`n{1}\", path), , true)"
+  ]
+ },
+ "Restore this backup?": {
+  "en": "Restore this backup?",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Restore from backup\"), _T(\"Restore this backup?\")"
+  ]
+ },
+ "All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.\n\nYour current state is saved first as:\n{3}": {
+  "en": "All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.\n\nYour current state is saved first as:\n{3}",
+  "ctx": [
+   ", _T(\"All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}\", b[\"date\"], b[\"count\"], ConfigDir \"\\backup-before-restore.mm"
+  ]
+ },
+ "Restore": {
+  "en": "Restore",
+  "ctx": [
+   ", [[_T(\"Restore\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")"
+  ]
+ },
+ "The backup could not be restored:\n{1}": {
+  "en": "The backup could not be restored:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"The backup could not be restored:`n{1}\", e.Message), , true)"
   ]
  },
  "Release notes": {

@@ -88,7 +88,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15.5"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15.6"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -97,7 +97,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes."
+ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes.`n- New: Backup... (next to Uninstall) saves all macros, profiles, settings and script files into one file and restores them - for a new PC or a reinstall.`n- New: a search box above the list shows only the macros whose name, key or application contains the text."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -184,18 +184,23 @@ try {
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header
+; search box above the list: shows only the macros whose name, key or application contains the text
+eSearch := Main.AddEdit("x10 y92 w300 h26")
+eSearch.OnEvent("Change", (*) => Refresh())
+SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
+bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
 hdrW := [300, 130, 240, 150]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
-    h := Main.AddText("x" hx " y92 w" hdrW[i] " h28 +0x200", "  " nm)
+    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200", "  " nm)
     Roles[h.Hwnd] := "hdr"
     h.OnEvent("Click", SortBy.Bind(i))
     hdrCtl.Push(h)
     hx += hdrW[i]
 }
-LV := Main.AddListView("x10 y120 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
+LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
 LV.ModifyCol(1, 300)
@@ -215,7 +220,8 @@ bDown := AddBtn(Main, "x+8 yp w130 h36", _T("Move down"), (*) => MoveRow(1))
 bExpAll := AddBtn(Main, "x+8 yp w150 h36", _T("Export all..."), OnExportAll)
 MKst := Map("key", MasterKey)
 bMKey := AddBtn(Main, "x+8 yp w386 h36", KeyLabel(_T("All macros toggle key:") "  ", MKst["key"]), (*) => CaptureKey(bMKey, MKst, "key", true, _T("All macros toggle key:") "  ", OnMasterKey))
-AddHint(Main, "x10 y+16 w700", _T("Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."))
+AddHint(Main, "x10 y+16 w620", _T("Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."))
+bBackup := AddBtn(Main, "x645 yp w90 h28", _T("Backup..."), OnBackupBtn, "btnghost")
 bUninst := AddBtn(Main, "x740 yp w90 h28", _T("Uninstall"), (*) => UninstallApp(), "btnghost")
 verTxt := AddHint(Main, "x726 y+4 w104 Center", "beta v" AppVersion)
 
@@ -484,14 +490,20 @@ SortCmp(a, b, asc) {
 
 TypeLabel(t) => t = "move" ? _T("Move + actions") : (t = "seq" ? _T("Sequence") : _T("Script (.ahk)"))
 
+ClearSearch() {
+    eSearch.Value := ""
+    Refresh()
+}
+
 Refresh() {
     global Populating
     Populating := true
     LV.Delete()
     global View
     View := []
+    q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
     for m in Macros
-        if InProfile(m)
+        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
         LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
@@ -583,9 +595,15 @@ OnDropFiles(g, ctrl, files, x, y) {
     if (DragOut || A_TickCount - DragEnd < 800)        ; our own drag-out dropped back onto the window
         return
     list := []
-    for f in files
+    for f in files {
+        if RegExMatch(f, "i)\.mmbackup$") {          ; a backup file: offer to restore it
+            Main.Show()
+            RestoreBackup(f)
+            return
+        }
         if RegExMatch(f, "i)\.ahk$")
             list.Push(f)
+    }
     if !list.Length {
         Toast(_T("Drop .ahk files to import them"))
         return
@@ -601,6 +619,8 @@ ImportFiles(files) {
             added++
     if !added
         return
+    if (eSearch.Value != "")
+        eSearch.Value := ""                       ; the new macros must be visible
     Save()
     Apply()
     Refresh()
@@ -1375,8 +1395,11 @@ EditMacro(idx) {
         m["name"] := nm = "" ? "Macro" : nm
         m["profiles"] := pv["v"] = "" ? CurProfile : pv["v"]
         m["tkey"] := st["tkey"]
-        if isNew
+        if isNew {
             Macros.Push(m)
+            if (eSearch.Value != "")
+                eSearch.Value := ""               ; the new macro must be visible
+        }
         g.Destroy()
         Save()
         Apply()
@@ -3097,7 +3120,7 @@ HelpTopics() {
     order.Push("Release notes")
     t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" ReleaseNotes
     order.Push("Getting started")
-    t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.")
+    t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
     t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately).`n`nSave stores the macro, Cancel throws changes away.")
     order.Push("Move + actions")
@@ -3113,7 +3136,7 @@ HelpTopics() {
     order.Push("Toggle keys")
     t["Toggle keys"] := _TL("hlp_toggle", "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys.")
     order.Push("Order, export, backup")
-    t["Order, export, backup"] := _TL("hlp_order", "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.")
+    t["Order, export, backup"] := _TL("hlp_order", "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\backup-before-restore.mmbackup.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.")
     order.Push("Updates")
     t["Updates"] := _TL("hlp_updates", "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access to github.com.")
     order.Push("Tips and problems")
@@ -3543,6 +3566,161 @@ ThemedInput(title, prompt, default := "") {
     while !done
         Sleep 50
     return res
+}
+
+; ============ backup / restore: everything in one .mmbackup file ============
+; a text file: the settings (macros.ini) as they are + every script file in base64
+;   [[macros.ini]]  <ini lines>   [[script name.ahk]]  <base64>   [[end]]
+
+OnBackupBtn(*) {
+    r := ThemedAsk(_T("Backup"), _T("Backup and restore"), _T("Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file.")
+        , [[_T("Cancel"), "", "btn"], [_T("Restore..."), "restore", "btn"], [_T("Create backup..."), "create", "btnprimary"]], false)
+    if (r = "create")
+        CreateBackup()
+    else if (r = "restore")
+        RestoreBackup()
+}
+
+CreateBackup() {
+    Save()
+    path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+    if (path = "")
+        return
+    if !RegExMatch(path, "i)\.mmbackup$")
+        path .= ".mmbackup"
+    try {
+        WriteBackup(path)
+        ThemedNote(_T("Backup saved to:`n{1}", path))
+    } catch as e
+        ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), , true)
+}
+
+WriteBackup(path) {
+    t := "; Macro Manager backup - restore it with the Backup... button in the app (or drop this file onto its window)`n"
+    t .= "; version=" AppVersion " date=" FormatTime(, "yyyy-MM-dd HH:mm") " macros=" Macros.Length "`n"
+    t .= "[[macros.ini]]`n" StrReplace(FileRead(IniFile), "`r", "") "`n"
+    for m in Macros {
+        if (m["type"] != "script" || m["file"] = "" || !FileExist(ScriptPath(m)))
+            continue
+        data := FileRead(ScriptPath(m), "RAW")
+        t .= "[[script " m["file"] "]]`n" B64Enc(data, data.Size) "`n"
+    }
+    t .= "[[end]]`n"
+    WriteText(path, t)
+}
+
+B64Enc(buf, size) {
+    if !size
+        return ""
+    n := 0
+    DllCall("crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", size, "UInt", 0x40000001, "Ptr", 0, "UInt*", &n)   ; BASE64 | NOCRLF
+    out := Buffer(n * 2, 0)
+    DllCall("crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", size, "UInt", 0x40000001, "Ptr", out, "UInt*", &n)
+    return StrGet(out, n, "UTF-16")
+}
+
+; reads a backup file: Map("ini", text, "scripts", Map(name -> base64), "date", .., "count", ..) or throws
+ReadBackup(path) {
+    text := FileRead(path, "UTF-8")
+    res := Map("ini", "", "scripts", Map(), "date", "", "count", "?")
+    if RegExMatch(text, "m)^; version=\S* date=(.+?) macros=(\d+)", &mm)
+        res["date"] := mm[1], res["count"] := mm[2]
+    cur := "", buf := ""
+    for line in StrSplit(text, "`n", "`r") {
+        if RegExMatch(line, "^\[\[(.+)\]\]$", &h) {
+            if (cur = "macros.ini")
+                res["ini"] := buf
+            else if (SubStr(cur, 1, 7) = "script ")
+                res["scripts"][SubStr(cur, 8)] := buf
+            cur := h[1], buf := ""
+            continue
+        }
+        if (cur != "")
+            buf .= (cur = "macros.ini") ? line "`r`n" : line
+    }
+    if (!InStr(res["ini"], "[main]") || !RegExMatch(res["ini"], "m)^count=\d+"))
+        throw Error("not a Macro Manager backup")
+    return res
+}
+
+RestoreBackup(path := "") {
+    if (path = "") {
+        path := FileSelect(1, A_Desktop, _T("Restore from backup"), _T("Macro Manager backup (*.mmbackup)"))
+        if (path = "")
+            return
+    }
+    try b := ReadBackup(path)
+    catch {
+        ThemedNote(_T("This is not a Macro Manager backup file:`n{1}", path), , true)
+        return
+    }
+    if (ThemedAsk(_T("Restore from backup"), _T("Restore this backup?")
+        , _T("All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}", b["date"], b["count"], ConfigDir "\backup-before-restore.mmbackup")
+        , [[_T("Restore"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+        return
+    try {
+        Save()
+        WriteBackup(ConfigDir "\backup-before-restore.mmbackup")
+        for m, pid in Procs
+            try ProcessClose(pid)
+        ; script files: a script that is not already on this PC (same name, same content) asks again before it runs
+        DirCreate(ScriptsDir)
+        known := Map()
+        tmp := A_Temp "\MacroManager-restore.tmp"
+        for name, b64 in b["scripts"] {
+            if !RegExMatch(name, "^[\w .()\-]+\.ahk$")
+                continue
+            B64ToFile(b64, tmp)
+            dest := ScriptsDir "\" name
+            known[name] := FileExist(dest) && Sha256(dest) = Sha256(tmp)
+            FileCopy(tmp, dest, 1)
+        }
+        try FileDelete(tmp)
+        ini := RestoreTrust(b["ini"], known)
+        f := FileOpen(IniFile ".tmp", "w", "UTF-16")
+        f.Write(ini)
+        f.Close()
+        if FileExist(IniFile)
+            FileCopy(IniFile, IniFile ".bak", 1)
+        FileMove(IniFile ".tmp", IniFile, 1)
+    } catch as e {
+        ThemedNote(_T("The backup could not be restored:`n{1}", e.Message), , true)
+        return
+    }
+    Reload()
+}
+
+; script macros whose file was not on this PC before: trusted=0 and switched off (they ask before the first run)
+RestoreTrust(ini, known) {
+    out := "", sect := []
+    Flush() {
+        isScript := false, file := ""
+        for l in sect {
+            if (l = "type=script")
+                isScript := true
+            if (SubStr(l, 1, 5) = "file=")
+                file := SubStr(l, 6)
+        }
+        if (isScript && !(known.Has(file) && known[file])) {
+            keep := []
+            for l in sect
+                if (SubStr(l, 1, 8) != "trusted=" && SubStr(l, 1, 8) != "enabled=")
+                    keep.Push(l)
+            keep.Push("trusted=0", "enabled=0")
+            sect := keep
+        }
+        for l in sect
+            out .= l "`r`n"
+        sect := []
+    }
+    for line in StrSplit(ini, "`n", "`r") {
+        if (SubStr(line, 1, 1) = "[")
+            Flush()
+        if (line != "")
+            sect.Push(line)
+    }
+    Flush()
+    return out
 }
 
 ; ============ embedded images (base64, written to config\assets by EnsureAssets) ============
@@ -5156,6 +5334,7 @@ TrCs() {
     m := Map()
     m["Dark mode"] := "Tmavý režim"
     m["All macros"] := "Všechna makra"
+    m["Search (name, key or application)"] := "Hledat (název, klávesa nebo aplikace)"
     m["Name"] := "Název"
     m["Key"] := "Klávesa"
     m["Application"] := "Aplikace"
@@ -5171,6 +5350,7 @@ TrCs() {
     m["Export all..."] := "Exportovat vše..."
     m["All macros toggle key:"] := "Přepínač všech maker:"
     m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaškrtnutím makra ho zapneš. Dvojklikem na řádek ho upravíš. Tažením myší přes řádky (nebo Ctrl / Shift+klik) vybereš více maker. Kliknutím na záhlaví sloupce seřadíš seznam. Soubory .ahk přetažené do okna se naimportují; vybraná makra přetažená ze seznamu ven (na plochu, do složky, do chatu) se exportují. Zavřením okna aplikace zůstane běžet v oznamovací oblasti (pravým tlačítkem na ikonu → Exit)."
+    m["Backup..."] := "Záloha..."
     m["Uninstall"] := "Odinstalovat"
     m["Open window"] := "Otevřít okno"
     m["Check for updates..."] := "Zkontrolovat aktualizace..."
@@ -5322,7 +5502,7 @@ TrCs() {
     m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Stažený soubor není platný skript Macro Manageru. Nic se nezměnilo."
     m["Could not replace the app file: {1}"] := "Nepodařilo se nahradit soubor aplikace: {1}"
     m["Version {1}"] := "Verze {1}"
-    m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Exit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními."
+    m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Exit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
     m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě).`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
@@ -5330,7 +5510,7 @@ TrCs() {
     m["hlp_keys"] := "Názvy kláves odpovídají názvům v AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlávesu lze zapsat i jako scan kód, například sc002 - jde o fyzickou klávesu bez ohledu na rozložení. Klávesy jako čárka, plus, & a | se takto ukládají automaticky.`n`nMyš: spouštěcí klávesa, přepínač i klávesa Všechna makra může být také tlačítko myši: RButton, MButton (klik kolečkem), XButton1 / XButton2 (dvě boční tlačítka) nebo samotné kolečko (WheelUp / WheelDown / WheelLeft / WheelRight). Kolečko nelze držet, proto se makra na kolečku vždy přehrají jednou. Levé tlačítko se nenabízí.`nHerní / MMO myši: Windows zná jen pět tlačítek myši, další boční tlačítka obsluhuje software myši (G HUB, Synapse, iCUE, ...). Nastav jim tam klávesy, nejlépe F13 - F24 (nebo Ctrl+Alt+číslo); Macro Manager je pak vidí jako obyčejné klávesy, takže klikni do pole spouštěcí klávesy a stiskni boční tlačítko.`n`nNahrát (vedle Směrů a Akcí): stiskni Nahrát, mačkej klávesy v požadovaném pořadí a pak stiskni Hotovo. Pole se plní průběžně. Během nahrávání jsou makra pozastavená.`n`nKlávesy současně: klávesy, které držíš zároveň, se uloží jako jeden krok spojený pomocí +, například Shift+4. Při přehrávání se všechny stisknou společně a společně se i uvolní (ne nejdřív Shift a pak 4).`nStejně to funguje i při psaní do polí: a,Shift+4,d"
     m["hlp_profiles"] := "Profily udržují různé sady maker odděleně (například jeden na hru).`n`n- Tlačítko profilu v horní liště ukazuje aktuální profil. Kliknutím přepneš profil nebo vytvoříš / přejmenuješ / smažeš profil.`n- Seznam ukazuje jen makra aktuálního profilu a jen ta jsou aktivní.`n- V editoru můžeš v Profily vybrat pro makro jeden nebo více profilů. Když změníš makro, které patří do více profilů, aplikace se zeptá: použít změnu ve všech, nebo jen v aktuálním profilu (ostatní profily si ponechají starou verzi).`n- Zaškrtnutí makra je ve všech profilech stejné; přepnutím profilu se jen mění, která makra jsou ve hře.`n- Smazáním profilu se makra, která patřila jen jemu, přesunou do prvního zbývajícího profilu."
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
-    m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
+    m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu na github.com."
     m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy nebo různé profily.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
@@ -5339,6 +5519,21 @@ TrCs() {
     m["Close"] := "Zavřít"
     m["Set a trigger key first: {1}"] := "Nejdřív nastav spouštěcí klávesu: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Přetažení makra ven se nezdařilo:`n{1}"
+    m["Backup"] := "Záloha"
+    m["Backup and restore"] := "Záloha a obnova"
+    m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Ulož všechna makra, profily a nastavení (včetně souborů skriptů) do jednoho souboru zálohy – pro nový počítač nebo přeinstalaci. Nebo je z takového souboru obnov."
+    m["Restore..."] := "Obnovit..."
+    m["Create backup..."] := "Vytvořit zálohu..."
+    m["Create backup"] := "Vytvořit zálohu"
+    m["Macro Manager backup (*.mmbackup)"] := "Záloha Macro Manageru (*.mmbackup)"
+    m["Backup saved to:`n{1}"] := "Záloha uložena do:`n{1}"
+    m["The backup could not be saved:`n{1}"] := "Zálohu se nepodařilo uložit:`n{1}"
+    m["Restore from backup"] := "Obnovit ze zálohy"
+    m["This is not a Macro Manager backup file:`n{1}"] := "Tohle není soubor zálohy Macro Manageru:`n{1}"
+    m["Restore this backup?"] := "Obnovit tuto zálohu?"
+    m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Všechna současná makra, profily a nastavení se nahradí zálohou z {1} ({2} maker). Aplikace se restartuje.`n`nSoučasný stav se nejdřív uloží jako:`n{3}"
+    m["Restore"] := "Obnovit"
+    m["The backup could not be restored:`n{1}"] := "Zálohu se nepodařilo obnovit:`n{1}"
     m["Release notes"] := "Poznámky k verzi"
     m["Getting started"] := "Začínáme"
     m["Add / edit a macro"] := "Přidání / úprava makra"
@@ -5352,6 +5547,7 @@ TrPl() {
     m := Map()
     m["Dark mode"] := "Tryb ciemny"
     m["All macros"] := "Wszystkie makra"
+    m["Search (name, key or application)"] := "Szukaj (nazwa, klawisz lub aplikacja)"
     m["Name"] := "Nazwa"
     m["Key"] := "Klawisz"
     m["Application"] := "Aplikacja"
@@ -5367,6 +5563,7 @@ TrPl() {
     m["Export all..."] := "Eksportuj całość..."
     m["All macros toggle key:"] := "Klawisz przełączania wszystkich makr:"
     m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaznacz makro, aby je włączyć. Kliknij dwukrotnie wiersz, aby edytować. Przeciągnij myszą po wierszach (lub Ctrl / Shift+kliknięcie), aby zaznaczyć kilka. Kliknij nagłówek kolumny, aby posortować. Upuść pliki .ahk na okno, aby je zaimportować; przeciągnij zaznaczone makra z listy (na pulpit, do folderu, na czat), aby je wyeksportować. Zamknięcie okna zostawia aplikację w zasobniku systemowym (kliknij ikonę prawym przyciskiem → Zamknij)."
+    m["Backup..."] := "Kopia..."
     m["Uninstall"] := "Odinstaluj"
     m["Open window"] := "Otwórz okno"
     m["Check for updates..."] := "Sprawdź aktualizacje..."
@@ -5518,7 +5715,7 @@ TrPl() {
     m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Pobrany plik nie jest prawidłowym skryptem Macro Manager. Nic nie zostało zmienione."
     m["Could not replace the app file: {1}"] := "Nie udało się zastąpić pliku aplikacji: {1}"
     m["Version {1}"] := "Wersja {1}"
-    m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zamknij.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami."
+    m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zamknij.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
     m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast).`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
@@ -5526,7 +5723,7 @@ TrPl() {
     m["hlp_keys"] := "Nazwy klawiszy to nazwy z AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlawisz można też zapisać jako kod skanowania, na przykład sc002 - to fizyczny klawisz, niezależnie od układu. Klawisze takie jak przecinek, plus, & i | są zapisywane w ten sposób automatycznie.`n`nMysz: klawisz wyzwalający, przełącznik i klawisz Wszystkie makra mogą być też przyciskiem myszy: RButton, MButton (kliknięcie kółkiem), XButton1 / XButton2 (dwa przyciski boczne) lub samo kółko (WheelUp / WheelDown / WheelLeft / WheelRight). Kółko nie ma przytrzymania, więc makra na kółku zawsze odtwarzają się raz. Lewy przycisk nie jest dostępny.`nMyszy dla graczy / MMO: Windows zna tylko pięć przycisków myszy, dodatkowymi przyciskami bocznymi zajmuje się oprogramowanie myszy (G HUB, Synapse, iCUE, ...). Ustaw je tam na klawisze, najlepiej F13 - F24 (lub Ctrl+Alt+cyfra); Macro Manager widzi je wtedy jako zwykłe klawisze, więc kliknij pole klawisza wyzwalającego i naciśnij przycisk boczny.`n`nNagraj (obok Kierunków i Akcji): naciśnij Nagraj, naciskaj klawisze w żądanej kolejności, potem naciśnij Gotowe. Pole wypełnia się na żywo. Podczas nagrywania makra są wstrzymane.`n`nKlawisze jednocześnie: klawisze trzymane razem są zapisywane jako jeden krok połączony znakiem +, na przykład Shift+4. Przy odtwarzaniu makra wszystkie idą w dół razem i są puszczane razem (nie najpierw Shift, a potem 4).`nTo samo działa przy wpisywaniu w polach: a,Shift+4,d"
     m["hlp_profiles"] := "Profile oddzielają od siebie różne zestawy makr (na przykład jeden na grę).`n`n- Przycisk profilu w nagłówku pokazuje bieżący profil. Kliknij go, aby przełączyć profil albo utworzyć / zmienić nazwę / usunąć profil.`n- Lista pokazuje tylko makra bieżącego profilu i tylko one są aktywne.`n- W edytorze Profile pozwalają wybrać jeden lub kilka profili dla makra. Gdy zmieniasz makro należące do kilku profili, aplikacja pyta: zastosować zmianę we wszystkich, czy tylko w bieżącym profilu (pozostałe profile zachowają starą wersję).`n- Stan zaznaczenia makra jest taki sam w każdym profilu; zmiana profilu zmienia tylko to, które makra są w grze.`n- Usunięcie profilu przenosi makra, które należały tylko do niego, do pierwszego pozostałego profilu."
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
-    m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
+    m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu i github.com."
     m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy lub różnych profili.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
@@ -5535,6 +5732,21 @@ TrPl() {
     m["Close"] := "Zamknij"
     m["Set a trigger key first: {1}"] := "Najpierw ustaw klawisz wyzwalający: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Przeciągnięcie makra na zewnątrz nie powiodło się:`n{1}"
+    m["Backup"] := "Kopia zapasowa"
+    m["Backup and restore"] := "Kopia zapasowa i przywracanie"
+    m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Zapisz wszystkie makra, profile i ustawienia (łącznie z plikami skryptów) w jednym pliku kopii – na nowy komputer lub po ponownej instalacji. Albo przywróć je z takiego pliku."
+    m["Restore..."] := "Przywróć..."
+    m["Create backup..."] := "Utwórz kopię..."
+    m["Create backup"] := "Utwórz kopię zapasową"
+    m["Macro Manager backup (*.mmbackup)"] := "Kopia Macro Managera (*.mmbackup)"
+    m["Backup saved to:`n{1}"] := "Kopię zapisano w:`n{1}"
+    m["The backup could not be saved:`n{1}"] := "Nie udało się zapisać kopii:`n{1}"
+    m["Restore from backup"] := "Przywróć z kopii"
+    m["This is not a Macro Manager backup file:`n{1}"] := "To nie jest plik kopii Macro Managera:`n{1}"
+    m["Restore this backup?"] := "Przywrócić tę kopię?"
+    m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Wszystkie obecne makra, profile i ustawienia zostaną zastąpione kopią z {1} ({2} makr). Aplikacja uruchomi się ponownie.`n`nObecny stan zostanie najpierw zapisany jako:`n{3}"
+    m["Restore"] := "Przywróć"
+    m["The backup could not be restored:`n{1}"] := "Nie udało się przywrócić kopii:`n{1}"
     m["Release notes"] := "Release notes"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
@@ -5548,6 +5760,7 @@ TrDe() {
     m := Map()
     m["Dark mode"] := "Dunkelmodus"
     m["All macros"] := "Alle Makros"
+    m["Search (name, key or application)"] := "Suchen (Name, Taste oder Anwendung)"
     m["Name"] := "Name"
     m["Key"] := "Taste"
     m["Application"] := "Anwendung"
@@ -5563,6 +5776,7 @@ TrDe() {
     m["Export all..."] := "Alle exportieren..."
     m["All macros toggle key:"] := "Ein/Aus-Taste für alle Makros:"
     m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Hake ein Makro an, um es einzuschalten. Doppelklick auf eine Zeile zum Bearbeiten. Zieh die Maus über mehrere Zeilen (oder Ctrl / Shift+Klick), um mehrere auszuwählen. Klick auf eine Spaltenüberschrift zum Sortieren. Zieh .ahk-Dateien ins Fenster, um sie zu importieren; zieh ausgewählte Makros aus der Liste (Desktop, Ordner, Chat), um sie zu exportieren. Beim Schließen des Fensters läuft die App im Infobereich weiter (Rechtsklick auf das Symbol → Beenden)."
+    m["Backup..."] := "Sicherung..."
     m["Uninstall"] := "Deinstall."
     m["Open window"] := "Fenster öffnen"
     m["Check for updates..."] := "Nach Updates suchen..."
@@ -5714,7 +5928,7 @@ TrDe() {
     m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Die heruntergeladene Datei ist kein gültiges Macro Manager Skript. Es wurde nichts geändert."
     m["Could not replace the app file: {1}"] := "Die App-Datei konnte nicht ersetzt werden: {1}"
     m["Version {1}"] := "Version {1}"
-    m["hlp_start"] := "Macro Manager führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen."
+    m["hlp_start"] := "Macro Manager führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen.`n- Das Suchfeld über der Liste zeigt nur die Makros, deren Name, Taste oder Anwendung den Text enthält. Das Kreuz daneben leert es."
     m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort).`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
     m["hlp_move"] := "Gedacht für Spiele, in denen du dich ständig bewegst (zum Beispiel A und D) und dazwischen Zauber wirkst.`n`nRichtungen - die Bewegungstasten in Reihenfolge, zum Beispiel: a,d`nAktionen in Folge - die zu drückenden Tasten, eine pro Zyklus, zum Beispiel: 1,2,1,F7,1,F8`n`nJeder Zyklus läuft so ab, mit den eingestellten Verzögerungen:`n  1. Richtung runter`n  2. (Verzögerung 1) Aktion runter`n  3. (Verzögerung 2) Richtung hoch`n  4. (Verzögerung 3) Aktion hoch`n  5. (Verzögerung 4) Pause, dann die nächste Richtung + nächste Aktion`n`nDie Listen beginnen am Ende wieder von vorn. Wenn Richtungen leer ist, werden nur die Aktionen gedrückt: Haltezeit = Verzögerung 2, Pause = Verzögerung 4.`nWenn ein Spiel das Makro ignoriert, erhöhe die Verzögerungen (20-30 ms sind üblich)."
     m["hlp_seq"] := "Eine freie Liste von Schritten. Schreibe einen Schritt pro Zeile:`n`n  down KEY PAUSE   - Taste drücken und halten`n  up KEY PAUSE     - Taste loslassen`n  tap KEY PAUSE    - sofort drücken und loslassen`n`nPAUSE ist die Wartezeit nach dem Schritt in Millisekunden (leer = 0).`n`nBeispiel - schneller A / D-Wechsel:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nBeispiel - Angriff und Zauber:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nBeispiel - zwei Tasten zusammen:`n  tap Shift+4 50`n`nBei Ausführung = Wiederholen laufen die Zeilen in einer Schleife, solange die Auslösetaste gehalten wird; bei Einmal werden sie einmal abgespielt.`nTasten, die beim Loslassen der Auslösetaste noch gehalten werden, werden automatisch losgelassen."
@@ -5722,7 +5936,7 @@ TrDe() {
     m["hlp_keys"] := "Tastennamen sind die AutoHotkey-Namen: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nEine Taste kann auch als Scancode geschrieben werden, zum Beispiel sc002 - das ist die physische Taste, unabhängig vom Layout. Tasten wie Komma, Plus, & und | werden automatisch so gespeichert.`n`nMaus: Auslöse-, Ein/Aus-Taste und die Taste für Alle Makros können auch eine Maustaste sein: RButton, MButton (Radklick), XButton1 / XButton2 (die zwei Seitentasten) oder das Rad selbst (WheelUp / WheelDown / WheelLeft / WheelRight). Ein Rad kann nicht gehalten werden, daher laufen Rad-Makros immer nur einmal. Die linke Taste steht nicht zur Auswahl.`nGaming- / MMO-Mäuse: Windows kennt nur fünf Maustasten, die zusätzlichen Seitentasten werden von der Maussoftware (G HUB, Synapse, iCUE, ...) verwaltet. Belege sie dort mit Tasten, am besten F13 - F24 (oder Ctrl+Alt+Zahl); Macro Manager sieht sie dann als normale Tasten, klicke also in das Feld Auslösetaste und drücke die Seitentaste.`n`nAufnehmen (neben Richtungen und Aktionen): Drücke Aufnehmen, drücke die Tasten in der gewünschten Reihenfolge und dann Fertig. Das Feld füllt sich live. Makros sind während der Aufnahme pausiert.`n`nTasten gleichzeitig: Tasten, die du zusammen hältst, werden als ein Schritt gespeichert und mit + verbunden, zum Beispiel Shift+4. Beim Abspielen gehen alle zusammen runter und werden zusammen losgelassen (nicht erst Shift und danach 4).`nDasselbe funktioniert durch Eintippen in die Felder: a,Shift+4,d"
     m["hlp_profiles"] := "Profile halten verschiedene Makro-Sets getrennt (zum Beispiel eines pro Spiel).`n`n- Die Profilschaltfläche in der Kopfzeile zeigt das aktuelle Profil. Klicke darauf, um zu wechseln oder ein Profil anzulegen / umzubenennen / zu löschen.`n- Die Liste zeigt nur die Makros des aktuellen Profils, und nur diese sind aktiv.`n- Im Editor kannst du unter Profile ein oder mehrere Profile für das Makro wählen. Wenn du ein Makro änderst, das zu mehreren Profilen gehört, fragt die App: Änderung auf alle anwenden oder nur auf das aktuelle Profil (die anderen Profile behalten die alte Version).`n- Der Haken-Status eines Makros bleibt in jedem Profil gleich; ein Profilwechsel ändert nur, welche Makros im Spiel sind.`n- Beim Löschen eines Profils werden Makros, die nur dazu gehörten, in das erste verbleibende Profil verschoben."
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
-    m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
+    m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang zu github.com nötig."
     m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten oder unterschiedliche Profile.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
@@ -5731,6 +5945,21 @@ TrDe() {
     m["Close"] := "Schließen"
     m["Set a trigger key first: {1}"] := "Lege zuerst eine Auslösetaste fest: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Das Herausziehen des Makros ist fehlgeschlagen:`n{1}"
+    m["Backup"] := "Sicherung"
+    m["Backup and restore"] := "Sichern und Wiederherstellen"
+    m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Speichere alle Makros, Profile und Einstellungen (inklusive Skriptdateien) in einer Sicherungsdatei – für einen neuen PC oder eine Neuinstallation. Oder stelle sie aus einer solchen Datei wieder her."
+    m["Restore..."] := "Wiederherstellen..."
+    m["Create backup..."] := "Sicherung erstellen..."
+    m["Create backup"] := "Sicherung erstellen"
+    m["Macro Manager backup (*.mmbackup)"] := "Macro Manager-Sicherung (*.mmbackup)"
+    m["Backup saved to:`n{1}"] := "Sicherung gespeichert unter:`n{1}"
+    m["The backup could not be saved:`n{1}"] := "Die Sicherung konnte nicht gespeichert werden:`n{1}"
+    m["Restore from backup"] := "Aus Sicherung wiederherstellen"
+    m["This is not a Macro Manager backup file:`n{1}"] := "Das ist keine Sicherungsdatei von Macro Manager:`n{1}"
+    m["Restore this backup?"] := "Diese Sicherung wiederherstellen?"
+    m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Alle aktuellen Makros, Profile und Einstellungen werden durch die Sicherung vom {1} ({2} Makros) ersetzt. Die App startet neu.`n`nDer aktuelle Stand wird zuerst gespeichert als:`n{3}"
+    m["Restore"] := "Wiederherstellen"
+    m["The backup could not be restored:`n{1}"] := "Die Sicherung konnte nicht wiederhergestellt werden:`n{1}"
     m["Release notes"] := "Versionshinweise"
     m["Getting started"] := "Erste Schritte"
     m["Add / edit a macro"] := "Makro anlegen/ändern"

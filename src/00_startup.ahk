@@ -96,7 +96,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes."
+ReleaseNotes := "- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes.`n- New: Backup... (next to Uninstall) saves all macros, profiles, settings and script files into one file and restores them - for a new PC or a reinstall.`n- New: a search box above the list shows only the macros whose name, key or application contains the text."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -180,18 +180,23 @@ try {
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header
+; search box above the list: shows only the macros whose name, key or application contains the text
+eSearch := Main.AddEdit("x10 y92 w300 h26")
+eSearch.OnEvent("Change", (*) => Refresh())
+SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
+bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
 hdrW := [300, 130, 240, 150]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
-    h := Main.AddText("x" hx " y92 w" hdrW[i] " h28 +0x200", "  " nm)
+    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200", "  " nm)
     Roles[h.Hwnd] := "hdr"
     h.OnEvent("Click", SortBy.Bind(i))
     hdrCtl.Push(h)
     hx += hdrW[i]
 }
-LV := Main.AddListView("x10 y120 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
+LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
 LV.ModifyCol(1, 300)
@@ -211,7 +216,8 @@ bDown := AddBtn(Main, "x+8 yp w130 h36", _T("Move down"), (*) => MoveRow(1))
 bExpAll := AddBtn(Main, "x+8 yp w150 h36", _T("Export all..."), OnExportAll)
 MKst := Map("key", MasterKey)
 bMKey := AddBtn(Main, "x+8 yp w386 h36", KeyLabel(_T("All macros toggle key:") "  ", MKst["key"]), (*) => CaptureKey(bMKey, MKst, "key", true, _T("All macros toggle key:") "  ", OnMasterKey))
-AddHint(Main, "x10 y+16 w700", _T("Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."))
+AddHint(Main, "x10 y+16 w620", _T("Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."))
+bBackup := AddBtn(Main, "x645 yp w90 h28", _T("Backup..."), OnBackupBtn, "btnghost")
 bUninst := AddBtn(Main, "x740 yp w90 h28", _T("Uninstall"), (*) => UninstallApp(), "btnghost")
 verTxt := AddHint(Main, "x740 y+4 w90 Center", "v" AppVersion)
 

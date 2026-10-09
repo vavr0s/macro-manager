@@ -82,9 +82,15 @@ OnDropFiles(g, ctrl, files, x, y) {
     if (DragOut || A_TickCount - DragEnd < 800)        ; our own drag-out dropped back onto the window
         return
     list := []
-    for f in files
+    for f in files {
+        if RegExMatch(f, "i)\.mmbackup$") {          ; a backup file: offer to restore it
+            Main.Show()
+            RestoreBackup(f)
+            return
+        }
         if RegExMatch(f, "i)\.ahk$")
             list.Push(f)
+    }
     if !list.Length {
         Toast(_T("Drop .ahk files to import them"))
         return
@@ -100,6 +106,8 @@ ImportFiles(files) {
             added++
     if !added
         return
+    if (eSearch.Value != "")
+        eSearch.Value := ""                       ; the new macros must be visible
     Save()
     Apply()
     Refresh()
