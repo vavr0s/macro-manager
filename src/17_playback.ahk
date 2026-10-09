@@ -42,15 +42,17 @@ JoinPlus(parts) {
     return s
 }
 
+; {Blind}: Send leaves the user's held Shift / Ctrl / Alt / Win alone. Without it, every Send briefly releases
+; them and presses them again afterwards - when the key is let go in that moment, Windows keeps it "held" (stuck).
 DownStr(parts) {
-    s := ""
+    s := "{Blind}"
     for k in parts
         s .= "{" k " down}"
     return s
 }
 
 UpStr(parts) {
-    s := ""
+    s := "{Blind}"
     for k in parts
         s .= "{" k " up}"
     return s
@@ -75,7 +77,7 @@ KeyUp(parts) {
 }
 ReleaseHeld() {
     for k in HeldKeys.Clone()
-        try Send "{" k " up}"
+        try Send "{Blind}{" k " up}"
     HeldKeys.Clear()
 }
 
@@ -205,9 +207,9 @@ AltGrUp(*) {
             Send "{Blind}{" k " up}"
 }
 
-; every 250 ms: Ctrl / Alt down for Windows but not held on the keyboard for over a second -> released
+; every 250 ms: Ctrl / Alt / Shift / Win down for Windows but not held on the keyboard for over a second -> released
 ModWatch() {
-    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt"], since := Map()
+    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"], since := Map()
     if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
         since.Clear()
         return

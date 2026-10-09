@@ -89,7 +89,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.17"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.18"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -250,7 +250,7 @@ Refresh()
 Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
-SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt that Windows still thinks are held (AltGr + LCtrl macros)
+SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)
@@ -265,7 +265,7 @@ OnMainClose(*) {
 
 ExitHandler(*) {
     ReleaseHeld()                                  ; keys a macro was holding when the app was closed
-    for k in ["LCtrl", "RCtrl", "LAlt", "RAlt"]     ; and Ctrl / Alt that Windows still thinks are down
+    for k in ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"]     ; and modifiers Windows still thinks are down
         if (GetKeyState(k) && !GetKeyState(k, "P"))
             try Send "{Blind}{" k " up}"
     for m, pid in Procs
@@ -1130,14 +1130,14 @@ if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
 
 Down(t) {
-    s := ""
+    s := "{Blind}"            ; held Shift / Ctrl / Alt are left alone (no stuck modifier keys)
     for k in StrSplit(t, "+")
         s .= "{" k " down}"
     return s
 }
 
 Up(t) {
-    s := ""
+    s := "{Blind}"
     for k in StrSplit(t, "+")
         s .= "{" k " up}"
     return s
@@ -1863,15 +1863,17 @@ JoinPlus(parts) {
     return s
 }
 
+; {Blind}: Send leaves the user's held Shift / Ctrl / Alt / Win alone. Without it, every Send briefly releases
+; them and presses them again afterwards - when the key is let go in that moment, Windows keeps it "held" (stuck).
 DownStr(parts) {
-    s := ""
+    s := "{Blind}"
     for k in parts
         s .= "{" k " down}"
     return s
 }
 
 UpStr(parts) {
-    s := ""
+    s := "{Blind}"
     for k in parts
         s .= "{" k " up}"
     return s
@@ -1896,7 +1898,7 @@ KeyUp(parts) {
 }
 ReleaseHeld() {
     for k in HeldKeys.Clone()
-        try Send "{" k " up}"
+        try Send "{Blind}{" k " up}"
     HeldKeys.Clear()
 }
 
@@ -2026,9 +2028,9 @@ AltGrUp(*) {
             Send "{Blind}{" k " up}"
 }
 
-; every 250 ms: Ctrl / Alt down for Windows but not held on the keyboard for over a second -> released
+; every 250 ms: Ctrl / Alt / Shift / Win down for Windows but not held on the keyboard for over a second -> released
 ModWatch() {
-    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt"], since := Map()
+    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"], since := Map()
     if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
         since.Clear()
         return
