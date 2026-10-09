@@ -111,7 +111,7 @@ OnDelBtn(*) {
     if !list.Length
         return
     msg := list.Length = 1 ? _T("Delete macro `"{1}`"?", list[1]["name"]) : _T("Delete {1} selected macros?", list.Length)
-    if Mb(msg, "Macro Manager", "YesNo 32") != "Yes"
+    if (ThemedAsk("Macro Manager", "", msg, [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     for m in list {
         StopScript(m)

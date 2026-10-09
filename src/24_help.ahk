@@ -43,7 +43,7 @@ OpenDiscord(*) {
         return
     }
     A_Clipboard := "https://discord.com/users/" DiscordId
-    MsgBox _T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId), "Macro Manager", 64
+    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId))
 }
 
 OpenHelp(*) {

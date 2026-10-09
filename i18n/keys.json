@@ -70,7 +70,9 @@
  "Delete": {
   "en": "Delete",
   "ctx": [
-   "bDel := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Delete\"), OnDelBtn, \"btndanger\")"
+   "bDel := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Delete\"), OnDelBtn, \"btndanger\")",
+   "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
+   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary"
   ],
   "max_chars": 16
  },
@@ -126,7 +128,8 @@
  "Uninstall": {
   "en": "Uninstall",
   "ctx": [
-   "bUninst := AddBtn(Main, \"x740 yp w90 h28\", _T(\"Uninstall\"), (*) => UninstallApp(), \"btnghost\")"
+   "bUninst := AddBtn(Main, \"x740 yp w90 h28\", _T(\"Uninstall\"), (*) => UninstallApp(), \"btnghost\")",
+   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
   ],
   "max_chars": 12
  },
@@ -175,6 +178,25 @@
    "msg := list.Length = 1 ? _T(\"Delete macro `\"{1}`\"?\", list[1][\"name\"]) : _T(\"Delete {1} selected macros?\", list.Length)"
   ]
  },
+ "Cancel": {
+  "en": "Cancel",
+  "ctx": [
+   "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
+   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"",
+   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)",
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)",
+   "AddBtn(g, \"x555 y482 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
+   ", [[_T(\"Turn on anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\") {",
+   "AddBtn(g, \"x384 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close, \"btnprimary\")",
+   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
+   "AddBtn(p, \"x216 y\" (y + 10) \" w90 h32\", _T(\"Cancel\"), Close)",
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Browse for the .exe\"), \"browse\", \"btn\"], [_T(\"Running applications\"), \"list\", \"btnprimary\"]], false)",
+   "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)",
+   "AddBtn(g, \"x284 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)"
+  ],
+  "max_chars": 13
+ },
  "All macros: {1}": {
   "en": "All macros: {1}",
   "ctx": [
@@ -185,7 +207,8 @@
   "en": "ON",
   "ctx": [
    "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))",
-   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))"
+   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))",
+   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))"
   ]
  },
  "OFF": {
@@ -228,7 +251,7 @@
  "Select a macro first.": {
   "en": "Select a macro first.",
   "ctx": [
-   "MsgBox _T(\"Select a macro first.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Select a macro first.\"), , true)"
   ]
  },
  "Choose a folder for the {1} exported macros": {
@@ -240,21 +263,21 @@
  "{1} macro(s) exported to:\n{2}": {
   "en": "{1} macro(s) exported to:\n{2}",
   "ctx": [
-   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(dir, sel), dir), \"Macro Manager\", 64",
-   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", n, dir), \"Macro Manager\", 64",
-   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"), 64"
+   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(dir, sel), dir))",
+   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", n, dir))",
+   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"))"
   ]
  },
  "Set a trigger key for this macro first.": {
   "en": "Set a trigger key for this macro first.",
   "ctx": [
-   "MsgBox _T(\"Set a trigger key for this macro first.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Set a trigger key for this macro first.\"), , true)"
   ]
  },
  "Nothing to export (script file is missing).": {
   "en": "Nothing to export (script file is missing).",
   "ctx": [
-   "MsgBox _T(\"Nothing to export (script file is missing).\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Nothing to export (script file is missing).\"), , true)"
   ]
  },
  "Export macro": {
@@ -273,13 +296,13 @@
  "Exported to:\n{1}": {
   "en": "Exported to:\n{1}",
   "ctx": [
-   "MsgBox _T(\"Exported to:`n{1}\", path), \"Macro Manager\", 64"
+   "ThemedNote(_T(\"Exported to:`n{1}\", path))"
   ]
  },
  "There are no macros to export.": {
   "en": "There are no macros to export.",
   "ctx": [
-   "MsgBox _T(\"There are no macros to export.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"There are no macros to export.\"), , true)"
   ]
  },
  "Choose a folder for the exported macros": {
@@ -303,36 +326,66 @@
  "Can't read:\n{1}": {
   "en": "Can't read:\n{1}",
   "ctx": [
-   "MsgBox _T(\"Can't read:`n{1}\", path), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Can't read:`n{1}\", path), , true)"
   ]
  },
- "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.\n\nImport anyway?": {
-  "en": "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.\n\nImport anyway?",
+ "Import anyway?": {
+  "en": "Import anyway?",
   "ctx": [
-   "&& Mb(_T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?\"), \"Macro Manager\", \"YesNo 48\") != \"Yes\")"
+   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
   ]
  },
- "Macro Manager is already installed in:\n{1}\n\nYes = update the installed copy with this file and start it\nNo = just start the installed copy\nCancel = exit": {
-  "en": "Macro Manager is already installed in:\n{1}\n\nYes = update the installed copy with this file and start it\nNo = just start the installed copy\nCancel = exit",
+ "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.": {
+  "en": "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.",
   "ctx": [
-   "r := MsgBox(_T(\"Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit\", prev), _T(\"Macro Manager setup\"), \"YesNoCancel 64\")"
+   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
+  ]
+ },
+ "Import anyway": {
+  "en": "Import anyway",
+  "ctx": [
+   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
   ]
  },
  "Macro Manager setup": {
   "en": "Macro Manager setup",
   "ctx": [
-   "r := MsgBox(_T(\"Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit\", prev), _T(\"Macro Manager setup\"), \"YesNoCancel 64\")",
-   "MsgBox _T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), 48",
-   "MsgBox _T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), 16",
-   "if (MsgBox(_T(\"Create a Start Menu shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")",
-   "if (MsgBox(_T(\"Create a Desktop shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")",
-   "MsgBox _T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"), 64"
+   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)",
+   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)",
+   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)",
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"))"
+  ]
+ },
+ "Macro Manager is already installed": {
+  "en": "Macro Manager is already installed",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
+  ]
+ },
+ "Installed in:\n{1}\n\nUpdate it with this file and start it, or just start the installed copy?": {
+  "en": "Installed in:\n{1}\n\nUpdate it with this file and start it, or just start the installed copy?",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
+  ]
+ },
+ "Just start": {
+  "en": "Just start",
+  "ctx": [
+   ", [[_T(\"Just start\"), \"start\", \"btn\"], [_T(\"Update and start\"), \"update\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Update and start": {
+  "en": "Update and start",
+  "ctx": [
+   ", [[_T(\"Just start\"), \"start\", \"btn\"], [_T(\"Update and start\"), \"update\", \"btnprimary\"]], false)"
   ]
  },
  "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}": {
   "en": "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}",
   "ctx": [
-   "MsgBox _T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), 48"
+   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)"
   ]
  },
  "Choose where to install Macro Manager.\nA 'MacroManager' folder will be created there.": {
@@ -344,53 +397,79 @@
  "Installation failed:\n{1}": {
   "en": "Installation failed:\n{1}",
   "ctx": [
-   "MsgBox _T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), 16"
+   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)"
   ]
  },
  "Create a Start Menu shortcut?": {
   "en": "Create a Start Menu shortcut?",
   "ctx": [
-   "if (MsgBox(_T(\"Create a Start Menu shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")"
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+  ]
+ },
+ "Skip": {
+  "en": "Skip",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+  ]
+ },
+ "Create": {
+  "en": "Create",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Create a Desktop shortcut?": {
   "en": "Create a Desktop shortcut?",
   "ctx": [
-   "if (MsgBox(_T(\"Create a Desktop shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")"
+   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config": {
   "en": "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config",
   "ctx": [
-   "MsgBox _T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"), 64"
+   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"))"
   ]
  },
  "This doesn't look like an installed copy, nothing was removed.": {
   "en": "This doesn't look like an installed copy, nothing was removed.",
   "ctx": [
-   "MsgBox _T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), 48"
+   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), true)"
   ]
  },
  "Uninstall Macro Manager": {
   "en": "Uninstall Macro Manager",
   "ctx": [
-   "MsgBox _T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), 48",
-   "if (Mb(_T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), _T(\"Uninstall Macro Manager\"), \"YesNo 48 Default2\") != \"Yes\") {",
-   "r := Mb(_T(\"Export all your macros to a folder before uninstalling?\"), _T(\"Uninstall Macro Manager\"), \"YesNoCancel 32\")",
-   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"), 64",
-   "MsgBox _T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"), 64"
+   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), true)",
+   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)",
+   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"))",
+   "ThemedNote(_T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"))"
   ]
  },
  "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": {
   "en": "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}",
   "ctx": [
-   "if (Mb(_T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), _T(\"Uninstall Macro Manager\"), \"YesNo 48 Default2\") != \"Yes\") {"
+   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
   ]
  },
  "Export all your macros to a folder before uninstalling?": {
   "en": "Export all your macros to a folder before uninstalling?",
   "ctx": [
-   "r := Mb(_T(\"Export all your macros to a folder before uninstalling?\"), _T(\"Uninstall Macro Manager\"), \"YesNoCancel 32\")"
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Don't export": {
+  "en": "Don't export",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Export first": {
+  "en": "Export first",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
   ]
  },
  "Choose a folder for the backup": {
@@ -402,7 +481,7 @@
  "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": {
   "en": "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.",
   "ctx": [
-   "MsgBox _T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"), 64"
+   "ThemedNote(_T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"))"
   ]
  },
  "New macro": {
@@ -548,22 +627,40 @@
    "sc := [eCode, AddHint(g, \"x10 y448 w640\", _T(\"Runs as its own process while this macro is checked (AutoHotkey v2).\"))]"
   ]
  },
- "This macro is in several profiles ({1}).\n\nYes = apply the change to all of them\nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version": {
-  "en": "This macro is in several profiles ({1}).\n\nYes = apply the change to all of them\nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version",
+ "This macro is in several profiles ({1}).": {
+  "en": "This macro is in several profiles ({1}).",
   "ctx": [
-   "r := MsgBox(_T(\"This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version\", ProfLabel(pv[\"v\"]), CurProfil"
+   "r := ThemedAsk(\"Macro Manager\", _T(\"This macro is in several profiles ({1}).\", ProfLabel(pv[\"v\"]))"
+  ]
+ },
+ "Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.": {
+  "en": "Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.",
+  "ctx": [
+   ", _T(\"Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.\", CurProfile)"
+  ]
+ },
+ "Only in \"{1}\"": {
+  "en": "Only in \"{1}\"",
+  "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)"
+  ]
+ },
+ "All profiles": {
+  "en": "All profiles",
+  "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)"
   ]
  },
  "Paste or write a script first.": {
   "en": "Paste or write a script first.",
   "ctx": [
-   "MsgBox _T(\"Paste or write a script first.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Paste or write a script first.\"), , true)"
   ]
  },
  "Enter a trigger key.": {
   "en": "Enter a trigger key.",
   "ctx": [
-   "MsgBox _T(\"Enter a trigger key.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Enter a trigger key.\"), , true)"
   ]
  },
  "Save": {
@@ -573,31 +670,154 @@
   ],
   "max_chars": 13
  },
- "Cancel": {
-  "en": "Cancel",
+ "Saving the settings failed: {1}": {
+  "en": "Saving the settings failed: {1}",
   "ctx": [
-   "AddBtn(g, \"x555 y482 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
-   "AddBtn(p, \"x216 y\" (y + 10) \" w90 h32\", _T(\"Cancel\"), Close)",
-   "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)"
-  ],
-  "max_chars": 13
+   "Toast(_T(\"Saving the settings failed: {1}\", e.Message))"
+  ]
  },
  "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}": {
   "en": "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}",
   "ctx": [
-   "MsgBox _T(\"Macro `\"{1}`\" can't be enabled (key `\"{2}`\"):`n{3}\", m[\"name\"], trig, e.Message), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Macro `\"{1}`\" can't be enabled (key `\"{2}`\"):`n{3}\", m[\"name\"], trig, e.Message), , true)"
+  ]
+ },
+ "Same trigger key": {
+  "en": "Same trigger key",
+  "ctx": [
+   "if (ThemedAsk(\"Macro Manager\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
+  ]
+ },
+ "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": {
+  "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.",
+  "ctx": [
+   "if (ThemedAsk(\"Macro Manager\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
+  ]
+ },
+ "Turn on anyway": {
+  "en": "Turn on anyway",
+  "ctx": [
+   ", [[_T(\"Turn on anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\") {"
+  ]
+ },
+ "Same trigger key as \"{1}\" - only one of them works": {
+  "en": "Same trigger key as \"{1}\" - only one of them works",
+  "ctx": [
+   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))"
+  ]
+ },
+ "starts other programs or commands": {
+  "en": "starts other programs or commands",
+  "ctx": [
+   "[\"\\b(Run|RunWait|ShellExecute)\\b\", _T(\"starts other programs or commands\")],"
+  ]
+ },
+ "connects to the internet or downloads files": {
+  "en": "connects to the internet or downloads files",
+  "ctx": [
+   "[\"\\b(Download|URLDownloadToFile|WinHttp|XMLHTTP)\\b|https?://\", _T(\"connects to the internet or downloads files\")],"
+  ]
+ },
+ "deletes files or folders": {
+  "en": "deletes files or folders",
+  "ctx": [
+   "[\"\\b(FileDelete|DirDelete|FileRecycle|FileRecycleEmpty)\\b\", _T(\"deletes files or folders\")],"
+  ]
+ },
+ "writes, copies or moves files": {
+  "en": "writes, copies or moves files",
+  "ctx": [
+   "[\"\\b(FileAppend|FileOpen|FileCopy|FileMove|DirCopy|DirMove|FileSetAttrib)\\b\", _T(\"writes, copies or moves files\")],"
+  ]
+ },
+ "changes the Windows registry": {
+  "en": "changes the Windows registry",
+  "ctx": [
+   "[\"\\b(RegWrite|RegDelete|RegDeleteKey)\\b\", _T(\"changes the Windows registry\")],"
+  ]
+ },
+ "calls Windows functions directly": {
+  "en": "calls Windows functions directly",
+  "ctx": [
+   "[\"\\b(DllCall|ComObject|ComObjCreate|ComObjGet|ComCall)\\b\", _T(\"calls Windows functions directly\")],"
+  ]
+ },
+ "reads what you type or the clipboard": {
+  "en": "reads what you type or the clipboard",
+  "ctx": [
+   "[\"\\b(InputHook|ClipboardAll|A_Clipboard|Clipboard)\\b\", _T(\"reads what you type or the clipboard\")],"
+  ]
+ },
+ "closes programs or shuts the PC down": {
+  "en": "closes programs or shuts the PC down",
+  "ctx": [
+   "[\"\\b(ProcessClose|Shutdown|WinKill)\\b\", _T(\"closes programs or shuts the PC down\")],"
+  ]
+ },
+ "loads code from other files": {
+  "en": "loads code from other files",
+  "ctx": [
+   "[\"#Include\\b\", _T(\"loads code from other files\")],"
+  ]
+ },
+ "calls commands by a computed name (can hide what it does)": {
+  "en": "calls commands by a computed name (can hide what it does)",
+  "ctx": [
+   "[\"%\\s*\\w+\\s*%\\s*\\(|%\\s*[`\"']\", _T(\"calls commands by a computed name (can hide what it does)\")]"
+  ]
+ },
+ "Imported script": {
+  "en": "Imported script",
+  "ctx": [
+   "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Imported script\"))"
+  ]
+ },
+ "Turn on \"{1}\"?": {
+  "en": "Turn on \"{1}\"?",
+  "ctx": [
+   "DlgText(g, \"x16 y14 w468\", _T(\"Turn on `\"{1}`\"?\", name))"
+  ]
+ },
+ "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.": {
+  "en": "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.",
+  "ctx": [
+   "DlgText(g, \"x16 y+8 w468\", _T(\"This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.\"))"
+  ]
+ },
+ "Found in the code - the script:": {
+  "en": "Found in the code - the script:",
+  "ctx": [
+   "g.AddText(\"x16 y+12 w468\", _T(\"Found in the code - the script:\"))"
+  ]
+ },
+ "No risky commands were found. This is only a quick check, not a guarantee.": {
+  "en": "No risky commands were found. This is only a quick check, not a guarantee.",
+  "ctx": [
+   "AddHint(g, \"x16 y+12 w468\", _T(\"No risky commands were found. This is only a quick check, not a guarantee.\"))"
+  ]
+ },
+ "Show the code": {
+  "en": "Show the code",
+  "ctx": [
+   "AddBtn(g, \"x16 y\" btnY \" w140 h32\", _T(\"Show the code\"), DoCode)"
+  ]
+ },
+ "Turn on": {
+  "en": "Turn on",
+  "ctx": [
+   "AddBtn(g, \"x254 y\" btnY \" w120 h32\", _T(\"Turn on\"), DoOn, \"btndanger\")"
   ]
  },
  "Script file for \"{1}\" is missing.": {
   "en": "Script file for \"{1}\" is missing.",
   "ctx": [
-   "MsgBox _T(\"Script file for `\"{1}`\" is missing.\", m[\"name\"]), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Script file for `\"{1}`\" is missing.\", m[\"name\"]), , true)"
   ]
  },
  "Script macros need AutoHotkey v2 installed (not found).": {
   "en": "Script macros need AutoHotkey v2 installed (not found).",
   "ctx": [
-   "MsgBox _T(\"Script macros need AutoHotkey v2 installed (not found).\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Script macros need AutoHotkey v2 installed (not found).\"), , true)"
   ]
  },
  "New version {1} available - click to update": {
@@ -666,47 +886,47 @@
    "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Delete current\"), (*) => (ClosePop(), DeleteProfile()), \"btndanger\")"
   ]
  },
- "Name of the new profile:": {
-  "en": "Name of the new profile:",
-  "ctx": [
-   "ib := InputBox(_T(\"Name of the new profile:\"), _T(\"New profile\"), \"w300 h130\")"
-  ]
- },
  "New profile": {
   "en": "New profile",
   "ctx": [
-   "ib := InputBox(_T(\"Name of the new profile:\"), _T(\"New profile\"), \"w300 h130\")"
+   "v := ThemedInput(_T(\"New profile\"), _T(\"Name of the new profile:\"))"
+  ]
+ },
+ "Name of the new profile:": {
+  "en": "Name of the new profile:",
+  "ctx": [
+   "v := ThemedInput(_T(\"New profile\"), _T(\"Name of the new profile:\"))"
   ]
  },
  "A profile with this name already exists.": {
   "en": "A profile with this name already exists.",
   "ctx": [
-   "MsgBox _T(\"A profile with this name already exists.\"), \"Macro Manager\", 48",
-   "MsgBox _T(\"A profile with this name already exists.\"), \"Macro Manager\", 48"
-  ]
- },
- "New name for profile \"{1}\":": {
-  "en": "New name for profile \"{1}\":",
-  "ctx": [
-   "ib := InputBox(_T(\"New name for profile `\"{1}`\":\", CurProfile), _T(\"Rename profile\"), \"w300 h130\", CurProfile)"
+   "ThemedNote(_T(\"A profile with this name already exists.\"), , true)",
+   "ThemedNote(_T(\"A profile with this name already exists.\"), , true)"
   ]
  },
  "Rename profile": {
   "en": "Rename profile",
   "ctx": [
-   "ib := InputBox(_T(\"New name for profile `\"{1}`\":\", CurProfile), _T(\"Rename profile\"), \"w300 h130\", CurProfile)"
+   "v := ThemedInput(_T(\"Rename profile\"), _T(\"New name for profile `\"{1}`\":\", CurProfile), CurProfile)"
+  ]
+ },
+ "New name for profile \"{1}\":": {
+  "en": "New name for profile \"{1}\":",
+  "ctx": [
+   "v := ThemedInput(_T(\"Rename profile\"), _T(\"New name for profile `\"{1}`\":\", CurProfile), CurProfile)"
   ]
  },
  "You can't delete the last profile.": {
   "en": "You can't delete the last profile.",
   "ctx": [
-   "MsgBox _T(\"You can't delete the last profile.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"You can't delete the last profile.\"), , true)"
   ]
  },
  "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.": {
   "en": "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.",
   "ctx": [
-   "if (Mb(_T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), \"Macro Manager\", \"YesNo 32\") != \"Yes\")"
+   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary"
   ]
  },
  "Profiles of this macro": {
@@ -724,38 +944,47 @@
  "Select at least one profile.": {
   "en": "Select at least one profile.",
   "ctx": [
-   "MsgBox _T(\"Select at least one profile.\"), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Select at least one profile.\"), , true)"
   ]
  },
  "OK": {
   "en": "OK",
   "ctx": [
-   "AddBtn(p, \"x116 y\" (y + 10) \" w90 h32\", _T(\"OK\"), Ok, \"btnprimary\")"
-  ]
- },
- "Use one of the currently running applications?\n\nYes = choose from a list\nNo = browse for the .exe file": {
-  "en": "Use one of the currently running applications?\n\nYes = choose from a list\nNo = browse for the .exe file",
-  "ctx": [
-   "r := Mb(_T(\"Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file\"), _T(\"Select application\"), \"YesNoCancel Icon?\")"
+   "AddBtn(p, \"x116 y\" (y + 10) \" w90 h32\", _T(\"OK\"), Ok, \"btnprimary\")",
+   "ThemedAsk(title, heading, text, [[_T(\"OK\"), \"ok\", \"btnprimary\"]], warn)",
+   "AddBtn(g, \"x174 y\" btnY \" w100 h32\", _T(\"OK\"), Ok, \"btnprimary\")"
   ]
  },
  "Select application": {
   "en": "Select application",
   "ctx": [
-   "r := Mb(_T(\"Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file\"), _T(\"Select application\"), \"YesNoCancel Icon?\")",
-   "MsgBox _T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"), 64"
+   "r := ThemedAsk(_T(\"Select application\"), \"\", _T(\"Use one of the currently running applications, or browse for the .exe file?\")",
+   "ThemedNote(_T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"))"
   ]
  },
- "No running applications found - choose the file instead.": {
-  "en": "No running applications found - choose the file instead.",
+ "Use one of the currently running applications, or browse for the .exe file?": {
+  "en": "Use one of the currently running applications, or browse for the .exe file?",
   "ctx": [
-   "MsgBox _T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"), 64"
+   "r := ThemedAsk(_T(\"Select application\"), \"\", _T(\"Use one of the currently running applications, or browse for the .exe file?\")"
+  ]
+ },
+ "Browse for the .exe": {
+  "en": "Browse for the .exe",
+  "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Browse for the .exe\"), \"browse\", \"btn\"], [_T(\"Running applications\"), \"list\", \"btnprimary\"]], false)"
   ]
  },
  "Running applications": {
   "en": "Running applications",
   "ctx": [
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Browse for the .exe\"), \"browse\", \"btn\"], [_T(\"Running applications\"), \"list\", \"btnprimary\"]], false)",
    "p := Gui(\"+Owner\" owner.Hwnd \" +ToolWindow\", _T(\"Running applications\"))"
+  ]
+ },
+ "No running applications found - choose the file instead.": {
+  "en": "No running applications found - choose the file instead.",
+  "ctx": [
+   "ThemedNote(_T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"))"
   ]
  },
  "Double-click an application:": {
@@ -786,73 +1015,89 @@
  "Could not check for updates. Check your internet connection and try again.": {
   "en": "Could not check for updates. Check your internet connection and try again.",
   "ctx": [
-   "Mb(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), \"Iconx\")"
+   "ThemedNote(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), true)"
   ]
  },
  "Updates": {
   "en": "Updates",
   "ctx": [
-   "Mb(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), \"Iconx\")",
-   "Mb(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"), \"Iconi\")",
-   "Mb(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), \"Iconx\")",
-   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got",
-   "Mb(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), \"Iconx\")",
-   "Mb(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), \"Iconx\")",
+   "ThemedNote(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"))",
+   "ThemedNote(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 1",
+   "ThemedNote(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", \"AutoHotkey v2 not found\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)",
    "Help window topic title (navigation button, ~25 characters max)"
   ]
  },
  "You have the latest version (v{1}).": {
   "en": "You have the latest version (v{1}).",
   "ctx": [
-   "Mb(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"), \"Iconi\")"
-  ]
- },
- "Version {1} is available (you have v{2}).": {
-  "en": "Version {1} is available (you have v{2}).",
-  "ctx": [
-   "msg := _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion)"
+   "ThemedNote(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"))"
   ]
  },
  "\n\nUpdate now? The app restarts. Your macros, profiles and settings are not changed.": {
   "en": "\n\nUpdate now? The app restarts. Your macros, profiles and settings are not changed.",
   "ctx": [
-   "msg .= _T(\"`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.\")"
+   "msg := (UpdInfo[\"notes\"] != \"\" ? UpdInfo[\"notes\"] \"`n`n\" : \"\") Trim(_T(\"`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.\"), \"`n\")"
   ]
  },
  "Macro Manager update": {
   "en": "Macro Manager update",
   "ctx": [
-   "if (Mb(msg, _T(\"Macro Manager update\"), \"YesNo Iconi\") = \"Yes\")"
+   "if (ThemedAsk(_T(\"Macro Manager update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
+  ]
+ },
+ "Version {1} is available (you have v{2}).": {
+  "en": "Version {1} is available (you have v{2}).",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Manager update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
+  ]
+ },
+ "Later": {
+  "en": "Later",
+  "ctx": [
+   ", [[_T(\"Later\"), \"\", \"btn\"], [_T(\"Update now\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+  ]
+ },
+ "Update now": {
+  "en": "Update now",
+  "ctx": [
+   ", [[_T(\"Later\"), \"\", \"btn\"], [_T(\"Update now\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "The download failed. Try again later.": {
   "en": "The download failed. Try again later.",
   "ctx": [
-   "Mb(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), \"Iconx\")"
+   "ThemedNote(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), true)"
   ]
  },
  "The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.\n\nExpected: {1}...\nReceived: {2}  ({3} bytes)": {
   "en": "The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.\n\nExpected: {1}...\nReceived: {2}  ({3} bytes)",
   "ctx": [
-   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got"
+   "ThemedNote(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 1"
   ]
  },
  "(could not compute)": {
   "en": "(could not compute)",
   "ctx": [
-   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got"
+   "ThemedNote(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 1"
   ]
  },
  "The downloaded file is not a valid Macro Manager script. Nothing was changed.": {
   "en": "The downloaded file is not a valid Macro Manager script. Nothing was changed.",
   "ctx": [
-   "Mb(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), \"Iconx\")"
+   "ThemedNote(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), true)"
   ]
  },
  "Could not replace the app file: {1}": {
   "en": "Could not replace the app file: {1}",
   "ctx": [
-   "Mb(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), \"Iconx\")"
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", \"AutoHotkey v2 not found\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)"
   ]
  },
  "Version {1}": {
@@ -930,7 +1175,7 @@
  "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}": {
   "en": "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}",
   "ctx": [
-   "MsgBox _T(\"Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}\", \"https://discord.com/users/\" DiscordId), \"Macro Manager\", 64"
+   "ThemedNote(_T(\"Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}\", \"https://discord.com/users/\" DiscordId))"
   ]
  },
  "Help": {
@@ -961,7 +1206,7 @@
  "Dragging the macro out failed:\n{1}": {
   "en": "Dragging the macro out failed:\n{1}",
   "ctx": [
-   "MsgBox _T(\"Dragging the macro out failed:`n{1}\", e.Message), \"Macro Manager\", 48"
+   "ThemedNote(_T(\"Dragging the macro out failed:`n{1}\", e.Message), , true)"
   ]
  },
  "Release notes": {
@@ -1012,137 +1257,5 @@
    "Help window topic title (navigation button, ~25 characters max)"
   ],
   "max_chars": 24
- },
- "Saving the settings failed: {1}": {
-  "en": "Saving the settings failed: {1}",
-  "ctx": [
-   "Toast(_T(\"Saving the settings failed: {1}\", e.Message))"
-  ]
- },
- "starts other programs or commands": {
-  "en": "starts other programs or commands",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "connects to the internet or downloads files": {
-  "en": "connects to the internet or downloads files",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "deletes files or folders": {
-  "en": "deletes files or folders",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "writes, copies or moves files": {
-  "en": "writes, copies or moves files",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "changes the Windows registry": {
-  "en": "changes the Windows registry",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "calls Windows functions directly": {
-  "en": "calls Windows functions directly",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "reads what you type or the clipboard": {
-  "en": "reads what you type or the clipboard",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "closes programs or shuts the PC down": {
-  "en": "closes programs or shuts the PC down",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "loads code from other files": {
-  "en": "loads code from other files",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "calls commands by a computed name (can hide what it does)": {
-  "en": "calls commands by a computed name (can hide what it does)",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Imported script": {
-  "en": "Imported script",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Turn on \"{1}\"?": {
-  "en": "Turn on \"{1}\"?",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.": {
-  "en": "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Found in the code - the script:": {
-  "en": "Found in the code - the script:",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "No risky commands were found. This is only a quick check, not a guarantee.": {
-  "en": "No risky commands were found. This is only a quick check, not a guarantee.",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Show the code": {
-  "en": "Show the code",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Turn on": {
-  "en": "Turn on",
-  "ctx": [
-   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
-  ]
- },
- "Same trigger key as \"{1}\" - only one of them works": {
-  "en": "Same trigger key as \"{1}\" - only one of them works",
-  "ctx": [
-   "EnableMacro: turning on a macro whose trigger key an active macro already uses"
-  ]
- },
- "Same trigger key": {
-  "en": "Same trigger key",
-  "ctx": [
-   "EnableMacro: themed warning, a trigger key an active macro already uses"
-  ]
- },
- "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": {
-  "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.",
-  "ctx": [
-   "EnableMacro: themed warning, a trigger key an active macro already uses"
-  ]
- },
- "Turn on anyway": {
-  "en": "Turn on anyway",
-  "ctx": [
-   "EnableMacro: themed warning, a trigger key an active macro already uses"
-  ]
  }
 }

@@ -105,7 +105,7 @@ DragTick() {
         DragFile(paths)
     } catch as e {
         DragOut := false
-        MsgBox _T("Dragging the macro out failed:`n{1}", e.Message), "Macro Manager", 48
+        ThemedNote(_T("Dragging the macro out failed:`n{1}", e.Message), , true)
     }
     DragOut := false
     DragEnd := A_TickCount

@@ -182,68 +182,6 @@ ShowOver(g, opts, anchor := 0) {
         g.Show(opts)
 }
 
-; question window in the app's own look (instead of the grey system MsgBox)
-; buttons: [[label, value, role], ...] shown left to right at the bottom right; the "btnprimary" one is the
-; default (Enter). Esc / closing the window returns "".
-ThemedAsk(title, heading, body, buttons, warn := true) {
-    res := "", done := false
-    owner := DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0
-    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", title)
-    x0 := 16
-    if warn {
-        bp := g.AddPicture("x16 y17 w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)      ; the yellow !
-        Roles[bp.Hwnd] := "skip"
-        x0 := 40
-    }
-    g.SetFont("s10 bold", "Segoe UI")
-    g.AddText("x" x0 " y14 w" (484 - x0), heading)
-    g.SetFont("s9 norm", "Segoe UI")
-    g.AddText("x16 y+10 w468", body)
-    btnY := 0
-    g.AddText("x16 y+18 w1 h1").GetPos(, &btnY)                ; buttons go below the text
-    Pick(v, *) {
-        res := v
-        Close()
-    }
-    Close(*) {
-        done := true
-        g.Destroy()
-    }
-    g.SetFont("s9", "Segoe UI")
-    def := "", x := 484, i := buttons.Length
-    while (i >= 1) {
-        b := buttons[i]
-        w := Max(100, 24 + 7 * StrLen(b[1]))
-        x -= w
-        AddBtn(g, "x" x " y" btnY " w" w " h32", b[1], Pick.Bind(b[2]), b[3])
-        if (b[3] = "btnprimary")
-            def := b[2]
-        x -= 10
-        i--
-    }
-    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = the highlighted button
-    hb.OnEvent("Click", Pick.Bind(def))
-    g.OnEvent("Close", Close)
-    g.OnEvent("Escape", Close)
-    ApplyTheme(g)
-    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
-    while !done
-        Sleep 50
-    return res
-}
-
-; MsgBox that opens over the visible app window (not on the primary monitor)
-Mb(text, title := "", opts := "") {
-    try {
-        h := WinExist("A")
-        if (!h || WinGetPID(h) != ProcessExist())
-            h := Main.Hwnd
-        if (h && DllCall("IsWindowVisible", "Ptr", h))
-            opts .= " Owner" h
-    }
-    return MsgBox(text, title, opts)
-}
-
 ; themed check boxes for the list (state image list: 1 = off, 2 = on)
 SetCheckImages(c) {
     static gdip := 0

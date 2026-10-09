@@ -36,7 +36,7 @@ Apply() {
             Registered.Push([TrigHot(trig), cond])
         } catch as e {
             HotIf()
-            MsgBox _T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), "Macro Manager", 48
+            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
         }
     }
     HotIf()
@@ -155,12 +155,12 @@ ScriptRisks(code) {
 ConfirmScript(name, code) {
     res := "", done := false
     risks := ScriptRisks(code)
-    owner := (DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0)
-    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", _T("Imported script"))
+    oh := DlgOwner()
+    g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Imported script"))
     g.SetFont("s10 bold", "Segoe UI")
-    g.AddText("x16 y14 w468", _T("Turn on `"{1}`"?", name))
+    DlgText(g, "x16 y14 w468", _T("Turn on `"{1}`"?", name))
     g.SetFont("s9 norm", "Segoe UI")
-    g.AddText("x16 y+8 w468", _T("This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."))
+    DlgText(g, "x16 y+8 w468", _T("This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."))
     if risks.Length {
         g.SetFont("s9 bold", "Segoe UI")
         g.AddText("x16 y+12 w468", _T("Found in the code - the script:"))
@@ -180,7 +180,11 @@ ConfirmScript(name, code) {
         Close()
     }
     Close(*) {
+        if done
+            return
         done := true
+        if oh
+            DllCall("EnableWindow", "Ptr", oh, "Int", 1)
         g.Destroy()
     }
     AddBtn(g, "x16 y" btnY " w140 h32", _T("Show the code"), DoCode)
@@ -191,7 +195,9 @@ ConfirmScript(name, code) {
     g.OnEvent("Close", Close)
     g.OnEvent("Escape", Close)
     ApplyTheme(g)
-    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
+    if oh
+        DllCall("EnableWindow", "Ptr", oh, "Int", 0)
+    ShowOver(g, "w500 h" (btnY + 46), oh)
     while !done
         Sleep 50
     return res
@@ -199,12 +205,12 @@ ConfirmScript(name, code) {
 
 StartScript(m) {
     if (m["file"] = "" || !FileExist(ScriptPath(m))) {
-        MsgBox _T("Script file for `"{1}`" is missing.", m["name"]), "Macro Manager", 48
+        ThemedNote(_T("Script file for `"{1}`" is missing.", m["name"]), , true)
         return
     }
     ahk := AhkExe()
     if (ahk = "") {
-        MsgBox _T("Script macros need AutoHotkey v2 installed (not found)."), "Macro Manager", 48
+        ThemedNote(_T("Script macros need AutoHotkey v2 installed (not found)."), , true)
         return
     }
     Run('"' ahk '" "' ScriptPath(m) '"', , , &pid)

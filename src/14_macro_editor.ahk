@@ -111,11 +111,12 @@ EditMacro(idx) {
     Detach() {
         if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
             return true
-        r := MsgBox(_T("This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version", ProfLabel(pv["v"]), CurProfile),
-            "Macro Manager", 0x23)
-        if (r = "Cancel")
+        r := ThemedAsk("Macro Manager", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
+            , _T("Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.", CurProfile)
+            , [[_T("Cancel"), "", "btn"], [_T("Only in `"{1}`"", CurProfile), "one", "btn"], [_T("All profiles"), "all", "btnprimary"]], false)
+        if (r = "")
             return false
-        if (r = "Yes")
+        if (r = "all")
             return true
         old := m
         StopScript(old)
@@ -138,7 +139,7 @@ EditMacro(idx) {
         if (t = 3) {
             txt := eCode.Value
             if (Trim(txt) = "") {
-                MsgBox _T("Paste or write a script first."), "Macro Manager", 48
+                ThemedNote(_T("Paste or write a script first."), , true)
                 return
             }
             if !Detach()
@@ -153,7 +154,7 @@ EditMacro(idx) {
         } else {
             key := Trim(st["key"])
             if (key = "") {
-                MsgBox _T("Enter a trigger key."), "Macro Manager", 48
+                ThemedNote(_T("Enter a trigger key."), , true)
                 return
             }
             if !Detach()

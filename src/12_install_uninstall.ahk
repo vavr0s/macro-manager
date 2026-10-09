@@ -7,14 +7,15 @@ Bootstrap() {
     if (prev != "")
         InitLang(prev "\config\macros.ini")             ; an existing install keeps its language
     if (prev != "" && FileExist(prev "\config\.installed") && FindInstalled(prev) != "") {
-        r := MsgBox(_T("Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit", prev), _T("Macro Manager setup"), "YesNoCancel 64")
-        if (r = "Cancel")
+        r := ThemedAsk(_T("Macro Manager setup"), _T("Macro Manager is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
+            , [[_T("Just start"), "start", "btn"], [_T("Update and start"), "update", "btnprimary"]], false)
+        if (r = "")
             return
-        if (r = "Yes") {
+        if (r = "update") {
             try {
                 InstallProgram(prev)
             } catch as e {
-                MsgBox _T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), 48
+                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), true)
             }
         }
         LaunchInstalled(prev)
@@ -34,16 +35,16 @@ Bootstrap() {
         FileAppend "installed", target "\config\.installed"
         RegWrite(target, "REG_SZ", reg, "InstallDir")
     } catch as e {
-        MsgBox _T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), 16
+        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), true)
         return
     }
 
     icon := target "\config\assets\app.ico"
-    if (MsgBox(_T("Create a Start Menu shortcut?"), _T("Macro Manager setup"), "YesNo 32") = "Yes")
+    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
         MakeShortcut(A_Programs "\Macro Manager.lnk", target, icon)
-    if (MsgBox(_T("Create a Desktop shortcut?"), _T("Macro Manager setup"), "YesNo 32") = "Yes")
+    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
         MakeShortcut(A_Desktop "\Macro Manager.lnk", target, icon)
-    MsgBox _T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"), 64
+    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"))
     LaunchInstalled(target)
 }
 
@@ -282,10 +283,10 @@ RegisterUninstall() {
 UninstallApp(fromArg := false) {
     dir := A_ScriptDir
     if (StrLen(dir) <= 3 || !FileExist(dir "\config\.installed")) {
-        MsgBox _T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), 48
+        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), true)
         return false
     }
-    if (Mb(_T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), _T("Uninstall Macro Manager"), "YesNo 48 Default2") != "Yes") {
+    if (ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
         if fromArg
             LaunchInstalled(dir)
         return false
@@ -294,20 +295,20 @@ UninstallApp(fromArg := false) {
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := Mb(_T("Export all your macros to a folder before uninstalling?"), _T("Uninstall Macro Manager"), "YesNoCancel 32")
-        if (r = "Cancel") {
+        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Export all your macros to a folder before uninstalling?"), [[_T("Cancel"), "", "btn"], [_T("Don't export"), "no", "btn"], [_T("Export first"), "yes", "btnprimary"]], false)
+        if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
-        if (r = "Yes") {
+        if (r = "yes") {
             bdir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the backup"))
             if (bdir = "") {
                 if fromArg
                     LaunchInstalled(dir)
                 return false
             }
-            MsgBox _T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"), 64
+            ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"))
         }
     }
     ; stop imported scripts started by the manager
@@ -318,7 +319,7 @@ UninstallApp(fromArg := false) {
     try RegDeleteKey("HKCU\Software\MacroManager")
     try FileDelete(A_Programs "\Macro Manager.lnk")
     try FileDelete(A_Desktop "\Macro Manager.lnk")
-    MsgBox _T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"), 64
+    ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))
     ; a separate hidden process deletes the folder after this app has exited
     Run(A_ComSpec ' /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "' dir '"', A_Temp, "Hide")
     ExitApp

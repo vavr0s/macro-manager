@@ -56,6 +56,9 @@ if !A_IsAdmin {
     ExitApp
 }
 
+Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme (also by the setup dialogs)
+DarkOn := false
+
 ; ============ first run: install into a folder chosen by the user ============
 if !FileExist(A_ScriptDir "\config\.installed") {
     Bootstrap()
@@ -85,7 +88,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15.4"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15.5"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -94,14 +97,13 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files."
+ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.`n- New: an imported script (an .ahk file that was not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.`n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.`n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files.`n- All messages and questions now have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
 MasterOn := true
 Registered := []
 Populating := false
-DarkOn := false
 HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
@@ -121,7 +123,6 @@ SortCol := 0
 SortAsc := true
 Rec := {ih: 0, mode: "", cb: 0, down: [], chord: [], toks: [], mpend: [], btn: 0, undo: 0}
 MouseToks := ["RButton", "MButton", "XButton1", "XButton2", "WheelUp", "WheelDown", "WheelLeft", "WheelRight"]
-Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme
 Procs := Map()          ; macro -> PID of running imported script
 EnsureAssets()          ; logo + icon are embedded in this file
 
@@ -362,7 +363,7 @@ OnDelBtn(*) {
     if !list.Length
         return
     msg := list.Length = 1 ? _T("Delete macro `"{1}`"?", list[1]["name"]) : _T("Delete {1} selected macros?", list.Length)
-    if Mb(msg, "Macro Manager", "YesNo 32") != "Yes"
+    if (ThemedAsk("Macro Manager", "", msg, [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     for m in list {
         StopScript(m)
@@ -502,27 +503,27 @@ Refresh() {
 OnExportBtn(*) {
     sel := SelMacros()
     if !sel.Length {
-        MsgBox _T("Select a macro first."), "Macro Manager", 48
+        ThemedNote(_T("Select a macro first."), , true)
         return
     }
     if (sel.Length > 1) {
         dir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the {1} exported macros", sel.Length))
         if (dir = "")
             return
-        MsgBox _T("{1} macro(s) exported to:`n{2}", ExportAllTo(dir, sel), dir), "Macro Manager", 64
+        ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(dir, sel), dir))
         return
     }
     m := sel[1]
     if (m["type"] != "script") {
         k := Trim(m["hotkey"])
         if (k = "" || k = "undefined") {
-            MsgBox _T("Set a trigger key for this macro first."), "Macro Manager", 48
+            ThemedNote(_T("Set a trigger key for this macro first."), , true)
             return
         }
     }
     code := ExportCode(m)
     if (code = "") {
-        MsgBox _T("Nothing to export (script file is missing)."), "Macro Manager", 48
+        ThemedNote(_T("Nothing to export (script file is missing)."), , true)
         return
     }
     safe := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
@@ -532,19 +533,19 @@ OnExportBtn(*) {
     if !RegExMatch(path, "i)\.ahk$")
         path .= ".ahk"
     WriteText(path, code)
-    MsgBox _T("Exported to:`n{1}", path), "Macro Manager", 64
+    ThemedNote(_T("Exported to:`n{1}", path))
 }
 
 OnExportAll(*) {
     if !Macros.Length {
-        MsgBox _T("There are no macros to export."), "Macro Manager", 48
+        ThemedNote(_T("There are no macros to export."), , true)
         return
     }
     dir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the exported macros"))
     if (dir = "")
         return
     n := ExportAllTo(dir)
-    MsgBox _T("{1} macro(s) exported to:`n{2}", n, dir), "Macro Manager", 64
+    ThemedNote(_T("{1} macro(s) exported to:`n{2}", n, dir))
 }
 
 ; writes every macro as its own .ahk file (names made unique); returns how many were written
@@ -649,7 +650,7 @@ ImportName(path) {
 ImportOne(path) {
     try text := FileRead(path, "UTF-8")
     catch {
-        MsgBox _T("Can't read:`n{1}", path), "Macro Manager", 48
+        ThemedNote(_T("Can't read:`n{1}", path), , true)
         return false
     }
     meta := Map()
@@ -675,7 +676,7 @@ ImportOne(path) {
     } else {
         ; any other script -> runs as its own process while the macro is on
         if (!InStr(text, "#Requires AutoHotkey v2")
-            && Mb(_T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"), "Macro Manager", "YesNo 48") != "Yes")
+            && ThemedAsk("Macro Manager", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
             return false
         m["type"] := "script"
         m["trusted"] := 0                           ; someone else's code: asked before it runs for the first time
@@ -710,14 +711,15 @@ Bootstrap() {
     if (prev != "")
         InitLang(prev "\config\macros.ini")             ; an existing install keeps its language
     if (prev != "" && FileExist(prev "\config\.installed") && FindInstalled(prev) != "") {
-        r := MsgBox(_T("Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit", prev), _T("Macro Manager setup"), "YesNoCancel 64")
-        if (r = "Cancel")
+        r := ThemedAsk(_T("Macro Manager setup"), _T("Macro Manager is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
+            , [[_T("Just start"), "start", "btn"], [_T("Update and start"), "update", "btnprimary"]], false)
+        if (r = "")
             return
-        if (r = "Yes") {
+        if (r = "update") {
             try {
                 InstallProgram(prev)
             } catch as e {
-                MsgBox _T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), 48
+                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), true)
             }
         }
         LaunchInstalled(prev)
@@ -737,16 +739,16 @@ Bootstrap() {
         FileAppend "installed", target "\config\.installed"
         RegWrite(target, "REG_SZ", reg, "InstallDir")
     } catch as e {
-        MsgBox _T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), 16
+        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), true)
         return
     }
 
     icon := target "\config\assets\app.ico"
-    if (MsgBox(_T("Create a Start Menu shortcut?"), _T("Macro Manager setup"), "YesNo 32") = "Yes")
+    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
         MakeShortcut(A_Programs "\Macro Manager Beta.lnk", target, icon)
-    if (MsgBox(_T("Create a Desktop shortcut?"), _T("Macro Manager setup"), "YesNo 32") = "Yes")
+    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
         MakeShortcut(A_Desktop "\Macro Manager Beta.lnk", target, icon)
-    MsgBox _T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"), 64
+    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"))
     LaunchInstalled(target)
 }
 
@@ -985,10 +987,10 @@ RegisterUninstall() {
 UninstallApp(fromArg := false) {
     dir := A_ScriptDir
     if (StrLen(dir) <= 3 || !FileExist(dir "\config\.installed")) {
-        MsgBox _T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), 48
+        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), true)
         return false
     }
-    if (Mb(_T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), _T("Uninstall Macro Manager"), "YesNo 48 Default2") != "Yes") {
+    if (ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
         if fromArg
             LaunchInstalled(dir)
         return false
@@ -997,20 +999,20 @@ UninstallApp(fromArg := false) {
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := Mb(_T("Export all your macros to a folder before uninstalling?"), _T("Uninstall Macro Manager"), "YesNoCancel 32")
-        if (r = "Cancel") {
+        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Export all your macros to a folder before uninstalling?"), [[_T("Cancel"), "", "btn"], [_T("Don't export"), "no", "btn"], [_T("Export first"), "yes", "btnprimary"]], false)
+        if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
-        if (r = "Yes") {
+        if (r = "yes") {
             bdir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the backup"))
             if (bdir = "") {
                 if fromArg
                     LaunchInstalled(dir)
                 return false
             }
-            MsgBox _T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"), 64
+            ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"))
         }
     }
     ; stop imported scripts started by the manager
@@ -1021,7 +1023,7 @@ UninstallApp(fromArg := false) {
     try RegDeleteKey("HKCU\Software\MacroManagerBeta")
     try FileDelete(A_Programs "\Macro Manager Beta.lnk")
     try FileDelete(A_Desktop "\Macro Manager Beta.lnk")
-    MsgBox _T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"), 64
+    ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))
     ; a separate hidden process deletes the folder after this app has exited
     Run(A_ComSpec ' /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "' dir '"', A_Temp, "Hide")
     ExitApp
@@ -1305,11 +1307,12 @@ EditMacro(idx) {
     Detach() {
         if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
             return true
-        r := MsgBox(_T("This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version", ProfLabel(pv["v"]), CurProfile),
-            "Macro Manager", 0x23)
-        if (r = "Cancel")
+        r := ThemedAsk("Macro Manager", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
+            , _T("Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.", CurProfile)
+            , [[_T("Cancel"), "", "btn"], [_T("Only in `"{1}`"", CurProfile), "one", "btn"], [_T("All profiles"), "all", "btnprimary"]], false)
+        if (r = "")
             return false
-        if (r = "Yes")
+        if (r = "all")
             return true
         old := m
         StopScript(old)
@@ -1332,7 +1335,7 @@ EditMacro(idx) {
         if (t = 3) {
             txt := eCode.Value
             if (Trim(txt) = "") {
-                MsgBox _T("Paste or write a script first."), "Macro Manager", 48
+                ThemedNote(_T("Paste or write a script first."), , true)
                 return
             }
             if !Detach()
@@ -1347,7 +1350,7 @@ EditMacro(idx) {
         } else {
             key := Trim(st["key"])
             if (key = "") {
-                MsgBox _T("Enter a trigger key."), "Macro Manager", 48
+                ThemedNote(_T("Enter a trigger key."), , true)
                 return
             }
             if !Detach()
@@ -1509,7 +1512,7 @@ Apply() {
             Registered.Push([TrigHot(trig), cond])
         } catch as e {
             HotIf()
-            MsgBox _T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), "Macro Manager", 48
+            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
         }
     }
     HotIf()
@@ -1628,12 +1631,12 @@ ScriptRisks(code) {
 ConfirmScript(name, code) {
     res := "", done := false
     risks := ScriptRisks(code)
-    owner := (DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0)
-    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", _T("Imported script"))
+    oh := DlgOwner()
+    g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Imported script"))
     g.SetFont("s10 bold", "Segoe UI")
-    g.AddText("x16 y14 w468", _T("Turn on `"{1}`"?", name))
+    DlgText(g, "x16 y14 w468", _T("Turn on `"{1}`"?", name))
     g.SetFont("s9 norm", "Segoe UI")
-    g.AddText("x16 y+8 w468", _T("This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."))
+    DlgText(g, "x16 y+8 w468", _T("This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."))
     if risks.Length {
         g.SetFont("s9 bold", "Segoe UI")
         g.AddText("x16 y+12 w468", _T("Found in the code - the script:"))
@@ -1653,7 +1656,11 @@ ConfirmScript(name, code) {
         Close()
     }
     Close(*) {
+        if done
+            return
         done := true
+        if oh
+            DllCall("EnableWindow", "Ptr", oh, "Int", 1)
         g.Destroy()
     }
     AddBtn(g, "x16 y" btnY " w140 h32", _T("Show the code"), DoCode)
@@ -1664,7 +1671,9 @@ ConfirmScript(name, code) {
     g.OnEvent("Close", Close)
     g.OnEvent("Escape", Close)
     ApplyTheme(g)
-    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
+    if oh
+        DllCall("EnableWindow", "Ptr", oh, "Int", 0)
+    ShowOver(g, "w500 h" (btnY + 46), oh)
     while !done
         Sleep 50
     return res
@@ -1672,12 +1681,12 @@ ConfirmScript(name, code) {
 
 StartScript(m) {
     if (m["file"] = "" || !FileExist(ScriptPath(m))) {
-        MsgBox _T("Script file for `"{1}`" is missing.", m["name"]), "Macro Manager", 48
+        ThemedNote(_T("Script file for `"{1}`" is missing.", m["name"]), , true)
         return
     }
     ahk := AhkExe()
     if (ahk = "") {
-        MsgBox _T("Script macros need AutoHotkey v2 installed (not found)."), "Macro Manager", 48
+        ThemedNote(_T("Script macros need AutoHotkey v2 installed (not found)."), , true)
         return
     }
     Run('"' ahk '" "' ScriptPath(m) '"', , , &pid)
@@ -2157,68 +2166,6 @@ ShowOver(g, opts, anchor := 0) {
         g.Show(opts)
 }
 
-; question window in the app's own look (instead of the grey system MsgBox)
-; buttons: [[label, value, role], ...] shown left to right at the bottom right; the "btnprimary" one is the
-; default (Enter). Esc / closing the window returns "".
-ThemedAsk(title, heading, body, buttons, warn := true) {
-    res := "", done := false
-    owner := DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0
-    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", title)
-    x0 := 16
-    if warn {
-        bp := g.AddPicture("x16 y17 w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)      ; the yellow !
-        Roles[bp.Hwnd] := "skip"
-        x0 := 40
-    }
-    g.SetFont("s10 bold", "Segoe UI")
-    g.AddText("x" x0 " y14 w" (484 - x0), heading)
-    g.SetFont("s9 norm", "Segoe UI")
-    g.AddText("x16 y+10 w468", body)
-    btnY := 0
-    g.AddText("x16 y+18 w1 h1").GetPos(, &btnY)                ; buttons go below the text
-    Pick(v, *) {
-        res := v
-        Close()
-    }
-    Close(*) {
-        done := true
-        g.Destroy()
-    }
-    g.SetFont("s9", "Segoe UI")
-    def := "", x := 484, i := buttons.Length
-    while (i >= 1) {
-        b := buttons[i]
-        w := Max(100, 24 + 7 * StrLen(b[1]))
-        x -= w
-        AddBtn(g, "x" x " y" btnY " w" w " h32", b[1], Pick.Bind(b[2]), b[3])
-        if (b[3] = "btnprimary")
-            def := b[2]
-        x -= 10
-        i--
-    }
-    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = the highlighted button
-    hb.OnEvent("Click", Pick.Bind(def))
-    g.OnEvent("Close", Close)
-    g.OnEvent("Escape", Close)
-    ApplyTheme(g)
-    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
-    while !done
-        Sleep 50
-    return res
-}
-
-; MsgBox that opens over the visible app window (not on the primary monitor)
-Mb(text, title := "", opts := "") {
-    try {
-        h := WinExist("A")
-        if (!h || WinGetPID(h) != ProcessExist())
-            h := Main.Hwnd
-        if (h && DllCall("IsWindowVisible", "Ptr", h))
-            opts .= " Owner" h
-    }
-    return MsgBox(text, title, opts)
-}
-
 ; themed check boxes for the list (state image list: 1 = off, 2 = on)
 SetCheckImages(c) {
     static gdip := 0
@@ -2674,14 +2621,14 @@ SwitchProfile(p, *) {
 }
 
 NewProfile(*) {
-    ib := InputBox(_T("Name of the new profile:"), _T("New profile"), "w300 h130")
-    if (ib.Result != "OK")
+    v := ThemedInput(_T("New profile"), _T("Name of the new profile:"))
+    if (v = false)
         return
-    nm := CleanName(ib.Value)
+    nm := CleanName(v)
     if (nm = "")
         return
     if HasProf(JoinProfs(Profiles), nm) {
-        MsgBox _T("A profile with this name already exists."), "Macro Manager", 48
+        ThemedNote(_T("A profile with this name already exists."), , true)
         return
     }
     Profiles.Push(nm)
@@ -2690,14 +2637,14 @@ NewProfile(*) {
 
 RenameProfile(*) {
     global CurProfile
-    ib := InputBox(_T("New name for profile `"{1}`":", CurProfile), _T("Rename profile"), "w300 h130", CurProfile)
-    if (ib.Result != "OK")
+    v := ThemedInput(_T("Rename profile"), _T("New name for profile `"{1}`":", CurProfile), CurProfile)
+    if (v = false)
         return
-    nm := CleanName(ib.Value)
+    nm := CleanName(v)
     if (nm = "" || nm = CurProfile)
         return
     if HasProf(JoinProfs(Profiles), nm) {
-        MsgBox _T("A profile with this name already exists."), "Macro Manager", 48
+        ThemedNote(_T("A profile with this name already exists."), , true)
         return
     }
     for i, p in Profiles
@@ -2718,10 +2665,10 @@ RenameProfile(*) {
 DeleteProfile(*) {
     global CurProfile, Profiles
     if (Profiles.Length < 2) {
-        MsgBox _T("You can't delete the last profile."), "Macro Manager", 48
+        ThemedNote(_T("You can't delete the last profile."), , true)
         return
     }
-    if (Mb(_T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), "Macro Manager", "YesNo 32") != "Yes")
+    if (ThemedAsk("Macro Manager", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     old := CurProfile
     rest := []
@@ -2768,7 +2715,7 @@ PickProfiles(owner, cur) {
             if sel[pn]
                 arr.Push(pn)
         if !arr.Length {
-            MsgBox _T("Select at least one profile."), "Macro Manager", 48
+            ThemedNote(_T("Select at least one profile."), , true)
             return
         }
         res := JoinProfs(arr)
@@ -2795,10 +2742,11 @@ ProfMark(pn, on) => (on ? "  ✓   " : "       ") pn
 ; ============ application picker ============
 ; returns the chosen exe name (or `cur` when cancelled)
 PickApp(owner, cur) {
-    r := Mb(_T("Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file"), _T("Select application"), "YesNoCancel Icon?")
-    if (r = "Cancel")
+    r := ThemedAsk(_T("Select application"), "", _T("Use one of the currently running applications, or browse for the .exe file?")
+        , [[_T("Cancel"), "", "btn"], [_T("Browse for the .exe"), "browse", "btn"], [_T("Running applications"), "list", "btnprimary"]], false)
+    if (r = "")
         return cur
-    if (r = "No")
+    if (r = "browse")
         return BrowseApp(cur)
     seen := Map(), items := []
     for hwnd in WinGetList() {
@@ -2821,7 +2769,7 @@ PickApp(owner, cur) {
         items.Push([exe, title])
     }
     if !items.Length {
-        MsgBox _T("No running applications found - choose the file instead."), _T("Select application"), 64
+        ThemedNote(_T("No running applications found - choose the file instead."), _T("Select application"))
         return BrowseApp(cur)
     }
     res := ""
@@ -3052,19 +3000,17 @@ OnUpdIcon(*) {
         if !UpdAvail {
             r := QueryUpdate()
             if (r = "error") {
-                Mb(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), "Iconx")
+                ThemedNote(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), true)
                 return
             }
             if (r = "latest") {
-                Mb(_T("You have the latest version (v{1}).", AppVersion), _T("Updates"), "Iconi")
+                ThemedNote(_T("You have the latest version (v{1}).", AppVersion), _T("Updates"))
                 return
             }
         }
-        msg := _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion)
-        if (UpdInfo["notes"] != "")
-            msg .= "`n`n" UpdInfo["notes"]
-        msg .= _T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.")
-        if (Mb(msg, _T("Macro Manager update"), "YesNo Iconi") = "Yes")
+        msg := (UpdInfo["notes"] != "" ? UpdInfo["notes"] "`n`n" : "") Trim(_T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."), "`n")
+        if (ThemedAsk(_T("Macro Manager update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
+            , [[_T("Later"), "", "btn"], [_T("Update now"), "yes", "btnprimary"]], false) = "yes")
             InstallUpdate()
     } finally {
         busy := false
@@ -3078,7 +3024,7 @@ InstallUpdate() {
     if !GhDownload("Macro%20Manager.ahk", tmp)
         try Download(url "?t=" A_TickCount, tmp)
     if !FileExist(tmp) {
-        Mb(_T("The download failed. Try again later."), _T("Updates"), "Iconx")
+        ThemedNote(_T("The download failed. Try again later."), _T("Updates"), true)
         return
     }
     got := Sha256(tmp)
@@ -3086,14 +3032,14 @@ InstallUpdate() {
         sz := 0
         try sz := FileGetSize(tmp)
         try FileDelete tmp
-        Mb(_T("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)", SubStr(sha, 1, 16), (got = "" ? _T("(could not compute)") : SubStr(got, 1, 16) "..."), sz), _T("Updates"), "Iconx")
+        ThemedNote(_T("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)", SubStr(sha, 1, 16), (got = "" ? _T("(could not compute)") : SubStr(got, 1, 16) "..."), sz), _T("Updates"), true)
         return
     }
     txt := ""
     try txt := FileRead(tmp, "UTF-8")
     if (!InStr(txt, "#Requires AutoHotkey v2") || !InStr(txt, "AppVersion")) {
         try FileDelete tmp
-        Mb(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), "Iconx")
+        ThemedNote(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), true)
         return
     }
     if A_IsCompiled {
@@ -3105,7 +3051,7 @@ InstallUpdate() {
         FileCopy(tmp, A_ScriptFullPath, 1)
         FileDelete tmp
     } catch as e {
-        Mb(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), true)
         return
     }
     Reload()
@@ -3121,7 +3067,7 @@ UpdateCompiled(tmp) {
     ahk := AhkExe()
     if (ahk = "" || ahk = exe) {
         try FileDelete tmp
-        Mb(_T("Could not replace the app file: {1}", "AutoHotkey v2 not found"), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", "AutoHotkey v2 not found"), _T("Updates"), true)
         return
     }
     try {
@@ -3137,7 +3083,7 @@ UpdateCompiled(tmp) {
         FileDelete tmp
     } catch as e {
         try FileDelete(src)
-        Mb(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), true)
         return
     }
     Run('"' exe '" "' src '"', dir)
@@ -3189,7 +3135,7 @@ OpenDiscord(*) {
         return
     }
     A_Clipboard := "https://discord.com/users/" DiscordId
-    MsgBox _T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId), "Macro Manager", 64
+    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId))
 }
 
 OpenHelp(*) {
@@ -3399,7 +3345,7 @@ DragTick() {
         DragFile(paths)
     } catch as e {
         DragOut := false
-        MsgBox _T("Dragging the macro out failed:`n{1}", e.Message), "Macro Manager", 48
+        ThemedNote(_T("Dragging the macro out failed:`n{1}", e.Message), , true)
     }
     DragOut := false
     DragEnd := A_TickCount
@@ -3440,6 +3386,164 @@ DragFile(paths) {
 }
 
 FlagFile(c) => AssetsDir "\flag_" c ".png"
+
+; ============ dialogs in the app's own look (instead of the grey system MsgBox / InputBox) ============
+; the app window in front: the dialog belongs to it and blocks it while open (0 = none, e.g. hidden in the tray)
+DlgOwner() {
+    try {
+        h := WinExist("A")
+        if (h && WinGetPID("ahk_id " h) = ProcessExist() && DllCall("IsWindowVisible", "Ptr", h))
+            return h
+        if DllCall("IsWindowVisible", "Ptr", Main.Hwnd)
+            return Main.Hwnd
+    }
+    return 0
+}
+
+; long words (paths) get line breaks after a "\" so they never run out of the window
+DlgWrap(text, maxLen := 58) {
+    out := ""
+    for line in StrSplit(text, "`n") {
+        words := []
+        for w in StrSplit(line, " ") {
+            while (StrLen(w) > maxLen) {
+                cut := InStr(SubStr(w, 1, maxLen), "\", , -1)  ; last "\" within the limit
+                cut := cut > 8 ? cut : maxLen
+                words.Push(SubStr(w, 1, cut) "`n")
+                w := SubStr(w, cut + 1)
+            }
+            words.Push(w)
+        }
+        l := ""
+        for i, w in words
+            l .= (i > 1 && SubStr(words[i - 1], -1) != "`n" ? " " : "") w
+        out .= (A_Index > 1 ? "`n" : "") l
+    }
+    return out
+}
+
+; static text that wraps (also long paths) and gets exactly the height it needs
+DlgText(g, opts, text) {
+    text := DlgWrap(text)
+    c := g.AddText(opts " +0x2080", text)                       ; SS_EDITCONTROL | SS_NOPREFIX (& stays &)
+    rc := Buffer(16, 0)
+    DllCall("GetClientRect", "Ptr", c.Hwnd, "Ptr", rc)
+    hdc := DllCall("GetDC", "Ptr", c.Hwnd, "Ptr")
+    old := DllCall("SelectObject", "Ptr", hdc, "Ptr", SendMessage(0x31, 0, 0, c), "Ptr")     ; WM_GETFONT
+    DllCall("DrawTextW", "Ptr", hdc, "Str", text, "Int", -1, "Ptr", rc, "UInt", 0x2C10)       ; CALCRECT|WORDBREAK|EDITCONTROL|NOPREFIX
+    DllCall("SelectObject", "Ptr", hdc, "Ptr", old)
+    DllCall("ReleaseDC", "Ptr", c.Hwnd, "Ptr", hdc)
+    c.Move(, , , Round((NumGet(rc, 12, "Int") + 2) * 96 / A_ScreenDPI))
+    return c
+}
+
+; question / message window.  buttons: [[label, value, role], ...] at the bottom right, left to right;
+; the "btnprimary" one is the default (Enter).  Esc / closing the window returns "".
+ThemedAsk(title, heading, body, buttons, warn := true) {
+    res := "", done := false
+    oh := DlgOwner()
+    g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", title)
+    g.SetFont("s9", "Segoe UI")
+    x0 := 16, y := 16
+    if warn {
+        try {
+            bp := g.AddPicture("x16 y" (heading = "" ? 16 : 17) " w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)   ; the yellow !
+            Roles[bp.Hwnd] := "skip"
+            x0 := 40
+        }
+    }
+    if (heading != "") {
+        g.SetFont("s10 bold", "Segoe UI")
+        hc := DlgText(g, "x" x0 " y14 w" (484 - x0), heading)
+        hc.GetPos(, &hy, , &hh)
+        y := hy + hh + 8
+        g.SetFont("s9 norm", "Segoe UI")
+        bx := 16
+    } else
+        bx := x0
+    bc := DlgText(g, "x" bx " y" y " w" (484 - bx), body)
+    bc.GetPos(, &by, , &bh)
+    btnY := by + bh + 18
+    Pick(v, *) {
+        res := v
+        Close()
+    }
+    Close(*) {
+        if done
+            return
+        done := true
+        if oh
+            DllCall("EnableWindow", "Ptr", oh, "Int", 1)        ; before Destroy, so the owner gets the focus back
+        g.Destroy()
+    }
+    def := "", x := 484, i := buttons.Length
+    while (i >= 1) {
+        b := buttons[i]
+        w := Max(100, 28 + 7 * StrLen(b[1]))
+        x -= w
+        AddBtn(g, "x" x " y" btnY " w" w " h32", b[1], Pick.Bind(b[2]), b[3])
+        if (b[3] = "btnprimary")
+            def := b[2]
+        x -= 10
+        i--
+    }
+    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = the highlighted button
+    hb.OnEvent("Click", Pick.Bind(def))
+    g.OnEvent("Close", Close)
+    g.OnEvent("Escape", Close)
+    ApplyTheme(g)
+    if oh
+        DllCall("EnableWindow", "Ptr", oh, "Int", 0)            ; modal: the owner waits
+    ShowOver(g, "w500 h" (btnY + 46), oh)
+    while !done
+        Sleep 50
+    return res
+}
+
+; message with an OK button
+ThemedNote(text, title := "Macro Manager", warn := false, heading := "") {
+    ThemedAsk(title, heading, text, [[_T("OK"), "ok", "btnprimary"]], warn)
+}
+
+; text input; returns the text, or false when cancelled
+ThemedInput(title, prompt, default := "") {
+    res := false, done := false
+    oh := DlgOwner()
+    g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", title)
+    g.SetFont("s9", "Segoe UI")
+    pc := DlgText(g, "x16 y16 w368", prompt)
+    pc.GetPos(, &py, , &ph)
+    ed := g.AddEdit("x16 y" (py + ph + 8) " w368 h26", default)
+    ed.SetFont("s10")
+    btnY := py + ph + 8 + 26 + 18
+    Ok(*) {
+        res := ed.Value
+        Close()
+    }
+    Close(*) {
+        if done
+            return
+        done := true
+        if oh
+            DllCall("EnableWindow", "Ptr", oh, "Int", 1)
+        g.Destroy()
+    }
+    AddBtn(g, "x174 y" btnY " w100 h32", _T("OK"), Ok, "btnprimary")
+    AddBtn(g, "x284 y" btnY " w100 h32", _T("Cancel"), Close)
+    hb := g.AddButton("Default x-300 y-300 w1 h1")
+    hb.OnEvent("Click", Ok)
+    g.OnEvent("Close", Close)
+    g.OnEvent("Escape", Close)
+    ApplyTheme(g)
+    if oh
+        DllCall("EnableWindow", "Ptr", oh, "Int", 0)
+    ShowOver(g, "w400 h" (btnY + 46), oh)
+    ed.Focus()
+    SendMessage(0xB1, 0, -1, ed)                                ; EM_SETSEL: all selected, typing replaces it
+    while !done
+        Sleep 50
+    return res
+}
 
 ; ============ embedded images (base64, written to config\assets by EnsureAssets) ============
 IconB64() {
@@ -5075,6 +5179,7 @@ TrCs() {
     m["Exit"] := "Exit"
     m["Delete macro `"{1}`"?"] := "Smazat makro `"{1}`"?"
     m["Delete {1} selected macros?"] := "Smazat vybraná makra ({1})?"
+    m["Cancel"] := "Zrušit"
     m["All macros: {1}"] := "Všechna makra: {1}"
     m["ON"] := "ZAP"
     m["OFF"] := "VYP"
@@ -5095,19 +5200,28 @@ TrCs() {
     m["Import macros"] := "Importovat makra"
     m["Drop .ahk files to import them"] := "Pusť soubory .ahk pro import"
     m["Can't read:`n{1}"] := "Nelze přečíst:`n{1}"
-    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"] := "Tento skript nemá řádek `"#Requires AutoHotkey v2`".`nSpustí se přes AutoHotkey v2 - skripty pro v1 nebudou fungovat.`n`nPřesto importovat?"
-    m["Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit"] := "Macro Manager je už nainstalovaný v:`n{1}`n`nAno = aktualizovat nainstalovanou kopii tímto souborem a spustit ji`nNe = jen spustit nainstalovanou kopii`nStorno = ukončit"
+    m["Import anyway?"] := "Přesto importovat?"
+    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Tento skript nemá řádek „#Requires AutoHotkey v2“.`nSpustí se pomocí AutoHotkey v2 – skripty pro v1 nebudou fungovat."
+    m["Import anyway"] := "Přesto importovat"
     m["Macro Manager setup"] := "Instalace Macro Manageru"
+    m["Macro Manager is already installed"] := "Macro Manager je už nainstalovaný"
+    m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Nainstalováno v:`n{1}`n`nAktualizovat ho tímto souborem a spustit, nebo jen spustit nainstalovanou kopii?"
+    m["Just start"] := "Jen spustit"
+    m["Update and start"] := "Aktualizovat a spustit"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nainstalovanou kopii se nepodařilo aktualizovat (neběží?). Spouští se nainstalovaná verze.`n`n{1}"
     m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Vyber, kam se má Macro Manager nainstalovat.`nVytvoří se tam složka 'MacroManager'."
     m["Installation failed:`n{1}"] := "Instalace se nezdařila:`n{1}"
     m["Create a Start Menu shortcut?"] := "Vytvořit zástupce v nabídce Start?"
+    m["Skip"] := "Přeskočit"
+    m["Create"] := "Vytvořit"
     m["Create a Desktop shortcut?"] := "Vytvořit zástupce na ploše?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Nainstalováno do:`n{1}`n`nTvoje makra a nastavení jsou uložena v:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo."
     m["Uninstall Macro Manager"] := "Odinstalovat Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat Macro Manager?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
     m["Export all your macros to a folder before uninstalling?"] := "Exportovat všechna makra do složky před odinstalací?"
+    m["Don't export"] := "Neexportovat"
+    m["Export first"] := "Nejdřív exportovat"
     m["Choose a folder for the backup"] := "Vyber složku pro zálohu"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager byl odinstalován.`nSložka bude za chvilku odstraněna."
     m["New macro"] := "Nové makro"
@@ -5131,12 +5245,36 @@ TrCs() {
     m["Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4)."] := "Směry prázdné = jen akce (prodleva 2 = doba držení, prodleva 4 = pauza). Nahrát: stiskni klávesy, pak Hotovo. Klávesy držené současně se spojí pomocí + (např. Shift+4)."
     m["One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"] := "Jeden krok na řádek: down|up|tap klávesa prodleva_ms   (např. down A 25,  tap Shift+4 10)"
     m["Runs as its own process while this macro is checked (AutoHotkey v2)."] := "Běží jako samostatný proces, dokud je toto makro zaškrtnuté (AutoHotkey v2)."
-    m["This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version"] := "Toto makro je ve více profilech ({1}).`n`nAno = použít změnu ve všech`nNe = jen v aktuálním profilu ({2}); ostatní profily si ponechají (nebo dostanou) starou, nezměněnou verzi"
+    m["This macro is in several profiles ({1})."] := "Toto makro je v několika profilech ({1})."
+    m["Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version."] := "Použít změnu ve všech, nebo jen v aktuálním profilu ({1})? Ostatní profily si pak ponechají starou, nezměněnou verzi."
+    m["Only in `"{1}`""] := "Jen v „{1}“"
+    m["All profiles"] := "Všechny profily"
     m["Paste or write a script first."] := "Nejdřív vlož nebo napiš skript."
     m["Enter a trigger key."] := "Zadej spouštěcí klávesu."
     m["Save"] := "Uložit"
-    m["Cancel"] := "Zrušit"
+    m["Saving the settings failed: {1}"] := "Uložení nastavení se nezdařilo: {1}"
     m["Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}"] := "Makro `"{1}`" nelze zapnout (klávesa `"{2}`"):`n{3}"
+    m["Same trigger key"] := "Stejná spouštěcí klávesa"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich."
+    m["Turn on anyway"] := "Přesto zapnout"
+    m["Same trigger key as `"{1}`" - only one of them works"] := "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich"
+    m["starts other programs or commands"] := "spouští jiné programy nebo příkazy"
+    m["connects to the internet or downloads files"] := "připojuje se k internetu nebo stahuje soubory"
+    m["deletes files or folders"] := "maže soubory nebo složky"
+    m["writes, copies or moves files"] := "zapisuje, kopíruje nebo přesouvá soubory"
+    m["changes the Windows registry"] := "mění registr Windows"
+    m["calls Windows functions directly"] := "volá funkce Windows napřímo"
+    m["reads what you type or the clipboard"] := "čte, co píšeš, nebo schránku"
+    m["closes programs or shuts the PC down"] := "zavírá programy nebo vypíná počítač"
+    m["loads code from other files"] := "načítá kód z jiných souborů"
+    m["calls commands by a computed name (can hide what it does)"] := "volá příkazy podle vypočteného názvu (může skrývat, co dělá)"
+    m["Imported script"] := "Importovaný skript"
+    m["Turn on `"{1}`"?"] := "Zapnout „{1}“?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Tento skript byl importován. Běží s právy správce, takže může na tomto počítači udělat cokoli. Zapni ho, jen pokud věříš tomu, od koho pochází."
+    m["Found in the code - the script:"] := "Nalezeno v kódu – skript:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka."
+    m["Show the code"] := "Zobrazit kód"
+    m["Turn on"] := "Zapnout"
     m["Script file for `"{1}`" is missing."] := "Chybí soubor skriptu pro `"{1}`"."
     m["Script macros need AutoHotkey v2 installed (not found)."] := "Skriptová makra potřebují nainstalovaný AutoHotkey v2 (nebyl nalezen)."
     m["New version {1} available - click to update"] := "Je dostupná nová verze {1} - klikni pro aktualizaci"
@@ -5150,21 +5288,22 @@ TrCs() {
     m["New profile..."] := "Nový profil..."
     m["Rename current..."] := "Přejmenovat aktuální..."
     m["Delete current"] := "Smazat aktuální"
-    m["Name of the new profile:"] := "Název nového profilu:"
     m["New profile"] := "Nový profil"
+    m["Name of the new profile:"] := "Název nového profilu:"
     m["A profile with this name already exists."] := "Profil s tímto názvem už existuje."
-    m["New name for profile `"{1}`":"] := "Nový název profilu `"{1}`":"
     m["Rename profile"] := "Přejmenovat profil"
+    m["New name for profile `"{1}`":"] := "Nový název profilu `"{1}`":"
     m["You can't delete the last profile."] := "Poslední profil nelze smazat."
     m["Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile."] := "Smazat profil `"{1}`"?`n`nMakra, která patří jen do tohoto profilu, se přesunou do prvního zbývajícího profilu."
     m["Profiles of this macro"] := "Profily tohoto makra"
     m["The macro is active in the selected profiles:"] := "Makro je aktivní ve vybraných profilech:"
     m["Select at least one profile."] := "Vyber aspoň jeden profil."
     m["OK"] := "OK"
-    m["Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file"] := "Použít některou z aktuálně spuštěných aplikací?`n`nAno = vybrat ze seznamu`nNe = najít soubor .exe"
     m["Select application"] := "Vybrat aplikaci"
-    m["No running applications found - choose the file instead."] := "Nebyly nalezeny žádné spuštěné aplikace - vyber raději soubor."
+    m["Use one of the currently running applications, or browse for the .exe file?"] := "Vybrat z právě spuštěných aplikací, nebo najít soubor .exe?"
+    m["Browse for the .exe"] := "Najít soubor .exe"
     m["Running applications"] := "Spuštěné aplikace"
+    m["No running applications found - choose the file instead."] := "Nebyly nalezeny žádné spuštěné aplikace - vyber raději soubor."
     m["Double-click an application:"] := "Dvojklikni na aplikaci:"
     m["Browse..."] := "Procházet..."
     m["Select the application"] := "Vyber aplikaci"
@@ -5172,9 +5311,11 @@ TrCs() {
     m["Could not check for updates. Check your internet connection and try again."] := "Nepodařilo se zkontrolovat aktualizace. Zkontroluj připojení k internetu a zkus to znovu."
     m["Updates"] := "Aktualizace"
     m["You have the latest version (v{1})."] := "Máš nejnovější verzi (v{1})."
-    m["Version {1} is available (you have v{2})."] := "Je dostupná verze {1} (máš v{2})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nAktualizovat teď? Aplikace se restartuje. Tvoje makra, profily a nastavení zůstanou beze změny."
     m["Macro Manager update"] := "Aktualizace Macro Manageru"
+    m["Version {1} is available (you have v{2})."] := "Je dostupná verze {1} (máš v{2})."
+    m["Later"] := "Později"
+    m["Update now"] := "Aktualizovat"
     m["The download failed. Try again later."] := "Stahování se nezdařilo. Zkus to znovu později."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Stažený soubor neodpovídá očekávanému kontrolnímu součtu (nová verze se možná ještě nahrává). Nic se nezměnilo - zkus to znovu za pár minut.`n`nOčekáváno: {1}...`nPřijato: {2}  ({3} bajtů)"
     m["(could not compute)"] := "(nelze vypočítat)"
@@ -5205,28 +5346,6 @@ TrCs() {
     m["Toggle keys"] := "Přepínací klávesy"
     m["Order, export, backup"] := "Pořadí, export, záloha"
     m["Tips and problems"] := "Tipy a problémy"
-    m["Saving the settings failed: {1}"] := "Uložení nastavení se nezdařilo: {1}"
-    m["starts other programs or commands"] := "spouští jiné programy nebo příkazy"
-    m["connects to the internet or downloads files"] := "připojuje se k internetu nebo stahuje soubory"
-    m["deletes files or folders"] := "maže soubory nebo složky"
-    m["writes, copies or moves files"] := "zapisuje, kopíruje nebo přesouvá soubory"
-    m["changes the Windows registry"] := "mění registr Windows"
-    m["calls Windows functions directly"] := "volá funkce Windows napřímo"
-    m["reads what you type or the clipboard"] := "čte, co píšeš, nebo schránku"
-    m["closes programs or shuts the PC down"] := "zavírá programy nebo vypíná počítač"
-    m["loads code from other files"] := "načítá kód z jiných souborů"
-    m["calls commands by a computed name (can hide what it does)"] := "volá příkazy podle vypočteného názvu (může skrývat, co dělá)"
-    m["Imported script"] := "Importovaný skript"
-    m["Turn on `"{1}`"?"] := "Zapnout „{1}“?"
-    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Tento skript byl importován. Běží s právy správce, takže může na tomto počítači udělat cokoli. Zapni ho, jen pokud věříš tomu, od koho pochází."
-    m["Found in the code - the script:"] := "Nalezeno v kódu – skript:"
-    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka."
-    m["Show the code"] := "Zobrazit kód"
-    m["Turn on"] := "Zapnout"
-    m["Same trigger key as `"{1}`" - only one of them works"] := "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich"
-    m["Same trigger key"] := "Stejná spouštěcí klávesa"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich."
-    m["Turn on anyway"] := "Přesto zapnout"
     return m
 }
 TrPl() {
@@ -5256,6 +5375,7 @@ TrPl() {
     m["Exit"] := "Zamknij"
     m["Delete macro `"{1}`"?"] := "Usunąć makro `"{1}`"?"
     m["Delete {1} selected macros?"] := "Usunąć zaznaczone makra ({1})?"
+    m["Cancel"] := "Anuluj"
     m["All macros: {1}"] := "Wszystkie makra: {1}"
     m["ON"] := "WŁ."
     m["OFF"] := "WYŁ."
@@ -5276,19 +5396,28 @@ TrPl() {
     m["Import macros"] := "Importuj makra"
     m["Drop .ahk files to import them"] := "Upuść pliki .ahk, aby je zaimportować"
     m["Can't read:`n{1}"] := "Nie można odczytać:`n{1}"
-    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"] := "Ten skrypt nie ma linii `"#Requires AutoHotkey v2`".`nZostanie uruchomiony w AutoHotkey v2 - skrypty v1 nie zadziałają.`n`nZaimportować mimo to?"
-    m["Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit"] := "Macro Manager jest już zainstalowany w:`n{1}`n`nTak = zaktualizuj zainstalowaną kopię tym plikiem i uruchom ją`nNie = tylko uruchom zainstalowaną kopię`nAnuluj = zamknij"
+    m["Import anyway?"] := "Zaimportować mimo to?"
+    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Ten skrypt nie ma wiersza „#Requires AutoHotkey v2”.`nZostanie uruchomiony przez AutoHotkey v2 – skrypty v1 nie zadziałają."
+    m["Import anyway"] := "Importuj mimo to"
     m["Macro Manager setup"] := "Instalator Macro Manager"
+    m["Macro Manager is already installed"] := "Macro Manager jest już zainstalowany"
+    m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Zainstalowano w:`n{1}`n`nZaktualizować go tym plikiem i uruchomić, czy tylko uruchomić zainstalowaną kopię?"
+    m["Just start"] := "Tylko uruchom"
+    m["Update and start"] := "Zaktualizuj i uruchom"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nie udało się zaktualizować zainstalowanej kopii (czy jest uruchomiona?). Uruchamiam zainstalowaną wersję.`n`n{1}"
     m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Wybierz, gdzie zainstalować Macro Manager.`nZostanie tam utworzony folder 'MacroManager'."
     m["Installation failed:`n{1}"] := "Instalacja nie powiodła się:`n{1}"
     m["Create a Start Menu shortcut?"] := "Utworzyć skrót w menu Start?"
+    m["Skip"] := "Pomiń"
+    m["Create"] := "Utwórz"
     m["Create a Desktop shortcut?"] := "Utworzyć skrót na pulpicie?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Zainstalowano w:`n{1}`n`nTwoje makra i ustawienia są przechowywane w:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte."
     m["Uninstall Macro Manager"] := "Odinstaluj Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować Macro Manager?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
     m["Export all your macros to a folder before uninstalling?"] := "Wyeksportować wszystkie makra do folderu przed odinstalowaniem?"
+    m["Don't export"] := "Nie eksportuj"
+    m["Export first"] := "Najpierw eksportuj"
     m["Choose a folder for the backup"] := "Wybierz folder na kopię zapasową"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager został odinstalowany.`nFolder zostanie za chwilę usunięty."
     m["New macro"] := "Nowe makro"
@@ -5312,12 +5441,36 @@ TrPl() {
     m["Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4)."] := "Puste Kierunki = tylko akcje (opóźnienie 2 = czas przytrzymania, opóźnienie 4 = pauza). Nagraj: naciśnij klawisze, potem Gotowe. Klawisze wciśnięte razem są łączone znakiem + (np. Shift+4)."
     m["One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"] := "Jeden krok w linii: down|up|tap klawisz opóźnienie_ms   (np. down A 25,  tap Shift+4 10)"
     m["Runs as its own process while this macro is checked (AutoHotkey v2)."] := "Działa jako osobny proces, dopóki to makro jest zaznaczone (AutoHotkey v2)."
-    m["This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version"] := "To makro jest w kilku profilach ({1}).`n`nTak = zastosuj zmianę we wszystkich`nNie = tylko w bieżącym profilu ({2}); pozostałe profile zachowają (lub dostaną) starą, niezmienioną wersję"
+    m["This macro is in several profiles ({1})."] := "To makro jest w kilku profilach ({1})."
+    m["Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version."] := "Zastosować zmianę we wszystkich, czy tylko w bieżącym profilu ({1})? Pozostałe profile zachowają wtedy starą, niezmienioną wersję."
+    m["Only in `"{1}`""] := "Tylko w „{1}”"
+    m["All profiles"] := "Wszystkie profile"
     m["Paste or write a script first."] := "Najpierw wklej lub napisz skrypt."
     m["Enter a trigger key."] := "Podaj klawisz wyzwalający."
     m["Save"] := "Zapisz"
-    m["Cancel"] := "Anuluj"
+    m["Saving the settings failed: {1}"] := "Nie udało się zapisać ustawień: {1}"
     m["Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}"] := "Makra `"{1}`" nie można włączyć (klawisz `"{2}`"):`n{3}"
+    m["Same trigger key"] := "Ten sam klawisz wyzwalający"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich."
+    m["Turn on anyway"] := "Włącz mimo to"
+    m["Same trigger key as `"{1}`" - only one of them works"] := "Ten sam klawisz wyzwalający co „{1}” – działa tylko jedno z nich"
+    m["starts other programs or commands"] := "uruchamia inne programy lub polecenia"
+    m["connects to the internet or downloads files"] := "łączy się z internetem lub pobiera pliki"
+    m["deletes files or folders"] := "usuwa pliki lub foldery"
+    m["writes, copies or moves files"] := "zapisuje, kopiuje lub przenosi pliki"
+    m["changes the Windows registry"] := "zmienia rejestr Windows"
+    m["calls Windows functions directly"] := "wywołuje funkcje Windows bezpośrednio"
+    m["reads what you type or the clipboard"] := "odczytuje to, co piszesz, lub schowek"
+    m["closes programs or shuts the PC down"] := "zamyka programy lub wyłącza komputer"
+    m["loads code from other files"] := "wczytuje kod z innych plików"
+    m["calls commands by a computed name (can hide what it does)"] := "wywołuje polecenia przez wyliczoną nazwę (może ukrywać, co robi)"
+    m["Imported script"] := "Zaimportowany skrypt"
+    m["Turn on `"{1}`"?"] := "Włączyć „{1}”?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Ten skrypt został zaimportowany. Działa z uprawnieniami administratora, więc może zrobić na tym komputerze wszystko. Włącz go tylko wtedy, gdy ufasz osobie, od której pochodzi."
+    m["Found in the code - the script:"] := "Znaleziono w kodzie – skrypt:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nie znaleziono ryzykownych poleceń. To tylko szybkie sprawdzenie, a nie gwarancja."
+    m["Show the code"] := "Pokaż kod"
+    m["Turn on"] := "Włącz"
     m["Script file for `"{1}`" is missing."] := "Brak pliku skryptu dla `"{1}`"."
     m["Script macros need AutoHotkey v2 installed (not found)."] := "Makra skryptowe wymagają zainstalowanego AutoHotkey v2 (nie znaleziono)."
     m["New version {1} available - click to update"] := "Dostępna nowa wersja {1} - kliknij, aby zaktualizować"
@@ -5331,21 +5484,22 @@ TrPl() {
     m["New profile..."] := "Nowy profil..."
     m["Rename current..."] := "Zmień nazwę bieżącego..."
     m["Delete current"] := "Usuń bieżący"
-    m["Name of the new profile:"] := "Nazwa nowego profilu:"
     m["New profile"] := "Nowy profil"
+    m["Name of the new profile:"] := "Nazwa nowego profilu:"
     m["A profile with this name already exists."] := "Profil o tej nazwie już istnieje."
-    m["New name for profile `"{1}`":"] := "Nowa nazwa profilu `"{1}`":"
     m["Rename profile"] := "Zmień nazwę profilu"
+    m["New name for profile `"{1}`":"] := "Nowa nazwa profilu `"{1}`":"
     m["You can't delete the last profile."] := "Nie możesz usunąć ostatniego profilu."
     m["Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile."] := "Usunąć profil `"{1}`"?`n`nMakra należące tylko do tego profilu zostaną przeniesione do pierwszego pozostałego profilu."
     m["Profiles of this macro"] := "Profile tego makra"
     m["The macro is active in the selected profiles:"] := "Makro jest aktywne w zaznaczonych profilach:"
     m["Select at least one profile."] := "Zaznacz co najmniej jeden profil."
     m["OK"] := "OK"
-    m["Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file"] := "Użyć jednej z aktualnie uruchomionych aplikacji?`n`nTak = wybierz z listy`nNie = wskaż plik .exe"
     m["Select application"] := "Wybierz aplikację"
-    m["No running applications found - choose the file instead."] := "Nie znaleziono uruchomionych aplikacji - wskaż plik."
+    m["Use one of the currently running applications, or browse for the .exe file?"] := "Wybrać spośród uruchomionych aplikacji czy wskazać plik .exe?"
+    m["Browse for the .exe"] := "Wskaż plik .exe"
     m["Running applications"] := "Uruchomione aplikacje"
+    m["No running applications found - choose the file instead."] := "Nie znaleziono uruchomionych aplikacji - wskaż plik."
     m["Double-click an application:"] := "Kliknij dwukrotnie aplikację:"
     m["Browse..."] := "Przeglądaj..."
     m["Select the application"] := "Wybierz aplikację"
@@ -5353,9 +5507,11 @@ TrPl() {
     m["Could not check for updates. Check your internet connection and try again."] := "Nie udało się sprawdzić aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
     m["Updates"] := "Aktualizacje"
     m["You have the latest version (v{1})."] := "Masz najnowszą wersję (v{1})."
-    m["Version {1} is available (you have v{2})."] := "Dostępna jest wersja {1} (masz v{2})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nZaktualizować teraz? Aplikacja uruchomi się ponownie. Twoje makra, profile i ustawienia nie zostaną zmienione."
     m["Macro Manager update"] := "Aktualizacja Macro Manager"
+    m["Version {1} is available (you have v{2})."] := "Dostępna jest wersja {1} (masz v{2})."
+    m["Later"] := "Później"
+    m["Update now"] := "Aktualizuj teraz"
     m["The download failed. Try again later."] := "Pobieranie nie powiodło się. Spróbuj ponownie później."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Pobrany plik nie zgadza się z oczekiwaną sumą kontrolną (nowa wersja może być jeszcze wgrywana). Nic nie zostało zmienione - spróbuj ponownie za kilka minut.`n`nOczekiwano: {1}...`nOtrzymano: {2}  ({3} B)"
     m["(could not compute)"] := "(nie udało się obliczyć)"
@@ -5386,28 +5542,6 @@ TrPl() {
     m["Toggle keys"] := "Klawisze przełączające"
     m["Order, export, backup"] := "Kolejność i eksport"
     m["Tips and problems"] := "Wskazówki i problemy"
-    m["Saving the settings failed: {1}"] := "Nie udało się zapisać ustawień: {1}"
-    m["starts other programs or commands"] := "uruchamia inne programy lub polecenia"
-    m["connects to the internet or downloads files"] := "łączy się z internetem lub pobiera pliki"
-    m["deletes files or folders"] := "usuwa pliki lub foldery"
-    m["writes, copies or moves files"] := "zapisuje, kopiuje lub przenosi pliki"
-    m["changes the Windows registry"] := "zmienia rejestr Windows"
-    m["calls Windows functions directly"] := "wywołuje funkcje Windows bezpośrednio"
-    m["reads what you type or the clipboard"] := "odczytuje to, co piszesz, lub schowek"
-    m["closes programs or shuts the PC down"] := "zamyka programy lub wyłącza komputer"
-    m["loads code from other files"] := "wczytuje kod z innych plików"
-    m["calls commands by a computed name (can hide what it does)"] := "wywołuje polecenia przez wyliczoną nazwę (może ukrywać, co robi)"
-    m["Imported script"] := "Zaimportowany skrypt"
-    m["Turn on `"{1}`"?"] := "Włączyć „{1}”?"
-    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Ten skrypt został zaimportowany. Działa z uprawnieniami administratora, więc może zrobić na tym komputerze wszystko. Włącz go tylko wtedy, gdy ufasz osobie, od której pochodzi."
-    m["Found in the code - the script:"] := "Znaleziono w kodzie – skrypt:"
-    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nie znaleziono ryzykownych poleceń. To tylko szybkie sprawdzenie, a nie gwarancja."
-    m["Show the code"] := "Pokaż kod"
-    m["Turn on"] := "Włącz"
-    m["Same trigger key as `"{1}`" - only one of them works"] := "Ten sam klawisz wyzwalający co „{1}” – działa tylko jedno z nich"
-    m["Same trigger key"] := "Ten sam klawisz wyzwalający"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich."
-    m["Turn on anyway"] := "Włącz mimo to"
     return m
 }
 TrDe() {
@@ -5437,6 +5571,7 @@ TrDe() {
     m["Exit"] := "Beenden"
     m["Delete macro `"{1}`"?"] := "Makro `"{1}`" löschen?"
     m["Delete {1} selected macros?"] := "{1} ausgewählte Makros löschen?"
+    m["Cancel"] := "Abbrechen"
     m["All macros: {1}"] := "Alle Makros: {1}"
     m["ON"] := "AN"
     m["OFF"] := "AUS"
@@ -5457,19 +5592,28 @@ TrDe() {
     m["Import macros"] := "Makros importieren"
     m["Drop .ahk files to import them"] := "Zieh .ahk-Dateien hierher, um sie zu importieren"
     m["Can't read:`n{1}"] := "Kann nicht gelesen werden:`n{1}"
-    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"] := "Diesem Skript fehlt die Zeile `"#Requires AutoHotkey v2`".`nEs wird mit AutoHotkey v2 ausgeführt - v1-Skripte funktionieren nicht.`n`nTrotzdem importieren?"
-    m["Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit"] := "Macro Manager ist bereits installiert in:`n{1}`n`nJa = installierte Kopie mit dieser Datei aktualisieren und starten`nNein = nur die installierte Kopie starten`nAbbrechen = beenden"
+    m["Import anyway?"] := "Trotzdem importieren?"
+    m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Dieses Skript hat keine Zeile „#Requires AutoHotkey v2“.`nEs wird mit AutoHotkey v2 ausgeführt – v1-Skripte funktionieren nicht."
+    m["Import anyway"] := "Trotzdem importieren"
     m["Macro Manager setup"] := "Macro Manager Setup"
+    m["Macro Manager is already installed"] := "Macro Manager ist bereits installiert"
+    m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Installiert in:`n{1}`n`nMit dieser Datei aktualisieren und starten oder nur die installierte Kopie starten?"
+    m["Just start"] := "Nur starten"
+    m["Update and start"] := "Aktualisieren und starten"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Die installierte Kopie konnte nicht aktualisiert werden (läuft sie noch?). Die installierte Version wird gestartet.`n`n{1}"
     m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Wähle, wo Macro Manager installiert werden soll.`nDort wird ein Ordner 'MacroManager' angelegt."
     m["Installation failed:`n{1}"] := "Installation fehlgeschlagen:`n{1}"
     m["Create a Start Menu shortcut?"] := "Verknüpfung im Startmenü erstellen?"
+    m["Skip"] := "Überspringen"
+    m["Create"] := "Erstellen"
     m["Create a Desktop shortcut?"] := "Verknüpfung auf dem Desktop erstellen?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Installiert in:`n{1}`n`nDeine Makros und Einstellungen liegen in:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "Das sieht nicht nach einer installierten Kopie aus, es wurde nichts entfernt."
     m["Uninstall Macro Manager"] := "Macro Manager deinstallieren"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Macro Manager deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
     m["Export all your macros to a folder before uninstalling?"] := "Alle Makros vor dem Deinstallieren in einen Ordner exportieren?"
+    m["Don't export"] := "Nicht exportieren"
+    m["Export first"] := "Zuerst exportieren"
     m["Choose a folder for the backup"] := "Wähle einen Ordner für das Backup"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager wurde deinstalliert.`nDer Ordner wird gleich entfernt."
     m["New macro"] := "Neues Makro"
@@ -5493,12 +5637,36 @@ TrDe() {
     m["Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4)."] := "Richtungen leer = nur Aktionen (Verzögerung 2 = Haltezeit, Verzögerung 4 = Pause). Aufnehmen: Tasten drücken, dann Fertig. Gleichzeitig gehaltene Tasten werden mit + verbunden (z. B. Shift+4)."
     m["One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"] := "Ein Schritt pro Zeile: down|up|tap Taste Verzögerung_ms   (z. B. down A 25,  tap Shift+4 10)"
     m["Runs as its own process while this macro is checked (AutoHotkey v2)."] := "Läuft als eigener Prozess, solange dieses Makro angehakt ist (AutoHotkey v2)."
-    m["This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version"] := "Dieses Makro ist in mehreren Profilen ({1}).`n`nJa = Änderung auf alle anwenden`nNein = nur im aktuellen Profil ({2}); die anderen Profile behalten (oder erhalten) die alte, unveränderte Version"
+    m["This macro is in several profiles ({1})."] := "Dieses Makro ist in mehreren Profilen ({1})."
+    m["Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version."] := "Die Änderung in allen übernehmen oder nur im aktuellen Profil ({1})? Die anderen Profile behalten dann die alte, unveränderte Version."
+    m["Only in `"{1}`""] := "Nur in „{1}“"
+    m["All profiles"] := "Alle Profile"
     m["Paste or write a script first."] := "Füge zuerst ein Skript ein oder schreibe eines."
     m["Enter a trigger key."] := "Gib eine Auslösetaste an."
     m["Save"] := "Speichern"
-    m["Cancel"] := "Abbrechen"
+    m["Saving the settings failed: {1}"] := "Speichern der Einstellungen fehlgeschlagen: {1}"
     m["Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}"] := "Makro `"{1}`" kann nicht aktiviert werden (Taste `"{2}`"):`n{3}"
+    m["Same trigger key"] := "Gleiche Auslösetaste"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren."
+    m["Turn on anyway"] := "Trotzdem einschalten"
+    m["Same trigger key as `"{1}`" - only one of them works"] := "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert"
+    m["starts other programs or commands"] := "startet andere Programme oder Befehle"
+    m["connects to the internet or downloads files"] := "verbindet sich mit dem Internet oder lädt Dateien herunter"
+    m["deletes files or folders"] := "löscht Dateien oder Ordner"
+    m["writes, copies or moves files"] := "schreibt, kopiert oder verschiebt Dateien"
+    m["changes the Windows registry"] := "ändert die Windows-Registrierung"
+    m["calls Windows functions directly"] := "ruft Windows-Funktionen direkt auf"
+    m["reads what you type or the clipboard"] := "liest, was du tippst, oder die Zwischenablage"
+    m["closes programs or shuts the PC down"] := "schließt Programme oder fährt den PC herunter"
+    m["loads code from other files"] := "lädt Code aus anderen Dateien"
+    m["calls commands by a computed name (can hide what it does)"] := "ruft Befehle über einen berechneten Namen auf (kann verbergen, was es tut)"
+    m["Imported script"] := "Importiertes Skript"
+    m["Turn on `"{1}`"?"] := "„{1}“ einschalten?"
+    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Dieses Skript wurde importiert. Es läuft mit Administratorrechten und kann daher auf diesem PC alles tun. Schalte es nur ein, wenn du der Person vertraust, von der es stammt."
+    m["Found in the code - the script:"] := "Im Code gefunden – das Skript:"
+    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie."
+    m["Show the code"] := "Code anzeigen"
+    m["Turn on"] := "Einschalten"
     m["Script file for `"{1}`" is missing."] := "Die Skriptdatei für `"{1}`" fehlt."
     m["Script macros need AutoHotkey v2 installed (not found)."] := "Skript-Makros benötigen installiertes AutoHotkey v2 (nicht gefunden)."
     m["New version {1} available - click to update"] := "Neue Version {1} verfügbar - zum Aktualisieren klicken"
@@ -5512,21 +5680,22 @@ TrDe() {
     m["New profile..."] := "Neues Profil..."
     m["Rename current..."] := "Aktuelles umbenennen..."
     m["Delete current"] := "Aktuelles löschen"
-    m["Name of the new profile:"] := "Name des neuen Profils:"
     m["New profile"] := "Neues Profil"
+    m["Name of the new profile:"] := "Name des neuen Profils:"
     m["A profile with this name already exists."] := "Ein Profil mit diesem Namen existiert bereits."
-    m["New name for profile `"{1}`":"] := "Neuer Name für Profil `"{1}`":"
     m["Rename profile"] := "Profil umbenennen"
+    m["New name for profile `"{1}`":"] := "Neuer Name für Profil `"{1}`":"
     m["You can't delete the last profile."] := "Das letzte Profil kann nicht gelöscht werden."
     m["Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile."] := "Profil `"{1}`" löschen?`n`nMakros, die nur zu diesem Profil gehören, werden in das erste verbleibende Profil verschoben."
     m["Profiles of this macro"] := "Profile dieses Makros"
     m["The macro is active in the selected profiles:"] := "Das Makro ist in den ausgewählten Profilen aktiv:"
     m["Select at least one profile."] := "Wähle mindestens ein Profil aus."
     m["OK"] := "OK"
-    m["Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file"] := "Eine der aktuell laufenden Anwendungen verwenden?`n`nJa = aus einer Liste wählen`nNein = nach der .exe-Datei suchen"
     m["Select application"] := "Anwendung auswählen"
-    m["No running applications found - choose the file instead."] := "Keine laufenden Anwendungen gefunden - wähle stattdessen die Datei aus."
+    m["Use one of the currently running applications, or browse for the .exe file?"] := "Eine der laufenden Anwendungen verwenden oder die .exe-Datei suchen?"
+    m["Browse for the .exe"] := ".exe-Datei suchen"
     m["Running applications"] := "Laufende Anwendungen"
+    m["No running applications found - choose the file instead."] := "Keine laufenden Anwendungen gefunden - wähle stattdessen die Datei aus."
     m["Double-click an application:"] := "Doppelklick auf eine Anwendung:"
     m["Browse..."] := "Suchen..."
     m["Select the application"] := "Anwendung auswählen"
@@ -5534,9 +5703,11 @@ TrDe() {
     m["Could not check for updates. Check your internet connection and try again."] := "Die Suche nach Updates ist fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut."
     m["Updates"] := "Updates"
     m["You have the latest version (v{1})."] := "Du hast die neueste Version (v{1})."
-    m["Version {1} is available (you have v{2})."] := "Version {1} ist verfügbar (du hast v{2})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nJetzt aktualisieren? Die App wird neu gestartet. Deine Makros, Profile und Einstellungen bleiben unverändert."
     m["Macro Manager update"] := "Macro Manager Update"
+    m["Version {1} is available (you have v{2})."] := "Version {1} ist verfügbar (du hast v{2})."
+    m["Later"] := "Später"
+    m["Update now"] := "Jetzt aktualisieren"
     m["The download failed. Try again later."] := "Der Download ist fehlgeschlagen. Versuche es später erneut."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Die heruntergeladene Datei stimmt nicht mit der erwarteten Prüfsumme überein (die neue Version wird möglicherweise noch hochgeladen). Es wurde nichts geändert - versuche es in ein paar Minuten erneut.`n`nErwartet: {1}...`nErhalten: {2}  ({3} Bytes)"
     m["(could not compute)"] := "(konnte nicht berechnet werden)"
@@ -5567,28 +5738,6 @@ TrDe() {
     m["Toggle keys"] := "Ein/Aus-Tasten"
     m["Order, export, backup"] := "Ordnung, Export, Backup"
     m["Tips and problems"] := "Tipps und Probleme"
-    m["Saving the settings failed: {1}"] := "Speichern der Einstellungen fehlgeschlagen: {1}"
-    m["starts other programs or commands"] := "startet andere Programme oder Befehle"
-    m["connects to the internet or downloads files"] := "verbindet sich mit dem Internet oder lädt Dateien herunter"
-    m["deletes files or folders"] := "löscht Dateien oder Ordner"
-    m["writes, copies or moves files"] := "schreibt, kopiert oder verschiebt Dateien"
-    m["changes the Windows registry"] := "ändert die Windows-Registrierung"
-    m["calls Windows functions directly"] := "ruft Windows-Funktionen direkt auf"
-    m["reads what you type or the clipboard"] := "liest, was du tippst, oder die Zwischenablage"
-    m["closes programs or shuts the PC down"] := "schließt Programme oder fährt den PC herunter"
-    m["loads code from other files"] := "lädt Code aus anderen Dateien"
-    m["calls commands by a computed name (can hide what it does)"] := "ruft Befehle über einen berechneten Namen auf (kann verbergen, was es tut)"
-    m["Imported script"] := "Importiertes Skript"
-    m["Turn on `"{1}`"?"] := "„{1}“ einschalten?"
-    m["This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from."] := "Dieses Skript wurde importiert. Es läuft mit Administratorrechten und kann daher auf diesem PC alles tun. Schalte es nur ein, wenn du der Person vertraust, von der es stammt."
-    m["Found in the code - the script:"] := "Im Code gefunden – das Skript:"
-    m["No risky commands were found. This is only a quick check, not a guarantee."] := "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie."
-    m["Show the code"] := "Code anzeigen"
-    m["Turn on"] := "Einschalten"
-    m["Same trigger key as `"{1}`" - only one of them works"] := "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert"
-    m["Same trigger key"] := "Gleiche Auslösetaste"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren."
-    m["Turn on anyway"] := "Trotzdem einschalten"
     return m
 }
 ; ===== END TRANSLATIONS =====

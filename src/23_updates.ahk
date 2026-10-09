@@ -179,19 +179,17 @@ OnUpdIcon(*) {
         if !UpdAvail {
             r := QueryUpdate()
             if (r = "error") {
-                Mb(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), "Iconx")
+                ThemedNote(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), true)
                 return
             }
             if (r = "latest") {
-                Mb(_T("You have the latest version (v{1}).", AppVersion), _T("Updates"), "Iconi")
+                ThemedNote(_T("You have the latest version (v{1}).", AppVersion), _T("Updates"))
                 return
             }
         }
-        msg := _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion)
-        if (UpdInfo["notes"] != "")
-            msg .= "`n`n" UpdInfo["notes"]
-        msg .= _T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.")
-        if (Mb(msg, _T("Macro Manager update"), "YesNo Iconi") = "Yes")
+        msg := (UpdInfo["notes"] != "" ? UpdInfo["notes"] "`n`n" : "") Trim(_T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."), "`n")
+        if (ThemedAsk(_T("Macro Manager update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
+            , [[_T("Later"), "", "btn"], [_T("Update now"), "yes", "btnprimary"]], false) = "yes")
             InstallUpdate()
     } finally {
         busy := false
@@ -205,7 +203,7 @@ InstallUpdate() {
     if !GhDownload("Macro%20Manager.ahk", tmp)
         try Download(url "?t=" A_TickCount, tmp)
     if !FileExist(tmp) {
-        Mb(_T("The download failed. Try again later."), _T("Updates"), "Iconx")
+        ThemedNote(_T("The download failed. Try again later."), _T("Updates"), true)
         return
     }
     got := Sha256(tmp)
@@ -213,14 +211,14 @@ InstallUpdate() {
         sz := 0
         try sz := FileGetSize(tmp)
         try FileDelete tmp
-        Mb(_T("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)", SubStr(sha, 1, 16), (got = "" ? _T("(could not compute)") : SubStr(got, 1, 16) "..."), sz), _T("Updates"), "Iconx")
+        ThemedNote(_T("The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)", SubStr(sha, 1, 16), (got = "" ? _T("(could not compute)") : SubStr(got, 1, 16) "..."), sz), _T("Updates"), true)
         return
     }
     txt := ""
     try txt := FileRead(tmp, "UTF-8")
     if (!InStr(txt, "#Requires AutoHotkey v2") || !InStr(txt, "AppVersion")) {
         try FileDelete tmp
-        Mb(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), "Iconx")
+        ThemedNote(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), true)
         return
     }
     if A_IsCompiled {
@@ -232,7 +230,7 @@ InstallUpdate() {
         FileCopy(tmp, A_ScriptFullPath, 1)
         FileDelete tmp
     } catch as e {
-        Mb(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), true)
         return
     }
     Reload()
@@ -248,7 +246,7 @@ UpdateCompiled(tmp) {
     ahk := AhkExe()
     if (ahk = "" || ahk = exe) {
         try FileDelete tmp
-        Mb(_T("Could not replace the app file: {1}", "AutoHotkey v2 not found"), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", "AutoHotkey v2 not found"), _T("Updates"), true)
         return
     }
     try {
@@ -264,7 +262,7 @@ UpdateCompiled(tmp) {
         FileDelete tmp
     } catch as e {
         try FileDelete(src)
-        Mb(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), "Iconx")
+        ThemedNote(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), true)
         return
     }
     Run('"' exe '" "' src '"', dir)

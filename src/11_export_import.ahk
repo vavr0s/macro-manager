@@ -2,27 +2,27 @@
 OnExportBtn(*) {
     sel := SelMacros()
     if !sel.Length {
-        MsgBox _T("Select a macro first."), "Macro Manager", 48
+        ThemedNote(_T("Select a macro first."), , true)
         return
     }
     if (sel.Length > 1) {
         dir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the {1} exported macros", sel.Length))
         if (dir = "")
             return
-        MsgBox _T("{1} macro(s) exported to:`n{2}", ExportAllTo(dir, sel), dir), "Macro Manager", 64
+        ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(dir, sel), dir))
         return
     }
     m := sel[1]
     if (m["type"] != "script") {
         k := Trim(m["hotkey"])
         if (k = "" || k = "undefined") {
-            MsgBox _T("Set a trigger key for this macro first."), "Macro Manager", 48
+            ThemedNote(_T("Set a trigger key for this macro first."), , true)
             return
         }
     }
     code := ExportCode(m)
     if (code = "") {
-        MsgBox _T("Nothing to export (script file is missing)."), "Macro Manager", 48
+        ThemedNote(_T("Nothing to export (script file is missing)."), , true)
         return
     }
     safe := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
@@ -32,19 +32,19 @@ OnExportBtn(*) {
     if !RegExMatch(path, "i)\.ahk$")
         path .= ".ahk"
     WriteText(path, code)
-    MsgBox _T("Exported to:`n{1}", path), "Macro Manager", 64
+    ThemedNote(_T("Exported to:`n{1}", path))
 }
 
 OnExportAll(*) {
     if !Macros.Length {
-        MsgBox _T("There are no macros to export."), "Macro Manager", 48
+        ThemedNote(_T("There are no macros to export."), , true)
         return
     }
     dir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the exported macros"))
     if (dir = "")
         return
     n := ExportAllTo(dir)
-    MsgBox _T("{1} macro(s) exported to:`n{2}", n, dir), "Macro Manager", 64
+    ThemedNote(_T("{1} macro(s) exported to:`n{2}", n, dir))
 }
 
 ; writes every macro as its own .ahk file (names made unique); returns how many were written
@@ -149,7 +149,7 @@ ImportName(path) {
 ImportOne(path) {
     try text := FileRead(path, "UTF-8")
     catch {
-        MsgBox _T("Can't read:`n{1}", path), "Macro Manager", 48
+        ThemedNote(_T("Can't read:`n{1}", path), , true)
         return false
     }
     meta := Map()
@@ -175,7 +175,7 @@ ImportOne(path) {
     } else {
         ; any other script -> runs as its own process while the macro is on
         if (!InStr(text, "#Requires AutoHotkey v2")
-            && Mb(_T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?"), "Macro Manager", "YesNo 48") != "Yes")
+            && ThemedAsk("Macro Manager", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
             return false
         m["type"] := "script"
         m["trusted"] := 0                           ; someone else's code: asked before it runs for the first time

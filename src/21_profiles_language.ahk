@@ -146,14 +146,14 @@ SwitchProfile(p, *) {
 }
 
 NewProfile(*) {
-    ib := InputBox(_T("Name of the new profile:"), _T("New profile"), "w300 h130")
-    if (ib.Result != "OK")
+    v := ThemedInput(_T("New profile"), _T("Name of the new profile:"))
+    if (v = false)
         return
-    nm := CleanName(ib.Value)
+    nm := CleanName(v)
     if (nm = "")
         return
     if HasProf(JoinProfs(Profiles), nm) {
-        MsgBox _T("A profile with this name already exists."), "Macro Manager", 48
+        ThemedNote(_T("A profile with this name already exists."), , true)
         return
     }
     Profiles.Push(nm)
@@ -162,14 +162,14 @@ NewProfile(*) {
 
 RenameProfile(*) {
     global CurProfile
-    ib := InputBox(_T("New name for profile `"{1}`":", CurProfile), _T("Rename profile"), "w300 h130", CurProfile)
-    if (ib.Result != "OK")
+    v := ThemedInput(_T("Rename profile"), _T("New name for profile `"{1}`":", CurProfile), CurProfile)
+    if (v = false)
         return
-    nm := CleanName(ib.Value)
+    nm := CleanName(v)
     if (nm = "" || nm = CurProfile)
         return
     if HasProf(JoinProfs(Profiles), nm) {
-        MsgBox _T("A profile with this name already exists."), "Macro Manager", 48
+        ThemedNote(_T("A profile with this name already exists."), , true)
         return
     }
     for i, p in Profiles
@@ -190,10 +190,10 @@ RenameProfile(*) {
 DeleteProfile(*) {
     global CurProfile, Profiles
     if (Profiles.Length < 2) {
-        MsgBox _T("You can't delete the last profile."), "Macro Manager", 48
+        ThemedNote(_T("You can't delete the last profile."), , true)
         return
     }
-    if (Mb(_T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), "Macro Manager", "YesNo 32") != "Yes")
+    if (ThemedAsk("Macro Manager", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     old := CurProfile
     rest := []
@@ -240,7 +240,7 @@ PickProfiles(owner, cur) {
             if sel[pn]
                 arr.Push(pn)
         if !arr.Length {
-            MsgBox _T("Select at least one profile."), "Macro Manager", 48
+            ThemedNote(_T("Select at least one profile."), , true)
             return
         }
         res := JoinProfs(arr)

@@ -1,10 +1,11 @@
 ; ============ application picker ============
 ; returns the chosen exe name (or `cur` when cancelled)
 PickApp(owner, cur) {
-    r := Mb(_T("Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file"), _T("Select application"), "YesNoCancel Icon?")
-    if (r = "Cancel")
+    r := ThemedAsk(_T("Select application"), "", _T("Use one of the currently running applications, or browse for the .exe file?")
+        , [[_T("Cancel"), "", "btn"], [_T("Browse for the .exe"), "browse", "btn"], [_T("Running applications"), "list", "btnprimary"]], false)
+    if (r = "")
         return cur
-    if (r = "No")
+    if (r = "browse")
         return BrowseApp(cur)
     seen := Map(), items := []
     for hwnd in WinGetList() {
@@ -27,7 +28,7 @@ PickApp(owner, cur) {
         items.Push([exe, title])
     }
     if !items.Length {
-        MsgBox _T("No running applications found - choose the file instead."), _T("Select application"), 64
+        ThemedNote(_T("No running applications found - choose the file instead."), _T("Select application"))
         return BrowseApp(cur)
     }
     res := ""
