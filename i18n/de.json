@@ -172,6 +172,8 @@
  "No risky commands were found. This is only a quick check, not a guarantee.": "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie.",
  "Show the code": "Code anzeigen",
  "Turn on": "Einschalten",
- "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?": "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren.\n\nTrotzdem einschalten?",
- "Same trigger key as \"{1}\" - only one of them works": "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert"
+ "Same trigger key as \"{1}\" - only one of them works": "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert",
+ "Same trigger key": "Gleiche Auslösetaste",
+ "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren.",
+ "Turn on anyway": "Trotzdem einschalten"
 }

@@ -87,7 +87,8 @@ EnableMacro(m, viaKey := false) {
     }
     other := KeyClash(m)
     if (other && !viaKey) {
-        if (Mb(_T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?", m["name"], m["hotkey"], other["name"]), "Macro Manager", "YesNo Icon! Default2") != "Yes") {
+        if (ThemedAsk("Macro Manager", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
+            , [[_T("Turn on anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
             Save()                                  ; keeps a "trusted" that was just given
             return
         }
@@ -185,6 +186,8 @@ ConfirmScript(name, code) {
     AddBtn(g, "x16 y" btnY " w140 h32", _T("Show the code"), DoCode)
     AddBtn(g, "x254 y" btnY " w120 h32", _T("Turn on"), DoOn, "btndanger")
     AddBtn(g, "x384 y" btnY " w100 h32", _T("Cancel"), Close, "btnprimary")
+    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = Cancel
+    hb.OnEvent("Click", Close)
     g.OnEvent("Close", Close)
     g.OnEvent("Escape", Close)
     ApplyTheme(g)

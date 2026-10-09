@@ -85,7 +85,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.15.3"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15.4"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -1560,7 +1560,8 @@ EnableMacro(m, viaKey := false) {
     }
     other := KeyClash(m)
     if (other && !viaKey) {
-        if (Mb(_T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?", m["name"], m["hotkey"], other["name"]), "Macro Manager", "YesNo Icon! Default2") != "Yes") {
+        if (ThemedAsk("Macro Manager", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
+            , [[_T("Turn on anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
             Save()                                  ; keeps a "trusted" that was just given
             return
         }
@@ -1658,6 +1659,8 @@ ConfirmScript(name, code) {
     AddBtn(g, "x16 y" btnY " w140 h32", _T("Show the code"), DoCode)
     AddBtn(g, "x254 y" btnY " w120 h32", _T("Turn on"), DoOn, "btndanger")
     AddBtn(g, "x384 y" btnY " w100 h32", _T("Cancel"), Close, "btnprimary")
+    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = Cancel
+    hb.OnEvent("Click", Close)
     g.OnEvent("Close", Close)
     g.OnEvent("Escape", Close)
     ApplyTheme(g)
@@ -2152,6 +2155,56 @@ ShowOver(g, opts, anchor := 0) {
         g.Show("x" x " y" y)
     } catch
         g.Show(opts)
+}
+
+; question window in the app's own look (instead of the grey system MsgBox)
+; buttons: [[label, value, role], ...] shown left to right at the bottom right; the "btnprimary" one is the
+; default (Enter). Esc / closing the window returns "".
+ThemedAsk(title, heading, body, buttons, warn := true) {
+    res := "", done := false
+    owner := DllCall("IsWindowVisible", "Ptr", Main.Hwnd) ? Main : 0
+    g := Gui((owner ? "+Owner" Main.Hwnd " " : "") "+ToolWindow +AlwaysOnTop", title)
+    x0 := 16
+    if warn {
+        bp := g.AddPicture("x16 y17 w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)      ; the yellow !
+        Roles[bp.Hwnd] := "skip"
+        x0 := 40
+    }
+    g.SetFont("s10 bold", "Segoe UI")
+    g.AddText("x" x0 " y14 w" (484 - x0), heading)
+    g.SetFont("s9 norm", "Segoe UI")
+    g.AddText("x16 y+10 w468", body)
+    btnY := 0
+    g.AddText("x16 y+18 w1 h1").GetPos(, &btnY)                ; buttons go below the text
+    Pick(v, *) {
+        res := v
+        Close()
+    }
+    Close(*) {
+        done := true
+        g.Destroy()
+    }
+    g.SetFont("s9", "Segoe UI")
+    def := "", x := 484, i := buttons.Length
+    while (i >= 1) {
+        b := buttons[i]
+        w := Max(100, 24 + 7 * StrLen(b[1]))
+        x -= w
+        AddBtn(g, "x" x " y" btnY " w" w " h32", b[1], Pick.Bind(b[2]), b[3])
+        if (b[3] = "btnprimary")
+            def := b[2]
+        x -= 10
+        i--
+    }
+    hb := g.AddButton("Default x-300 y-300 w1 h1")              ; invisible: Enter = the highlighted button
+    hb.OnEvent("Click", Pick.Bind(def))
+    g.OnEvent("Close", Close)
+    g.OnEvent("Escape", Close)
+    ApplyTheme(g)
+    ShowOver(g, "w500 h" (btnY + 46), owner ? Main : 0)
+    while !done
+        Sleep 50
+    return res
 }
 
 ; MsgBox that opens over the visible app window (not on the primary monitor)
@@ -5170,8 +5223,10 @@ TrCs() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka."
     m["Show the code"] := "Zobrazit kód"
     m["Turn on"] := "Zapnout"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich.`n`nPřesto ho zapnout?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich"
+    m["Same trigger key"] := "Stejná spouštěcí klávesa"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich."
+    m["Turn on anyway"] := "Přesto zapnout"
     return m
 }
 TrPl() {
@@ -5349,8 +5404,10 @@ TrPl() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nie znaleziono ryzykownych poleceń. To tylko szybkie sprawdzenie, a nie gwarancja."
     m["Show the code"] := "Pokaż kod"
     m["Turn on"] := "Włącz"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich.`n`nWłączyć je mimo to?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Ten sam klawisz wyzwalający co „{1}” – działa tylko jedno z nich"
+    m["Same trigger key"] := "Ten sam klawisz wyzwalający"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich."
+    m["Turn on anyway"] := "Włącz mimo to"
     return m
 }
 TrDe() {
@@ -5528,8 +5585,10 @@ TrDe() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie."
     m["Show the code"] := "Code anzeigen"
     m["Turn on"] := "Einschalten"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren.`n`nTrotzdem einschalten?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert"
+    m["Same trigger key"] := "Gleiche Auslösetaste"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren."
+    m["Turn on anyway"] := "Trotzdem einschalten"
     return m
 }
 ; ===== END TRANSLATIONS =====

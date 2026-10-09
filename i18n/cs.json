@@ -172,6 +172,8 @@
  "No risky commands were found. This is only a quick check, not a guarantee.": "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka.",
  "Show the code": "Zobrazit kód",
  "Turn on": "Zapnout",
- "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?": "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich.\n\nPřesto ho zapnout?",
- "Same trigger key as \"{1}\" - only one of them works": "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich"
+ "Same trigger key as \"{1}\" - only one of them works": "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich",
+ "Same trigger key": "Stejná spouštěcí klávesa",
+ "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich.",
+ "Turn on anyway": "Přesto zapnout"
 }

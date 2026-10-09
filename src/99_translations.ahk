@@ -174,8 +174,10 @@ TrCs() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nebyly nalezeny žádné rizikové příkazy. Je to jen rychlá kontrola, ne záruka."
     m["Show the code"] := "Zobrazit kód"
     m["Turn on"] := "Zapnout"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich.`n`nPřesto ho zapnout?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Stejná spouštěcí klávesa jako „{1}“ – funguje jen jedno z nich"
+    m["Same trigger key"] := "Stejná spouštěcí klávesa"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ používá stejnou spouštěcí klávesu ({2}) jako aktivní makro „{3}“. Fungovat bude jen jedno z nich."
+    m["Turn on anyway"] := "Přesto zapnout"
     return m
 }
 TrPl() {
@@ -353,8 +355,10 @@ TrPl() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Nie znaleziono ryzykownych poleceń. To tylko szybkie sprawdzenie, a nie gwarancja."
     m["Show the code"] := "Pokaż kod"
     m["Turn on"] := "Włącz"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich.`n`nWłączyć je mimo to?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Ten sam klawisz wyzwalający co „{1}” – działa tylko jedno z nich"
+    m["Same trigger key"] := "Ten sam klawisz wyzwalający"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}” używa tego samego klawisza wyzwalającego ({2}) co aktywne makro „{3}”. Działać będzie tylko jedno z nich."
+    m["Turn on anyway"] := "Włącz mimo to"
     return m
 }
 TrDe() {
@@ -532,8 +536,10 @@ TrDe() {
     m["No risky commands were found. This is only a quick check, not a guarantee."] := "Es wurden keine riskanten Befehle gefunden. Das ist nur eine schnelle Prüfung, keine Garantie."
     m["Show the code"] := "Code anzeigen"
     m["Turn on"] := "Einschalten"
-    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.`n`nTurn it on anyway?"] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren.`n`nTrotzdem einschalten?"
     m["Same trigger key as `"{1}`" - only one of them works"] := "Gleiche Auslösetaste wie „{1}“ – nur eines von beiden funktioniert"
+    m["Same trigger key"] := "Gleiche Auslösetaste"
+    m["Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work."] := "Makro „{1}“ verwendet dieselbe Auslösetaste ({2}) wie das aktive Makro „{3}“. Nur eines von beiden wird funktionieren."
+    m["Turn on anyway"] := "Trotzdem einschalten"
     return m
 }
 ; ===== END TRANSLATIONS =====

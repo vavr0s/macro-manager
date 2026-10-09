@@ -1121,16 +1121,28 @@
    "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
   ]
  },
- "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?": {
-  "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?",
-  "ctx": [
-   "EnableMacro: turning on a macro whose trigger key an active macro already uses"
-  ]
- },
  "Same trigger key as \"{1}\" - only one of them works": {
   "en": "Same trigger key as \"{1}\" - only one of them works",
   "ctx": [
    "EnableMacro: turning on a macro whose trigger key an active macro already uses"
+  ]
+ },
+ "Same trigger key": {
+  "en": "Same trigger key",
+  "ctx": [
+   "EnableMacro: themed warning, a trigger key an active macro already uses"
+  ]
+ },
+ "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": {
+  "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.",
+  "ctx": [
+   "EnableMacro: themed warning, a trigger key an active macro already uses"
+  ]
+ },
+ "Turn on anyway": {
+  "en": "Turn on anyway",
+  "ctx": [
+   "EnableMacro: themed warning, a trigger key an active macro already uses"
   ]
  }
 }
