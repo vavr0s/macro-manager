@@ -1,6 +1,6 @@
 {
-  "version": "1.17.1",
-  "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "2e0ad4cb2939a2239a666a52d5d69394bd3ef4123562434fabd626827ae7b588",
-  "notes": "BETA build - for testing.\n- Fix: pressing AltGr could leave Ctrl stuck for Windows (keyboard and mouse seemed not to work) when a macro used Left Ctrl as its trigger key. Ctrl and Alt that are stuck like this are now released automatically."
+  "version": "1.17",
+  "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
+  "sha256": "ac057c86b5bc68995a7cce87feac9215d1c776b4899ff06ea41029896ae12118",
+  "notes": "- Minor fixes"
 }
