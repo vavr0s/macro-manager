@@ -1,6 +1,6 @@
 {
-  "version": "1.16",
+  "version": "1.17",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
-  "sha256": "95df50f369c94bab3b92bb6671d2524fbf53bf0dec4f4c88802791ff2a27e26c",
-  "notes": "- Minor performance fixes"
+  "sha256": "ac057c86b5bc68995a7cce87feac9215d1c776b4899ff06ea41029896ae12118",
+  "notes": "- Minor fixes"
 }

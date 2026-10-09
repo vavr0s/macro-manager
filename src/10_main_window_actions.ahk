@@ -6,6 +6,9 @@ OnMainClose(*) {
 
 ExitHandler(*) {
     ReleaseHeld()                                  ; keys a macro was holding when the app was closed
+    for k in ["LCtrl", "RCtrl", "LAlt", "RAlt"]     ; and Ctrl / Alt that Windows still thinks are down
+        if (GetKeyState(k) && !GetKeyState(k, "P"))
+            try Send "{Blind}{" k " up}"
     for m, pid in Procs
         try ProcessClose(pid)
     try DirDelete(A_Temp "\MacroManager-drag", 1)

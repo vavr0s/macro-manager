@@ -89,7 +89,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.16"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.17"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -98,7 +98,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Minor performance fixes"
+ReleaseNotes := "- Minor fixes"
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -250,6 +250,8 @@ Refresh()
 Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
+SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt that Windows still thinks are held (AltGr + LCtrl macros)
+try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
@@ -263,6 +265,9 @@ OnMainClose(*) {
 
 ExitHandler(*) {
     ReleaseHeld()                                  ; keys a macro was holding when the app was closed
+    for k in ["LCtrl", "RCtrl", "LAlt", "RAlt"]     ; and Ctrl / Alt that Windows still thinks are down
+        if (GetKeyState(k) && !GetKeyState(k, "P"))
+            try Send "{Blind}{" k " up}"
     for m, pid in Procs
         try ProcessClose(pid)
     try DirDelete(A_Temp "\MacroManager-drag", 1)
@@ -2008,6 +2013,37 @@ RunSeq2(m, trig) {
     DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))
+}
+
+; ============ stuck modifier keys ============
+; AltGr = a fake Left Ctrl + Right Alt. A macro on Left Ctrl swallows the real Left Ctrl key, and the "up" of
+; AltGr's fake Ctrl could get swallowed with it: Windows then keeps Ctrl pressed - every key and mouse click
+; becomes Ctrl+..., so keyboard and mouse seem dead, and pressing Left Ctrl can't fix it while the macro is on.
+AltGrUp(*) {
+    Sleep 30
+    for k in ["LCtrl", "RAlt"]
+        if (GetKeyState(k) && !GetKeyState(k, "P"))
+            Send "{Blind}{" k " up}"
+}
+
+; every 250 ms: Ctrl / Alt down for Windows but not held on the keyboard for over a second -> released
+ModWatch() {
+    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt"], since := Map()
+    if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
+        since.Clear()
+        return
+    }
+    for k in mods {
+        if (GetKeyState(k) && !GetKeyState(k, "P")) {
+            if !since.Has(k)
+                since[k] := A_TickCount
+            else if (A_TickCount - since[k] >= 1000) {
+                Send "{Blind}{" k " up}"
+                since.Delete(k)
+            }
+        } else if since.Has(k)
+            since.Delete(k)
+    }
 }
 
 ; ============ embedded logo / icon ============

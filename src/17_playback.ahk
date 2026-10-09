@@ -193,3 +193,34 @@ RunSeq2(m, trig) {
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))
 }
+
+; ============ stuck modifier keys ============
+; AltGr = a fake Left Ctrl + Right Alt. A macro on Left Ctrl swallows the real Left Ctrl key, and the "up" of
+; AltGr's fake Ctrl could get swallowed with it: Windows then keeps Ctrl pressed - every key and mouse click
+; becomes Ctrl+..., so keyboard and mouse seem dead, and pressing Left Ctrl can't fix it while the macro is on.
+AltGrUp(*) {
+    Sleep 30
+    for k in ["LCtrl", "RAlt"]
+        if (GetKeyState(k) && !GetKeyState(k, "P"))
+            Send "{Blind}{" k " up}"
+}
+
+; every 250 ms: Ctrl / Alt down for Windows but not held on the keyboard for over a second -> released
+ModWatch() {
+    static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt"], since := Map()
+    if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
+        since.Clear()
+        return
+    }
+    for k in mods {
+        if (GetKeyState(k) && !GetKeyState(k, "P")) {
+            if !since.Has(k)
+                since[k] := A_TickCount
+            else if (A_TickCount - since[k] >= 1000) {
+                Send "{Blind}{" k " up}"
+                since.Delete(k)
+            }
+        } else if since.Has(k)
+            since.Delete(k)
+    }
+}
