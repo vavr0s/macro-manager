@@ -97,7 +97,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Minor performance fixes"
+ReleaseNotes := "- Fix: pressing AltGr could leave Ctrl stuck for Windows (keyboard and mouse seemed not to work) when a macro used Left Ctrl as its trigger key. Ctrl and Alt that are stuck like this are now released automatically."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -249,6 +249,8 @@ Refresh()
 Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
+SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt that Windows still thinks are held (AltGr + LCtrl macros)
+try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
