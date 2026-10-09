@@ -97,7 +97,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Fix: a repeating macro with very short (or 0 ms) delays could flood Windows with key presses, so the whole keyboard stopped responding for a while - even after the app was closed. One cycle of a repeated macro now takes at least 10 ms.`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro.`n- The keyboard no longer waits up to a second for the app when it is busy (only in app checks give up after 0.15 s)."
+ReleaseNotes := "- Fix: while a repeating macro was held (above all in a game), the whole keyboard could stop responding for a while - even after the app was closed. The keyboard no longer has to wait for the app when you press a trigger key, and a repeated macro can no longer flood Windows with key presses (one cycle now takes at least 10 ms).`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []

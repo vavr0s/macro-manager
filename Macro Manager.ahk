@@ -89,7 +89,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.16.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.16.2"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -98,7 +98,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: a repeating macro with very short (or 0 ms) delays could flood Windows with key presses, so the whole keyboard stopped responding for a while - even after the app was closed. One cycle of a repeated macro now takes at least 10 ms.`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro.`n- The keyboard no longer waits up to a second for the app when it is busy (only in app checks give up after 0.15 s)."
+ReleaseNotes := "BETA build - for testing.`n- Fix: while a repeating macro was held (above all in a game), the whole keyboard could stop responding for a while - even after the app was closed. The keyboard no longer has to wait for the app when you press a trigger key, and a repeated macro can no longer flood Windows with key presses (one cycle now takes at least 10 ms).`n- Keys that a macro is holding down are released when the app is closed in the middle of the macro."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1097,7 +1097,9 @@ ExportCode(m) {
     code := StrReplace(code, "@DATA@", data)
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
-    code := StrReplace(code, "@APP@", StrReplace(m["app"], '"', ""))
+    app := StrReplace(m["app"], '"', "")
+    code := StrReplace(code, "@APP@", app)
+    code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
     code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
     for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey"]
@@ -1141,7 +1143,7 @@ Up(t) {
 
 Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
 
-#HotIf app = "" || WinActive("ahk_exe " app)
+@HOTIF@
 )"
 }
 
@@ -1511,7 +1513,7 @@ Apply() {
     global Registered, TogReg
     for r in Registered {
         try {
-            HotIf(r[2])
+            SetCrit(r[2])
             Hotkey(r[1], "Off")
         }
     }
@@ -1537,11 +1539,10 @@ Apply() {
         trig := Trim(m["hotkey"])
         if (trig = "" || trig = "undefined")
             continue
-        cond := MakeCond(m)
         try {
-            HotIf(cond)
+            SetCrit(m["app"])
             Hotkey(TrigHot(trig), MakeRun(m, trig), "On")
-            Registered.Push([TrigHot(trig), cond])
+            Registered.Push([TrigHot(trig), m["app"]])
         } catch as e {
             HotIf()
             ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
@@ -1732,7 +1733,15 @@ StopScript(m) {
     }
 }
 
-MakeCond(m) => (*) => (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+; "only in app": a plain window criterion that the keyboard hook checks by itself. A script function as the
+; criterion would make the hook wait for the app on every press (and every auto-repeat) of a trigger key - when
+; the app is busy that stalls the whole keyboard, and Windows may drop the hook so a held macro never stops.
+SetCrit(app) {
+    if (app = "")
+        HotIf()
+    else
+        HotIfWinActive("ahk_exe " app)
+}
 MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
 
 Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
