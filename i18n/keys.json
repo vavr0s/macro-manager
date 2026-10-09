@@ -1,0 +1,1136 @@
+{
+ "Dark mode": {
+  "en": "Dark mode",
+  "ctx": [
+   "lbl := Main.AddText(\"x600 y50 w105 Right BackgroundTrans\", _T(\"Dark mode\"))"
+  ],
+  "max_chars": 15
+ },
+ "All macros": {
+  "en": "All macros",
+  "ctx": [
+   "lbl2 := Main.AddText(\"x600 y18 w105 Right BackgroundTrans\", _T(\"All macros\"))"
+  ],
+  "max_chars": 15
+ },
+ "Name": {
+  "en": "Name",
+  "ctx": [
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
+   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "g.AddText(\"x10 y100 w136 +0x200 h26\", _T(\"Name\"))"
+  ],
+  "max_chars": 21
+ },
+ "Key": {
+  "en": "Key",
+  "ctx": [
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
+   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])"
+  ]
+ },
+ "Application": {
+  "en": "Application",
+  "ctx": [
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
+   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "lv := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
+  ]
+ },
+ "Type": {
+  "en": "Type",
+  "ctx": [
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
+   "LV := Main.AddListView(\"x10 y120 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
+   "g.AddText(\"x10 y208 w136 +0x200 h26\", _T(\"Type\"))"
+  ],
+  "max_chars": 21
+ },
+ "Add": {
+  "en": "Add",
+  "ctx": [
+   "bAdd := AddBtn(Main, \"x10 y+14 w130 h36\", _T(\"Add\"), (*) => EditMacro(0), \"btnprimary\")"
+  ],
+  "max_chars": 16
+ },
+ "Copy": {
+  "en": "Copy",
+  "ctx": [
+   "bCopy := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Copy\"), OnCopyBtn)"
+  ],
+  "max_chars": 16
+ },
+ "Edit": {
+  "en": "Edit",
+  "ctx": [
+   "bEdit := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Edit\"), OnEditBtn)"
+  ],
+  "max_chars": 16
+ },
+ "Delete": {
+  "en": "Delete",
+  "ctx": [
+   "bDel := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Delete\"), OnDelBtn, \"btndanger\")"
+  ],
+  "max_chars": 16
+ },
+ "Export...": {
+  "en": "Export...",
+  "ctx": [
+   "bExport := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Export...\"), OnExportBtn)"
+  ],
+  "max_chars": 16
+ },
+ "Import...": {
+  "en": "Import...",
+  "ctx": [
+   "bImport := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Import...\"), OnImportBtn)"
+  ],
+  "max_chars": 16
+ },
+ "Move up": {
+  "en": "Move up",
+  "ctx": [
+   "bUp := AddBtn(Main, \"x10 y+8 w130 h36\", _T(\"Move up\"), (*) => MoveRow(-1))"
+  ],
+  "max_chars": 16
+ },
+ "Move down": {
+  "en": "Move down",
+  "ctx": [
+   "bDown := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Move down\"), (*) => MoveRow(1))"
+  ],
+  "max_chars": 16
+ },
+ "Export all...": {
+  "en": "Export all...",
+  "ctx": [
+   "bExpAll := AddBtn(Main, \"x+8 yp w150 h36\", _T(\"Export all...\"), OnExportAll)"
+  ],
+  "max_chars": 19
+ },
+ "All macros toggle key:": {
+  "en": "All macros toggle key:",
+  "ctx": [
+   "bMKey := AddBtn(Main, \"x+8 yp w386 h36\", KeyLabel(_T(\"All macros toggle key:\") \"  \", MKst[\"key\"]), (*) => CaptureKey(bMKey, MKst, \"key\", true, _T(\"All macros toggle key:\") \"  \", OnMasterKey))",
+   "bMKey := AddBtn(Main, \"x+8 yp w386 h36\", KeyLabel(_T(\"All macros toggle key:\") \"  \", MKst[\"key\"]), (*) => CaptureKey(bMKey, MKst, \"key\", true, _T(\"All macros toggle key:\") \"  \", OnMasterKey))"
+  ],
+  "max_chars": 52
+ },
+ "Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit).": {
+  "en": "Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit).",
+  "ctx": [
+   "AddHint(Main, \"x10 y+16 w700\", _T(\"Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; dr"
+  ]
+ },
+ "Uninstall": {
+  "en": "Uninstall",
+  "ctx": [
+   "bUninst := AddBtn(Main, \"x740 yp w90 h28\", _T(\"Uninstall\"), (*) => UninstallApp(), \"btnghost\")"
+  ],
+  "max_chars": 12
+ },
+ "Open window": {
+  "en": "Open window",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"Open window\"), (*) => (Main.Show(), AutoCheck(120000)))",
+   "A_TrayMenu.Default := _T(\"Open window\")"
+  ]
+ },
+ "Check for updates...": {
+  "en": "Check for updates...",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"Check for updates...\"), OnUpdIcon)"
+  ]
+ },
+ "Check for updates at start": {
+  "en": "Check for updates at start",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"Check for updates at start\"), ToggleAutoUpd)",
+   "A_TrayMenu.Check(_T(\"Check for updates at start\"))",
+   "A_TrayMenu.ToggleCheck(_T(\"Check for updates at start\"))"
+  ]
+ },
+ "Uninstall...": {
+  "en": "Uninstall...",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"Uninstall...\"), (*) => UninstallApp())"
+  ]
+ },
+ "Exit": {
+  "en": "Exit",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"Exit\"), (*) => ExitApp())"
+  ]
+ },
+ "Delete macro \"{1}\"?": {
+  "en": "Delete macro \"{1}\"?",
+  "ctx": [
+   "msg := list.Length = 1 ? _T(\"Delete macro `\"{1}`\"?\", list[1][\"name\"]) : _T(\"Delete {1} selected macros?\", list.Length)"
+  ]
+ },
+ "Delete {1} selected macros?": {
+  "en": "Delete {1} selected macros?",
+  "ctx": [
+   "msg := list.Length = 1 ? _T(\"Delete macro `\"{1}`\"?\", list[1][\"name\"]) : _T(\"Delete {1} selected macros?\", list.Length)"
+  ]
+ },
+ "All macros: {1}": {
+  "en": "All macros: {1}",
+  "ctx": [
+   "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))"
+  ]
+ },
+ "ON": {
+  "en": "ON",
+  "ctx": [
+   "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))",
+   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))"
+  ]
+ },
+ "OFF": {
+  "en": "OFF",
+  "ctx": [
+   "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))",
+   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))"
+  ]
+ },
+ "Move + actions": {
+  "en": "Move + actions",
+  "ctx": [
+   "TypeLabel(t) => t = \"move\" ? _T(\"Move + actions\") : (t = \"seq\" ? _T(\"Sequence\") : _T(\"Script (.ahk)\"))",
+   "for i, nm in [_T(\"Move + actions\"), _T(\"Sequence\"), _T(\"Script (.ahk)\")]",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ]
+ },
+ "Sequence": {
+  "en": "Sequence",
+  "ctx": [
+   "TypeLabel(t) => t = \"move\" ? _T(\"Move + actions\") : (t = \"seq\" ? _T(\"Sequence\") : _T(\"Script (.ahk)\"))",
+   "for i, nm in [_T(\"Move + actions\"), _T(\"Sequence\"), _T(\"Script (.ahk)\")]",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ]
+ },
+ "Script (.ahk)": {
+  "en": "Script (.ahk)",
+  "ctx": [
+   "TypeLabel(t) => t = \"move\" ? _T(\"Move + actions\") : (t = \"seq\" ? _T(\"Sequence\") : _T(\"Script (.ahk)\"))",
+   "for i, nm in [_T(\"Move + actions\"), _T(\"Sequence\"), _T(\"Script (.ahk)\")]",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ]
+ },
+ "(everywhere)": {
+  "en": "(everywhere)",
+  "ctx": [
+   "LV.Add(m[\"enabled\"] ? \"Check\" : \"\", m[\"name\"], m[\"hotkey\"], (m[\"app\"] = \"\" || m[\"type\"] = \"script\") ? _T(\"(everywhere)\") : m[\"app\"], TypeLabel(m[\"type\"]))"
+  ]
+ },
+ "Select a macro first.": {
+  "en": "Select a macro first.",
+  "ctx": [
+   "MsgBox _T(\"Select a macro first.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Choose a folder for the {1} exported macros": {
+  "en": "Choose a folder for the {1} exported macros",
+  "ctx": [
+   "dir := DirSelect(\"*\" A_Desktop, 3, _T(\"Choose a folder for the {1} exported macros\", sel.Length))"
+  ]
+ },
+ "{1} macro(s) exported to:\n{2}": {
+  "en": "{1} macro(s) exported to:\n{2}",
+  "ctx": [
+   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(dir, sel), dir), \"Macro Manager\", 64",
+   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", n, dir), \"Macro Manager\", 64",
+   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"), 64"
+  ]
+ },
+ "Set a trigger key for this macro first.": {
+  "en": "Set a trigger key for this macro first.",
+  "ctx": [
+   "MsgBox _T(\"Set a trigger key for this macro first.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Nothing to export (script file is missing).": {
+  "en": "Nothing to export (script file is missing).",
+  "ctx": [
+   "MsgBox _T(\"Nothing to export (script file is missing).\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Export macro": {
+  "en": "Export macro",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\\" safe \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
+  ]
+ },
+ "AutoHotkey scripts (*.ahk)": {
+  "en": "AutoHotkey scripts (*.ahk)",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\\" safe \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))",
+   "files := FileSelect(\"M3\", , _T(\"Import macros\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
+  ]
+ },
+ "Exported to:\n{1}": {
+  "en": "Exported to:\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Exported to:`n{1}\", path), \"Macro Manager\", 64"
+  ]
+ },
+ "There are no macros to export.": {
+  "en": "There are no macros to export.",
+  "ctx": [
+   "MsgBox _T(\"There are no macros to export.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Choose a folder for the exported macros": {
+  "en": "Choose a folder for the exported macros",
+  "ctx": [
+   "dir := DirSelect(\"*\" A_Desktop, 3, _T(\"Choose a folder for the exported macros\"))"
+  ]
+ },
+ "Import macros": {
+  "en": "Import macros",
+  "ctx": [
+   "files := FileSelect(\"M3\", , _T(\"Import macros\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
+  ]
+ },
+ "Drop .ahk files to import them": {
+  "en": "Drop .ahk files to import them",
+  "ctx": [
+   "Toast(_T(\"Drop .ahk files to import them\"))"
+  ]
+ },
+ "Can't read:\n{1}": {
+  "en": "Can't read:\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Can't read:`n{1}\", path), \"Macro Manager\", 48"
+  ]
+ },
+ "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.\n\nImport anyway?": {
+  "en": "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.\n\nImport anyway?",
+  "ctx": [
+   "&& Mb(_T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.`n`nImport anyway?\"), \"Macro Manager\", \"YesNo 48\") != \"Yes\")"
+  ]
+ },
+ "Macro Manager is already installed in:\n{1}\n\nYes = update the installed copy with this file and start it\nNo = just start the installed copy\nCancel = exit": {
+  "en": "Macro Manager is already installed in:\n{1}\n\nYes = update the installed copy with this file and start it\nNo = just start the installed copy\nCancel = exit",
+  "ctx": [
+   "r := MsgBox(_T(\"Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit\", prev), _T(\"Macro Manager setup\"), \"YesNoCancel 64\")"
+  ]
+ },
+ "Macro Manager setup": {
+  "en": "Macro Manager setup",
+  "ctx": [
+   "r := MsgBox(_T(\"Macro Manager is already installed in:`n{1}`n`nYes = update the installed copy with this file and start it`nNo = just start the installed copy`nCancel = exit\", prev), _T(\"Macro Manager setup\"), \"YesNoCancel 64\")",
+   "MsgBox _T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), 48",
+   "MsgBox _T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), 16",
+   "if (MsgBox(_T(\"Create a Start Menu shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")",
+   "if (MsgBox(_T(\"Create a Desktop shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")",
+   "MsgBox _T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"), 64"
+  ]
+ },
+ "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}": {
+  "en": "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), 48"
+  ]
+ },
+ "Choose where to install Macro Manager.\nA 'MacroManager' folder will be created there.": {
+  "en": "Choose where to install Macro Manager.\nA 'MacroManager' folder will be created there.",
+  "ctx": [
+   "dir := DirSelect(\"*\" A_ProgramFiles, 1, _T(\"Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there.\"))"
+  ]
+ },
+ "Installation failed:\n{1}": {
+  "en": "Installation failed:\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), 16"
+  ]
+ },
+ "Create a Start Menu shortcut?": {
+  "en": "Create a Start Menu shortcut?",
+  "ctx": [
+   "if (MsgBox(_T(\"Create a Start Menu shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")"
+  ]
+ },
+ "Create a Desktop shortcut?": {
+  "en": "Create a Desktop shortcut?",
+  "ctx": [
+   "if (MsgBox(_T(\"Create a Desktop shortcut?\"), _T(\"Macro Manager setup\"), \"YesNo 32\") = \"Yes\")"
+  ]
+ },
+ "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config": {
+  "en": "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config",
+  "ctx": [
+   "MsgBox _T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"), 64"
+  ]
+ },
+ "This doesn't look like an installed copy, nothing was removed.": {
+  "en": "This doesn't look like an installed copy, nothing was removed.",
+  "ctx": [
+   "MsgBox _T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), 48"
+  ]
+ },
+ "Uninstall Macro Manager": {
+  "en": "Uninstall Macro Manager",
+  "ctx": [
+   "MsgBox _T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), 48",
+   "if (Mb(_T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), _T(\"Uninstall Macro Manager\"), \"YesNo 48 Default2\") != \"Yes\") {",
+   "r := Mb(_T(\"Export all your macros to a folder before uninstalling?\"), _T(\"Uninstall Macro Manager\"), \"YesNoCancel 32\")",
+   "MsgBox _T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"), 64",
+   "MsgBox _T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"), 64"
+  ]
+ },
+ "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": {
+  "en": "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}",
+  "ctx": [
+   "if (Mb(_T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), _T(\"Uninstall Macro Manager\"), \"YesNo 48 Default2\") != \"Yes\") {"
+  ]
+ },
+ "Export all your macros to a folder before uninstalling?": {
+  "en": "Export all your macros to a folder before uninstalling?",
+  "ctx": [
+   "r := Mb(_T(\"Export all your macros to a folder before uninstalling?\"), _T(\"Uninstall Macro Manager\"), \"YesNoCancel 32\")"
+  ]
+ },
+ "Choose a folder for the backup": {
+  "en": "Choose a folder for the backup",
+  "ctx": [
+   "bdir := DirSelect(\"*\" A_Desktop, 3, _T(\"Choose a folder for the backup\"))"
+  ]
+ },
+ "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": {
+  "en": "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.",
+  "ctx": [
+   "MsgBox _T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"), 64"
+  ]
+ },
+ "New macro": {
+  "en": "New macro",
+  "ctx": [
+   "g := Gui(\"+Owner\" Main.Hwnd \" +ToolWindow\", isNew ? _T(\"New macro\") : _T(\"Edit macro\"))",
+   "ttl := g.AddText(\"x100 y29 w400 BackgroundTrans\", isNew ? _T(\"New macro\") : _T(\"Edit macro\"))",
+   "return Map(\"name\", _T(\"New macro\"), \"hotkey\", \"LCtrl\", \"app\", \"\", \"type\", \"move\", \"enabled\", 0,"
+  ]
+ },
+ "Edit macro": {
+  "en": "Edit macro",
+  "ctx": [
+   "g := Gui(\"+Owner\" Main.Hwnd \" +ToolWindow\", isNew ? _T(\"New macro\") : _T(\"Edit macro\"))",
+   "ttl := g.AddText(\"x100 y29 w400 BackgroundTrans\", isNew ? _T(\"New macro\") : _T(\"Edit macro\"))"
+  ]
+ },
+ "Profiles": {
+  "en": "Profiles",
+  "ctx": [
+   "g.AddText(\"x405 y100 w85 +0x200 h26\", _T(\"Profiles\"))",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 13
+ },
+ "Trigger key": {
+  "en": "Trigger key",
+  "ctx": [
+   "g.AddText(\"x10 y136 w136 +0x200 h26\", _T(\"Trigger key\"))"
+  ],
+  "max_chars": 21
+ },
+ "Toggle": {
+  "en": "Toggle",
+  "ctx": [
+   "g.AddText(\"x405 y136 w85 +0x200 h26\", _T(\"Toggle\"))"
+  ],
+  "max_chars": 13
+ },
+ "Only in app (exe)": {
+  "en": "Only in app (exe)",
+  "ctx": [
+   "g.AddText(\"x10 y172 w136 +0x200 h26\", _T(\"Only in app (exe)\"))"
+  ],
+  "max_chars": 21
+ },
+ "Select": {
+  "en": "Select",
+  "ctx": [
+   "bApp := AddBtn(g, \"x580 y172 w70 h26\", _T(\"Select\"), (*) => (eApp.Value := PickApp(g, eApp.Value)))",
+   "AddBtn(p, \"x205 y230 w90 h30\", _T(\"Select\"), Choose, \"btnprimary\")"
+  ],
+  "max_chars": 8
+ },
+ "Run": {
+  "en": "Run",
+  "ctx": [
+   "rl := g.AddText(\"x10 y244 w136 +0x200 h26\", _T(\"Run\"))"
+  ],
+  "max_chars": 21
+ },
+ "Once per key press": {
+  "en": "Once per key press",
+  "ctx": [
+   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]"
+  ]
+ },
+ "Repeat while key is held": {
+  "en": "Repeat while key is held",
+  "ctx": [
+   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]"
+  ]
+ },
+ "Directions (optional)": {
+  "en": "Directions (optional)",
+  "ctx": [
+   "mv.Push(g.AddText(\"x10 y292 w136 +0x200 h26\", _T(\"Directions (optional)\")))"
+  ],
+  "max_chars": 21
+ },
+ "Record": {
+  "en": "Record",
+  "ctx": [
+   "rb1 := AddBtn(g, \"x580 y292 w70 h26\", _T(\"Record\"), (*) => StartListRec(eDirs, rb1))",
+   "rb2 := AddBtn(g, \"x580 y328 w70 h26\", _T(\"Record\"), (*) => StartListRec(eActs, rb2))",
+   "Rec.btn.Text := _T(\"Record\")"
+  ],
+  "max_chars": 9
+ },
+ "Actions in order": {
+  "en": "Actions in order",
+  "ctx": [
+   "mv.Push(g.AddText(\"x10 y328 w136 +0x200 h26\", _T(\"Actions in order\")))"
+  ],
+  "max_chars": 21
+ },
+ "Delays (ms)": {
+  "en": "Delays (ms)",
+  "ctx": [
+   "mv.Push(g.AddText(\"x10 y364 w136 +0x200 h26\", _T(\"Delays (ms)\")))"
+  ],
+  "max_chars": 21
+ },
+ "dir↓ → action↓": {
+  "en": "dir↓ → action↓",
+  "ctx": [
+   "mv.Push(AddHint(g, \"x150 y394 w120 h32\", _T(\"dir↓ → action↓\")))"
+  ]
+ },
+ "action↓ → dir↑": {
+  "en": "action↓ → dir↑",
+  "ctx": [
+   "mv.Push(AddHint(g, \"x275 y394 w120 h32\", _T(\"action↓ → dir↑\")))"
+  ]
+ },
+ "dir↑ → action↑": {
+  "en": "dir↑ → action↑",
+  "ctx": [
+   "mv.Push(AddHint(g, \"x400 y394 w120 h32\", _T(\"dir↑ → action↑\")))"
+  ]
+ },
+ "between cycles": {
+  "en": "between cycles",
+  "ctx": [
+   "mv.Push(AddHint(g, \"x525 y394 w120 h32\", _T(\"between cycles\")))"
+  ]
+ },
+ "Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).": {
+  "en": "Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).",
+  "ctx": [
+   "mv.Push(AddHint(g, \"x10 y434 w640\", _T(\"Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).\")))"
+  ]
+ },
+ "One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)": {
+  "en": "One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)",
+  "ctx": [
+   "sq := [eSeq, AddHint(g, \"x10 y418 w640\", _T(\"One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)\"))]"
+  ]
+ },
+ "Runs as its own process while this macro is checked (AutoHotkey v2).": {
+  "en": "Runs as its own process while this macro is checked (AutoHotkey v2).",
+  "ctx": [
+   "sc := [eCode, AddHint(g, \"x10 y448 w640\", _T(\"Runs as its own process while this macro is checked (AutoHotkey v2).\"))]"
+  ]
+ },
+ "This macro is in several profiles ({1}).\n\nYes = apply the change to all of them\nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version": {
+  "en": "This macro is in several profiles ({1}).\n\nYes = apply the change to all of them\nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version",
+  "ctx": [
+   "r := MsgBox(_T(\"This macro is in several profiles ({1}).`n`nYes = apply the change to all of them`nNo = only in the current profile ({2}); the other profiles keep (or get) the old, unchanged version\", ProfLabel(pv[\"v\"]), CurProfil"
+  ]
+ },
+ "Paste or write a script first.": {
+  "en": "Paste or write a script first.",
+  "ctx": [
+   "MsgBox _T(\"Paste or write a script first.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Enter a trigger key.": {
+  "en": "Enter a trigger key.",
+  "ctx": [
+   "MsgBox _T(\"Enter a trigger key.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Save": {
+  "en": "Save",
+  "ctx": [
+   "AddBtn(g, \"x450 y482 w95 h34\", _T(\"Save\"), Commit, \"btnprimary\")"
+  ],
+  "max_chars": 13
+ },
+ "Cancel": {
+  "en": "Cancel",
+  "ctx": [
+   "AddBtn(g, \"x555 y482 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
+   "AddBtn(p, \"x216 y\" (y + 10) \" w90 h32\", _T(\"Cancel\"), Close)",
+   "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)"
+  ],
+  "max_chars": 13
+ },
+ "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}": {
+  "en": "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}",
+  "ctx": [
+   "MsgBox _T(\"Macro `\"{1}`\" can't be enabled (key `\"{2}`\"):`n{3}\", m[\"name\"], trig, e.Message), \"Macro Manager\", 48"
+  ]
+ },
+ "Script file for \"{1}\" is missing.": {
+  "en": "Script file for \"{1}\" is missing.",
+  "ctx": [
+   "MsgBox _T(\"Script file for `\"{1}`\" is missing.\", m[\"name\"]), \"Macro Manager\", 48"
+  ]
+ },
+ "Script macros need AutoHotkey v2 installed (not found).": {
+  "en": "Script macros need AutoHotkey v2 installed (not found).",
+  "ctx": [
+   "MsgBox _T(\"Script macros need AutoHotkey v2 installed (not found).\"), \"Macro Manager\", 48"
+  ]
+ },
+ "New version {1} available - click to update": {
+  "en": "New version {1} available - click to update",
+  "ctx": [
+   "ToolTip(UpdAvail ? _T(\"New version {1} available - click to update\", UpdInfo[\"ver\"]) : _T(\"Up to date (v{1}) - click to check again\", AppVersion))"
+  ]
+ },
+ "Up to date (v{1}) - click to check again": {
+  "en": "Up to date (v{1}) - click to check again",
+  "ctx": [
+   "ToolTip(UpdAvail ? _T(\"New version {1} available - click to update\", UpdInfo[\"ver\"]) : _T(\"Up to date (v{1}) - click to check again\", AppVersion))"
+  ]
+ },
+ "Done": {
+  "en": "Done",
+  "ctx": [
+   "btn.Text := _T(\"Done\")"
+  ]
+ },
+ "none": {
+  "en": "none",
+  "ctx": [
+   "KeyLabel(prefix, v) => prefix (v = \"\" ? _T(\"none\") : v)"
+  ]
+ },
+ "Press a key or mouse button...   (Esc = cancel, Backspace = none)": {
+  "en": "Press a key or mouse button...   (Esc = cancel, Backspace = none)",
+  "ctx": [
+   "btn.Text := allowClear ? _T(\"Press a key or mouse button...   (Esc = cancel, Backspace = none)\") : _T(\"Press a key or mouse button...   (Esc = cancel)\")"
+  ]
+ },
+ "Press a key or mouse button...   (Esc = cancel)": {
+  "en": "Press a key or mouse button...   (Esc = cancel)",
+  "ctx": [
+   "btn.Text := allowClear ? _T(\"Press a key or mouse button...   (Esc = cancel, Backspace = none)\") : _T(\"Press a key or mouse button...   (Esc = cancel)\")"
+  ]
+ },
+ "Profile: {1}": {
+  "en": "Profile: {1}",
+  "ctx": [
+   "ProfBtnText() => _T(\"Profile: {1}\", CurProfile) \"  ▾\""
+  ]
+ },
+ "{1} profiles": {
+  "en": "{1} profiles",
+  "ctx": [
+   "return StrLen(t) > 24 ? _T(\"{1} profiles\", StrSplit(v, \"|\").Length) : t"
+  ]
+ },
+ "New profile...": {
+  "en": "New profile...",
+  "ctx": [
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"  +   \" _T(\"New profile...\"), (*) => (ClosePop(), NewProfile()))"
+  ]
+ },
+ "Rename current...": {
+  "en": "Rename current...",
+  "ctx": [
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Rename current...\"), (*) => (ClosePop(), RenameProfile()))"
+  ]
+ },
+ "Delete current": {
+  "en": "Delete current",
+  "ctx": [
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Delete current\"), (*) => (ClosePop(), DeleteProfile()), \"btndanger\")"
+  ]
+ },
+ "Name of the new profile:": {
+  "en": "Name of the new profile:",
+  "ctx": [
+   "ib := InputBox(_T(\"Name of the new profile:\"), _T(\"New profile\"), \"w300 h130\")"
+  ]
+ },
+ "New profile": {
+  "en": "New profile",
+  "ctx": [
+   "ib := InputBox(_T(\"Name of the new profile:\"), _T(\"New profile\"), \"w300 h130\")"
+  ]
+ },
+ "A profile with this name already exists.": {
+  "en": "A profile with this name already exists.",
+  "ctx": [
+   "MsgBox _T(\"A profile with this name already exists.\"), \"Macro Manager\", 48",
+   "MsgBox _T(\"A profile with this name already exists.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "New name for profile \"{1}\":": {
+  "en": "New name for profile \"{1}\":",
+  "ctx": [
+   "ib := InputBox(_T(\"New name for profile `\"{1}`\":\", CurProfile), _T(\"Rename profile\"), \"w300 h130\", CurProfile)"
+  ]
+ },
+ "Rename profile": {
+  "en": "Rename profile",
+  "ctx": [
+   "ib := InputBox(_T(\"New name for profile `\"{1}`\":\", CurProfile), _T(\"Rename profile\"), \"w300 h130\", CurProfile)"
+  ]
+ },
+ "You can't delete the last profile.": {
+  "en": "You can't delete the last profile.",
+  "ctx": [
+   "MsgBox _T(\"You can't delete the last profile.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.": {
+  "en": "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.",
+  "ctx": [
+   "if (Mb(_T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), \"Macro Manager\", \"YesNo 32\") != \"Yes\")"
+  ]
+ },
+ "Profiles of this macro": {
+  "en": "Profiles of this macro",
+  "ctx": [
+   "p := Gui(\"+Owner\" owner.Hwnd \" +ToolWindow\", _T(\"Profiles of this macro\"))"
+  ]
+ },
+ "The macro is active in the selected profiles:": {
+  "en": "The macro is active in the selected profiles:",
+  "ctx": [
+   "p.AddText(\"x14 y12 w300\", _T(\"The macro is active in the selected profiles:\"))"
+  ]
+ },
+ "Select at least one profile.": {
+  "en": "Select at least one profile.",
+  "ctx": [
+   "MsgBox _T(\"Select at least one profile.\"), \"Macro Manager\", 48"
+  ]
+ },
+ "OK": {
+  "en": "OK",
+  "ctx": [
+   "AddBtn(p, \"x116 y\" (y + 10) \" w90 h32\", _T(\"OK\"), Ok, \"btnprimary\")"
+  ]
+ },
+ "Use one of the currently running applications?\n\nYes = choose from a list\nNo = browse for the .exe file": {
+  "en": "Use one of the currently running applications?\n\nYes = choose from a list\nNo = browse for the .exe file",
+  "ctx": [
+   "r := Mb(_T(\"Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file\"), _T(\"Select application\"), \"YesNoCancel Icon?\")"
+  ]
+ },
+ "Select application": {
+  "en": "Select application",
+  "ctx": [
+   "r := Mb(_T(\"Use one of the currently running applications?`n`nYes = choose from a list`nNo = browse for the .exe file\"), _T(\"Select application\"), \"YesNoCancel Icon?\")",
+   "MsgBox _T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"), 64"
+  ]
+ },
+ "No running applications found - choose the file instead.": {
+  "en": "No running applications found - choose the file instead.",
+  "ctx": [
+   "MsgBox _T(\"No running applications found - choose the file instead.\"), _T(\"Select application\"), 64"
+  ]
+ },
+ "Running applications": {
+  "en": "Running applications",
+  "ctx": [
+   "p := Gui(\"+Owner\" owner.Hwnd \" +ToolWindow\", _T(\"Running applications\"))"
+  ]
+ },
+ "Double-click an application:": {
+  "en": "Double-click an application:",
+  "ctx": [
+   "p.AddText(\"x10 y10 w380\", _T(\"Double-click an application:\"))"
+  ]
+ },
+ "Browse...": {
+  "en": "Browse...",
+  "ctx": [
+   "AddBtn(p, \"x10 y230 w95 h30\", _T(\"Browse...\"), Browse)"
+  ],
+  "max_chars": 13
+ },
+ "Select the application": {
+  "en": "Select the application",
+  "ctx": [
+   "f := FileSelect(1, , _T(\"Select the application\"), _T(\"Applications (*.exe)\"))"
+  ]
+ },
+ "Applications (*.exe)": {
+  "en": "Applications (*.exe)",
+  "ctx": [
+   "f := FileSelect(1, , _T(\"Select the application\"), _T(\"Applications (*.exe)\"))"
+  ]
+ },
+ "Could not check for updates. Check your internet connection and try again.": {
+  "en": "Could not check for updates. Check your internet connection and try again.",
+  "ctx": [
+   "Mb(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), \"Iconx\")"
+  ]
+ },
+ "Updates": {
+  "en": "Updates",
+  "ctx": [
+   "Mb(_T(\"Could not check for updates. Check your internet connection and try again.\"), _T(\"Updates\"), \"Iconx\")",
+   "Mb(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"), \"Iconi\")",
+   "Mb(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), \"Iconx\")",
+   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got",
+   "Mb(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), \"Iconx\")",
+   "Mb(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), \"Iconx\")",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ]
+ },
+ "You have the latest version (v{1}).": {
+  "en": "You have the latest version (v{1}).",
+  "ctx": [
+   "Mb(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"), \"Iconi\")"
+  ]
+ },
+ "Version {1} is available (you have v{2}).": {
+  "en": "Version {1} is available (you have v{2}).",
+  "ctx": [
+   "msg := _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion)"
+  ]
+ },
+ "\n\nUpdate now? The app restarts. Your macros, profiles and settings are not changed.": {
+  "en": "\n\nUpdate now? The app restarts. Your macros, profiles and settings are not changed.",
+  "ctx": [
+   "msg .= _T(\"`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.\")"
+  ]
+ },
+ "Macro Manager update": {
+  "en": "Macro Manager update",
+  "ctx": [
+   "if (Mb(msg, _T(\"Macro Manager update\"), \"YesNo Iconi\") = \"Yes\")"
+  ]
+ },
+ "The download failed. Try again later.": {
+  "en": "The download failed. Try again later.",
+  "ctx": [
+   "Mb(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), \"Iconx\")"
+  ]
+ },
+ "The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.\n\nExpected: {1}...\nReceived: {2}  ({3} bytes)": {
+  "en": "The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.\n\nExpected: {1}...\nReceived: {2}  ({3} bytes)",
+  "ctx": [
+   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got"
+  ]
+ },
+ "(could not compute)": {
+  "en": "(could not compute)",
+  "ctx": [
+   "Mb(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 16), (got"
+  ]
+ },
+ "The downloaded file is not a valid Macro Manager script. Nothing was changed.": {
+  "en": "The downloaded file is not a valid Macro Manager script. Nothing was changed.",
+  "ctx": [
+   "Mb(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), \"Iconx\")"
+  ]
+ },
+ "Could not replace the app file: {1}": {
+  "en": "Could not replace the app file: {1}",
+  "ctx": [
+   "Mb(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), \"Iconx\")"
+  ]
+ },
+ "Version {1}": {
+  "en": "Version {1}",
+  "ctx": [
+   "t[\"Release notes\"] := _T(\"Version {1}\", AppVersion) \"`n`n\" ReleaseNotes"
+  ]
+ },
+ "hlp_start": {
+  "en": "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.\n\n- Tick a macro in the list to turn it on, untick to turn it off.\n- The switch All macros in the banner turns every macro on or off at once.\n- Dark mode switches the look of the app.\n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.\n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.\n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.\n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.\n- The app always runs as administrator, so macros also work in games that run elevated.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_edit": {
+  "en": "Name - any text, shown in the list.\nProfiles - which profiles the macro belongs to (can be several).\nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.\nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.\nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.\nType - Move + actions, Sequence or Script (.ahk). See the next topics.\nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately).\n\nSave stores the macro, Cancel throws changes away.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_move": {
+  "en": "Made for games where you keep moving (for example A and D) and cast spells in between.\n\nDirections - the movement keys, in order, for example: a,d\nActions in order - the keys to press, one per cycle, for example: 1,2,1,F7,1,F8\n\nEvery cycle does this, with the delays you set:\n  1. direction down\n  2. (delay 1) action down\n  3. (delay 2) direction up\n  4. (delay 3) action up\n  5. (delay 4) pause, then the next direction + next action\n\nThe lists repeat from the start when they end. If Directions is empty, only the actions are pressed: hold time = delay 2, pause = delay 4.\nIf a game ignores the macro, raise the delays (20-30 ms is common).",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_seq": {
+  "en": "A free list of steps. Write one step per line:\n\n  down KEY PAUSE   - press and hold the key\n  up KEY PAUSE     - release the key\n  tap KEY PAUSE    - press and release at once\n\nPAUSE is the wait after the step in milliseconds (empty = 0).\n\nExample - quick A / D change:\n  down a 25\n  up a 5\n  down d 25\n  up d 5\n\nExample - attack and spells:\n  tap 1 600\n  tap e 100\n  tap F7 100\n\nExample - two keys together:\n  tap Shift+4 50\n\nWith Run = Repeat the lines play in a loop while the trigger key is held; with Once they play one time.\nKeys that are still held when you release the trigger are released automatically.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_script": {
+  "en": "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.\n\n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.\n- It must be AutoHotkey v2 code (v1 scripts will not work).\n- Trigger key and application filter are not used, your script does that itself.\n- Imported .ahk files that were not made by Macro Manager become Script macros.\n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_keys": {
+  "en": "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...\nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.\n\nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.\nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.\n\nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.\n\nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).\nThe same works by typing it in the fields: a,Shift+4,d",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_profiles": {
+  "en": "Profiles keep different sets of macros apart (for example one per game).\n\n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.\n- The list shows only the macros of the current profile, and only those are active.\n- In the editor, Profiles lets you choose one or more profiles for the macro. When you change a macro that belongs to several profiles, the app asks: apply the change to all of them, or only to the current profile (the other profiles keep the old version).\n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.\n- Deleting a profile moves macros that belonged only to it to the first remaining profile.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_toggle": {
+  "en": "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.\nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.\n\nClick the button, press the key. Esc cancels, Backspace removes the key.\nMacros of other profiles do not react to their toggle keys.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_order": {
+  "en": "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).\n\nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).\nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.\nExport all... writes every macro to a folder, one file each.\n\nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_updates": {
+  "en": "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.\n\nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.\n\nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.\n\nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.\n\nThe update needs internet access to github.com.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_tips": {
+  "en": "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.\n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.\n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).\n- Two macros with the same trigger key: only one of them works - use different keys or different profiles.\n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.\n- Settings and scripts live in the config folder next to the app.",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}": {
+  "en": "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}\", \"https://discord.com/users/\" DiscordId), \"Macro Manager\", 64"
+  ]
+ },
+ "Help": {
+  "en": "Help",
+  "ctx": [
+   "g := Gui(\"+Owner\" Main.Hwnd \" +ToolWindow\", _T(\"Help\"))",
+   "ttl := g.AddText(\"x100 y29 w400 BackgroundTrans\", _T(\"Help\"))"
+  ]
+ },
+ "For support click here": {
+  "en": "For support click here",
+  "ctx": [
+   "sup := g.AddText(\"x330 y36 w250 h24 Right BackgroundTrans\", _T(\"For support click here\") \" \" Chr(0x2192))"
+  ]
+ },
+ "Close": {
+  "en": "Close",
+  "ctx": [
+   "AddBtn(g, \"x560 y\" (y + 14) \" w90 h32\", _T(\"Close\"), HelpClose)"
+  ]
+ },
+ "Set a trigger key first: {1}": {
+  "en": "Set a trigger key first: {1}",
+  "ctx": [
+   "Toast(_T(\"Set a trigger key first: {1}\", m[\"name\"]))"
+  ]
+ },
+ "Dragging the macro out failed:\n{1}": {
+  "en": "Dragging the macro out failed:\n{1}",
+  "ctx": [
+   "MsgBox _T(\"Dragging the macro out failed:`n{1}\", e.Message), \"Macro Manager\", 48"
+  ]
+ },
+ "Release notes": {
+  "en": "Release notes",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Getting started": {
+  "en": "Getting started",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Add / edit a macro": {
+  "en": "Add / edit a macro",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Keys and recording": {
+  "en": "Keys and recording",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Toggle keys": {
+  "en": "Toggle keys",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Order, export, backup": {
+  "en": "Order, export, backup",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Tips and problems": {
+  "en": "Tips and problems",
+  "ctx": [
+   "Help window topic title (navigation button, ~25 characters max)"
+  ],
+  "max_chars": 24
+ },
+ "Saving the settings failed: {1}": {
+  "en": "Saving the settings failed: {1}",
+  "ctx": [
+   "Toast(_T(\"Saving the settings failed: {1}\", e.Message))"
+  ]
+ },
+ "starts other programs or commands": {
+  "en": "starts other programs or commands",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "connects to the internet or downloads files": {
+  "en": "connects to the internet or downloads files",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "deletes files or folders": {
+  "en": "deletes files or folders",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "writes, copies or moves files": {
+  "en": "writes, copies or moves files",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "changes the Windows registry": {
+  "en": "changes the Windows registry",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "calls Windows functions directly": {
+  "en": "calls Windows functions directly",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "reads what you type or the clipboard": {
+  "en": "reads what you type or the clipboard",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "closes programs or shuts the PC down": {
+  "en": "closes programs or shuts the PC down",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "loads code from other files": {
+  "en": "loads code from other files",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "calls commands by a computed name (can hide what it does)": {
+  "en": "calls commands by a computed name (can hide what it does)",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Imported script": {
+  "en": "Imported script",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Turn on \"{1}\"?": {
+  "en": "Turn on \"{1}\"?",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.": {
+  "en": "This script was imported. It runs with administrator rights, so it can do anything on this PC. Only turn it on if you trust the person it came from.",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Found in the code - the script:": {
+  "en": "Found in the code - the script:",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "No risky commands were found. This is only a quick check, not a guarantee.": {
+  "en": "No risky commands were found. This is only a quick check, not a guarantee.",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Show the code": {
+  "en": "Show the code",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Turn on": {
+  "en": "Turn on",
+  "ctx": [
+   "ConfirmScript / ScriptRisks: warning before an imported script runs for the first time"
+  ]
+ },
+ "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?": {
+  "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.\n\nTurn it on anyway?",
+  "ctx": [
+   "EnableMacro: turning on a macro whose trigger key an active macro already uses"
+  ]
+ },
+ "Same trigger key as \"{1}\" - only one of them works": {
+  "en": "Same trigger key as \"{1}\" - only one of them works",
+  "ctx": [
+   "EnableMacro: turning on a macro whose trigger key an active macro already uses"
+  ]
+ }
+}
