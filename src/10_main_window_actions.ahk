@@ -5,6 +5,7 @@ OnMainClose(*) {
 }
 
 ExitHandler(*) {
+    ReleaseHeld()                                  ; keys a macro was holding when the app was closed
     for m, pid in Procs
         try ProcessClose(pid)
     try DirDelete(A_Temp "\MacroManager-drag", 1)

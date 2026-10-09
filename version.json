@@ -1,6 +1,6 @@
 {
-  "version": "1.15",
+  "version": "1.16",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/main/Macro%20Manager.ahk",
-  "sha256": "4a88db9a291bf43030765cf57f625716b4d940a220b237cfe0e9f305df1ffad5",
-  "notes": "- New: Backup... (next to Uninstall) saves all macros, profiles, settings and script files into one file and restores them - for a new PC or a reinstall.\n- New: a search box above the list shows only the macros whose name, key or application contains the text.\n- New: messages and questions have the look of the app (light / dark mode) and buttons that say what they do, instead of the grey Windows Yes / No boxes.\n- New: an imported script (an .ahk file not made by Macro Manager) asks before it runs for the first time. Scripts run with administrator rights, so the window explains the risk, lists what the script does (for example starts programs or deletes files) and can show you the code. Scripts you already use are not affected.\n- New: when you turn on a macro whose trigger key another active macro already uses (in the same profile and application), the app tells you - only one of them would work.\n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.\n- Checking for updates no longer pauses a macro that is running.\n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\\macros.ini.bak).\n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates.\n- Small fixes: switching dark mode no longer leaks memory, and dragging out two macros with the same name no longer overwrites one of the files."
+  "sha256": "95df50f369c94bab3b92bb6671d2524fbf53bf0dec4f4c88802791ff2a27e26c",
+  "notes": "- Minor performance fixes"
 }

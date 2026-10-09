@@ -3,7 +3,7 @@ Apply() {
     global Registered, TogReg
     for r in Registered {
         try {
-            HotIf(r[2])
+            SetCrit(r[2])
             Hotkey(r[1], "Off")
         }
     }
@@ -29,11 +29,10 @@ Apply() {
         trig := Trim(m["hotkey"])
         if (trig = "" || trig = "undefined")
             continue
-        cond := MakeCond(m)
         try {
-            HotIf(cond)
+            SetCrit(m["app"])
             Hotkey(TrigHot(trig), MakeRun(m, trig), "On")
-            Registered.Push([TrigHot(trig), cond])
+            Registered.Push([TrigHot(trig), m["app"]])
         } catch as e {
             HotIf()
             ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
@@ -224,7 +223,15 @@ StopScript(m) {
     }
 }
 
-MakeCond(m) => (*) => (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+; "only in app": a plain window criterion that the keyboard hook checks by itself. A script function as the
+; criterion would make the hook wait for the app on every press (and every auto-repeat) of a trigger key - when
+; the app is busy that stalls the whole keyboard, and Windows may drop the hook so a held macro never stops.
+SetCrit(app) {
+    if (app = "")
+        HotIf()
+    else
+        HotIfWinActive("ahk_exe " app)
+}
 MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
 
 Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))

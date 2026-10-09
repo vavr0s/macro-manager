@@ -43,7 +43,9 @@ ExportCode(m) {
     code := StrReplace(code, "@DATA@", data)
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
-    code := StrReplace(code, "@APP@", StrReplace(m["app"], '"', ""))
+    app := StrReplace(m["app"], '"', "")
+    code := StrReplace(code, "@APP@", app)
+    code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
     code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
     for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey"]
@@ -87,7 +89,7 @@ Up(t) {
 
 Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
 
-#HotIf app = "" || WinActive("ahk_exe " app)
+@HOTIF@
 )"
 }
 
@@ -98,25 +100,28 @@ TplMove() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
+        t0 := A_TickCount
         n++
         key := acts[ai]
         if dirs.Length {
             dir := dirs[di]
             Send Down(dir)
-            Sleep g1
+            Sleep g1 > 0 ? g1 : -1
             Send Down(key)
-            Sleep g2
+            Sleep g2 > 0 ? g2 : -1
             Send Up(dir)
-            Sleep g3
+            Sleep g3 > 0 ? g3 : -1
             Send Up(key)
             di := di >= dirs.Length ? 1 : di + 1
         } else {
             Send Down(key)
-            Sleep g2
+            Sleep g2 > 0 ? g2 : -1
             Send Up(key)
         }
-        Sleep ge
+        Sleep ge > 0 ? ge : -1
         ai := ai >= acts.Length ? 1 : ai + 1
+        if (rep && A_TickCount - t0 < 10)
+            Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
     }
     for k in dirs
         Send Up(k)
@@ -137,6 +142,7 @@ TplSeq() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
+        t0 := A_TickCount
         for s in steps {
             if (rep && !Active()) {
                 stop := true
@@ -148,10 +154,12 @@ TplSeq() {
                 Send Up(s[2])
             else
                 Send Down(s[2]) Up(s[2])
-            Sleep s[3]
+            Sleep s[3] > 0 ? s[3] : -1
         }
         if (!rep)
             stop := true
+        else if (!stop && A_TickCount - t0 < 10)
+            Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
     }
     for s in steps
         Send Up(s[2])
