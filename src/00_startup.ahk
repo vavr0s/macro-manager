@@ -249,7 +249,7 @@ Refresh()
 Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
-SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt that Windows still thinks are held (AltGr + LCtrl macros)
+SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)

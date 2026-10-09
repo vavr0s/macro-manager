@@ -74,14 +74,14 @@ if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
 
 Down(t) {
-    s := ""
+    s := "{Blind}"            ; held Shift / Ctrl / Alt are left alone (no stuck modifier keys)
     for k in StrSplit(t, "+")
         s .= "{" k " down}"
     return s
 }
 
 Up(t) {
-    s := ""
+    s := "{Blind}"
     for k in StrSplit(t, "+")
         s .= "{" k " up}"
     return s
