@@ -83,7 +83,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.14.3"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.15.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -92,7 +92,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Fix: a macro on Left Ctrl no longer fires (or repeats) when you press AltGr on keyboards that have it (Czech, Polish, German, ...).`n- New: multilingual app. English (default), Čeština, Polski and Deutsch. Pick the language with the flag button next to the profile button in the banner; the app restarts to apply it. Everything is translated, including the Help window. The choice is saved with your settings.`n- The editor labels got a little more room for longer translations."
+ReleaseNotes := "BETA build - for testing.`n- Fix: after you set a key or used Record, the update arrow and Check for updates... did nothing until the app was restarted.`n- Checking for updates no longer pauses a macro that is running.`n- Saving is faster and safe: a crash or power cut while saving can no longer lose your macros (the previous settings are kept as config\macros.ini.bak).`n- Fix: installs where the app had been compiled into Macro Manager.exe (only when AutoHotkey with its compiler was installed on the PC) can now take updates."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -107,6 +107,7 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
 Profiles := ["Default"]
 CurProfile := "Default"
@@ -123,6 +124,8 @@ Procs := Map()          ; macro -> PID of running imported script
 EnsureAssets()          ; logo + icon are embedded in this file
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
+if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
+    try FileCopy(IniFile ".bak", IniFile)           ; saving was interrupted: take the last good copy
 InitLang(IniFile)
 for a in A_Args {
     if (a = "/uninstall") {
@@ -241,7 +244,7 @@ ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 Main.Show()
 SetTimer(() => AutoCheck(), -4000)
-SetTimer(AutoCheck, 60000)         ; background check (every 2 minutes)
+SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
 
 ; ============ window handlers ============
@@ -686,8 +689,8 @@ NewScriptFile() {
 ScriptPath(m) => ScriptsDir "\" m["file"]
 
 ; ============ installer ============
-; Installs "Macro Manager.ahk" and - when Ahk2Exe is available - compiles it to "Macro Manager.exe"
-; (own icon + name in Explorer, taskbar and Task Manager instead of AutoHotkey's).
+; Installs "Macro Manager.ahk" + "Macro Manager.exe" (a copy of the AutoHotkey interpreter with our icon and name,
+; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey).
 Bootstrap() {
     reg := "HKCU\Software\MacroManagerBeta"
     prev := RegRead(reg, "InstallDir", "")
@@ -734,10 +737,10 @@ Bootstrap() {
     LaunchInstalled(target)
 }
 
-; copies this script into `target` and brands the program:
-;  1) Ahk2Exe available -> compiled "Macro Manager.exe" (the script is inside it)
-;  2) otherwise -> "Macro Manager.exe" = branded copy of the AutoHotkey interpreter that runs "Macro Manager.ahk"
-; returns true when a branded .exe exists
+; copies this script into `target` as "Macro Manager.ahk" next to "Macro Manager.exe" = branded copy of the
+; AutoHotkey interpreter that runs it.  (Older versions could compile the app into the .exe with Ahk2Exe;
+; such an install can't take updates, so it is turned into this layout here and in InstallUpdate.)
+; returns true when the branded .exe exists
 InstallProgram(target) {
     old := FindInstalled(target)
     src := target "\Macro Manager.ahk"
@@ -746,42 +749,18 @@ InstallProgram(target) {
     if (old != "" && old != src && !InStr(old, ".exe") && FileExist(old))
         try FileDelete(old)                         ; script from an older install under another name
     hadCompiled := FileExist(exe) && !FileExist(src)
-    ahk2exe := FindAhk2Exe()
-    if (ahk2exe != "" && FileExist(exe))
-        FileDelete(exe)                             ; errors when the old copy is still running
     FileCopy(A_ScriptFullPath, src, 1)
-    if (ahk2exe != "") {
-        cmd := '"' ahk2exe '" /in "' src '" /out "' exe '" /icon "' ico '" /base "' A_AhkPath '" /silent'
-        try RunWait(cmd, target, "Hide")
-        if FileExist(exe) {
-            try FileDelete(src)                     ; the exe contains the script
-            ; script macros still need an interpreter: keep a private copy next to the app
-            try {
-                DirCreate(target "\runtime")
-                FileCopy(A_AhkPath, target "\runtime\AutoHotkey.exe", 1)
-                RegWrite(target "\runtime\AutoHotkey.exe", "REG_SZ", "HKCU\Software\MacroManagerBeta", "AhkPath")
-            }
-            return true
-        }
+    if (hadCompiled && FileExist(exe)) {            ; a compiled exe can't run the new .ahk
+        try FileDelete(exe)
+        catch
+            FileMove(exe, exe ".bak", 1)            ; still running: a running .exe can be renamed, not deleted
     }
-    if (hadCompiled && FileExist(exe))
-        FileDelete(exe)                             ; a compiled exe can't run the new .ahk
     if !FileExist(exe) {
         FileCopy(A_AhkPath, exe, 1)
         if !PatchExe(exe, ico)
             try FileDelete(exe)
     }
     return FileExist(exe) ? true : false
-}
-
-FindAhk2Exe() {
-    SplitPath(A_AhkPath, , &d)
-    cand := [d "\..\Compiler\Ahk2Exe.exe", d "\Compiler\Ahk2Exe.exe", A_ProgramFiles "\AutoHotkey\Compiler\Ahk2Exe.exe"]
-    try cand.Push(RegRead("HKLM\SOFTWARE\AutoHotkey", "InstallDir") "\Compiler\Ahk2Exe.exe")
-    for c in cand
-        if FileExist(c)
-            return c
-    return ""
 }
 
 ; path of the installed program inside `dir` (exe preferred), or ""
@@ -826,7 +805,7 @@ LaunchInstalled(dir) {
         Run('"' lp[1] '" ' lp[2], dir)
 }
 
-; ============ branded interpreter copy (used when Ahk2Exe is not available) ============
+; ============ branded interpreter copy ============
 ; "Macro Manager.exe" = copy of AutoHotkey64.exe with our icon + version info (name, company),
 ; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey.
 PatchExe(exe, ico) {
@@ -1405,6 +1384,8 @@ Defaults() {
 
 Load() {
     global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer
+    if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
+        try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
         SeenVer := AppVersion      ; fresh install: nothing new to point out
         Save()      ; fresh install: empty macro list, the user imports their own
@@ -1440,22 +1421,40 @@ Load() {
     }
 }
 
+; the whole file is built in memory and written in one go: first to macros.ini.tmp, then swapped in.
+; the previous version is kept as macros.ini.bak - a crash or power cut while saving can't lose the macros
 Save() {
-    try FileDelete IniFile
-    FileAppend "", IniFile, "UTF-16"
-    IniWrite MasterOn ? 1 : 0, IniFile, "main", "master"
-    IniWrite DarkOn ? 1 : 0, IniFile, "main", "dark"
-    IniWrite AutoUpd ? 1 : 0, IniFile, "main", "autoupdate"
-    IniWrite SeenVer, IniFile, "main", "seenver"
-    IniWrite MasterKey, IniFile, "main", "masterkey"
-    IniWrite Lang, IniFile, "main", "language"
-    IniWrite JoinProfs(Profiles), IniFile, "main", "proflist"
-    IniWrite CurProfile, IniFile, "main", "profile"
-    IniWrite Macros.Length, IniFile, "main", "count"
-    for i, m in Macros
+    t := "[main]`r`n"
+    t .= "master=" (MasterOn ? 1 : 0) "`r`n"
+    t .= "dark=" (DarkOn ? 1 : 0) "`r`n"
+    t .= "autoupdate=" (AutoUpd ? 1 : 0) "`r`n"
+    t .= "seenver=" SeenVer "`r`n"
+    t .= "masterkey=" MasterKey "`r`n"
+    t .= "language=" Lang "`r`n"
+    t .= "proflist=" JoinProfs(Profiles) "`r`n"
+    t .= "profile=" CurProfile "`r`n"
+    t .= "count=" Macros.Length "`r`n"
+    for i, m in Macros {
+        t .= "[m" i "]`r`n"
         for k, v in m
-            IniWrite v, IniFile, "m" i, k
+            t .= k "=" IniVal(v) "`r`n"
+    }
+    tmp := IniFile ".tmp"
+    try {
+        f := FileOpen(tmp, "w", "UTF-16")
+        f.Write(t)
+        f.Close()
+        if FileExist(IniFile)
+            FileCopy(IniFile, IniFile ".bak", 1)
+        FileMove(tmp, IniFile, 1)
+    } catch as e {
+        try FileDelete(tmp)
+        Toast(_T("Saving the settings failed: {1}", e.Message))
+    }
 }
+
+; a value as one ini line (no line breaks)
+IniVal(v) => StrReplace(StrReplace(v, "`r", ""), "`n", " ")
 
 ; ============ hotkey registration / script processes ============
 Apply() {
@@ -1681,6 +1680,13 @@ ReleaseAll(arr) {
 
 ; ============ type: move + actions ============
 RunMove(m, trig) {
+    global MacroBusy
+    MacroBusy++
+    try RunMove2(m, trig)
+    finally MacroBusy--
+}
+
+RunMove2(m, trig) {
     dirs := SplitKeys(m["dirs"])
     acts := SplitKeys(m["actions"])
     if !acts.Length
@@ -1719,6 +1725,13 @@ RunMove(m, trig) {
 
 ; ============ type: custom sequence ============
 RunSeq(m, trig) {
+    global MacroBusy
+    MacroBusy++
+    try RunSeq2(m, trig)
+    finally MacroBusy--
+}
+
+RunSeq2(m, trig) {
     steps := []
     used := []
     for line in StrSplit(m["seq"], "|") {
@@ -3288,6 +3301,7 @@ RecStop() {
         return
     try Rec.ih.Stop()
     Rec.ih := 0
+    Rec.mode := ""                   ; not recording any more (update checks wait while this is set)
     for b in MouseToks
         try Hotkey("*" b, "Off")
     Recording := false
@@ -3778,52 +3792,86 @@ ToggleAutoUpd(*) {
     Save()
 }
 
-HttpGet(url) {
+; HTTP GET that waits with Sleep instead of blocking: hotkeys and running macros keep working meanwhile.
+; returns Map(status, text, etag[, body]) or 0 (error / timeout)
+HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false) {
+    r := 0
     try {
-        r := ComObject("WinHttp.WinHttpRequest.5.1")
-        r.SetTimeouts(2000, 2000, 3000, 3000)
-        r.Open("GET", url, false)
-        r.SetRequestHeader("Cache-Control", "no-cache")
-        r.SetRequestHeader("User-Agent", "MacroManager")
-        r.Send()
-        if (r.Status = 200)
-            return r.ResponseText
+        r := ComObject("Msxml2.ServerXMLHTTP.6.0")          ; WinHTTP based, asynchronous, no browser cache
+        r.setTimeouts(3000, 3000, 8000, 15000)
+        r.open("GET", url, true)
+    } catch {
+        r := 0
     }
-    return ""
+    if !r
+        return HttpSendSync(url, hdrs, wantBody)
+    try {
+        r.setRequestHeader("User-Agent", "MacroManager")
+        for k, v in hdrs
+            r.setRequestHeader(k, v)
+        r.send()
+        t0 := A_TickCount
+        while (r.readyState != 4) {
+            if (A_TickCount - t0 > timeoutMs) {
+                try r.abort()
+                return 0
+            }
+            Sleep 20
+        }
+        res := Map("status", r.status, "text", "", "etag", "")
+        try res["etag"] := r.getResponseHeader("ETag")
+        if wantBody
+            res["body"] := r.responseBody
+        else
+            try res["text"] := r.responseText
+        return res
+    }
+    return 0
 }
 
-; GET with extra headers; returns the text (200) or "" ; status / ETag are returned through the by-ref parameters
-HttpReq(url, hdrs, &status, &etag) {
-    status := 0, etag := ""
+; fallback when MSXML is missing: the old blocking WinHttp request
+HttpSendSync(url, hdrs, wantBody) {
     try {
         r := ComObject("WinHttp.WinHttpRequest.5.1")
-        r.SetTimeouts(2000, 2000, 3000, 3000)
+        r.SetTimeouts(3000, 3000, 8000, 15000)
         r.Open("GET", url, false)
         r.SetRequestHeader("User-Agent", "MacroManager")
         for k, v in hdrs
             r.SetRequestHeader(k, v)
         r.Send()
-        status := r.Status
-        try etag := r.GetResponseHeader("ETag")
-        if (status = 200)
-            return r.ResponseText
+        res := Map("status", r.Status, "text", "", "etag", "")
+        try res["etag"] := r.GetResponseHeader("ETag")
+        if wantBody
+            res["body"] := r.ResponseBody
+        else
+            try res["text"] := r.ResponseText
+        return res
     }
-    return ""
+    return 0
+}
+
+HttpGet(url) {
+    r := HttpSend(url, Map("Cache-Control", "no-cache"))
+    return (r && r["status"] = 200) ? r["text"] : ""
+}
+
+; GET with extra headers; returns the text (200) or "" ; status / ETag are returned through the by-ref parameters
+HttpReq(url, hdrs, &status, &etag) {
+    status := 0, etag := ""
+    r := HttpSend(url, hdrs)
+    if !r
+        return ""
+    status := r["status"], etag := r["etag"]
+    return status = 200 ? r["text"] : ""
 }
 
 ; download a repository file through the GitHub API (always fresh, not cached like raw.githubusercontent.com)
 GhDownload(file, dest) {
     try {
-        r := ComObject("WinHttp.WinHttpRequest.5.1")
-        r.SetTimeouts(3000, 3000, 8000, 15000)
-        r.Open("GET", "https://api.github.com/repos/" UpdRepo "/contents/" file "?ref=" UpdBranch, false)
-        r.SetRequestHeader("User-Agent", "MacroManager")
-        r.SetRequestHeader("Accept", "application/vnd.github.raw+json")
-        r.Send()
-        if (r.Status != 200)
+        r := HttpSend("https://api.github.com/repos/" UpdRepo "/contents/" file "?ref=" UpdBranch, Map("Accept", "application/vnd.github.raw+json"), 30000, true)
+        if (!r || r["status"] != 200)
             return false
-        body := r.ResponseBody
-        sa := ComObjValue(body)
+        sa := ComObjValue(r["body"])
         pData := NumGet(sa, 8 + A_PtrSize, "Ptr")
         size := NumGet(sa, 8 + 2 * A_PtrSize, "UInt")
         f := FileOpen(dest, "w")
@@ -3869,8 +3917,8 @@ Sha256(f) {
 ; silent background check: keeps the banner arrow up to date while the app keeps running
 AutoCheck(minAge := 120000) {
     static last := -10000000
-    if (!AutoUpd || Rec.mode != "" || A_TickCount - last < minAge)
-        return
+    if (!AutoUpd || Rec.ih || MacroBusy > 0 || A_TickCount - last < minAge)
+        return                       ; recording, or a macro is playing: try again at the next tick
     last := A_TickCount
     QueryUpdate()
 }
@@ -3910,7 +3958,7 @@ SetUpdIcon() {
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it
 OnUpdIcon(*) {
     static busy := false
-    if (busy || Rec.mode != "")
+    if (busy || Rec.ih)
         return
     busy := true
     try {
@@ -3961,6 +4009,10 @@ InstallUpdate() {
         Mb(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), "Iconx")
         return
     }
+    if A_IsCompiled {
+        UpdateCompiled(tmp)
+        return
+    }
     try {
         FileCopy(A_ScriptFullPath, A_ScriptFullPath ".bak", 1)     ; macros live in the config folder and are not touched
         FileCopy(tmp, A_ScriptFullPath, 1)
@@ -3970,6 +4022,39 @@ InstallUpdate() {
         return
     }
     Reload()
+}
+
+; an install made by an older version where the app was compiled into "Macro Manager.exe":
+; the new version goes to "Macro Manager.ahk" and the .exe becomes the branded AutoHotkey interpreter that runs it
+; (Windows lets a running .exe be renamed, so the old one is moved aside to "Macro Manager.exe.bak")
+UpdateCompiled(tmp) {
+    dir := A_ScriptDir
+    exe := A_ScriptFullPath
+    src := dir "\Macro Manager.ahk"
+    ahk := AhkExe()
+    if (ahk = "" || ahk = exe) {
+        try FileDelete tmp
+        Mb(_T("Could not replace the app file: {1}", "AutoHotkey v2 not found"), _T("Updates"), "Iconx")
+        return
+    }
+    try {
+        FileCopy(tmp, src, 1)
+        FileMove(exe, exe ".bak", 1)
+        try {
+            FileCopy(ahk, exe, 1)
+        } catch as e {
+            FileMove(exe ".bak", exe, 1)            ; put the old program back
+            throw e
+        }
+        PatchExe(exe, IconFile)                     ; icon + name (if it fails the copy still works, just looks like AutoHotkey)
+        FileDelete tmp
+    } catch as e {
+        try FileDelete(src)
+        Mb(_T("Could not replace the app file: {1}", e.Message), _T("Updates"), "Iconx")
+        return
+    }
+    Run('"' exe '" "' src '"', dir)
+    ExitApp
 }
 
 ; ============ help window ============
@@ -4908,6 +4993,7 @@ TrCs() {
     m["Toggle keys"] := "Přepínací klávesy"
     m["Order, export, backup"] := "Pořadí, export, záloha"
     m["Tips and problems"] := "Tipy a problémy"
+    m["Saving the settings failed: {1}"] := "Uložení nastavení se nezdařilo: {1}"
     return m
 }
 TrPl() {
@@ -5067,6 +5153,7 @@ TrPl() {
     m["Toggle keys"] := "Klawisze przełączające"
     m["Order, export, backup"] := "Kolejność i eksport"
     m["Tips and problems"] := "Wskazówki i problemy"
+    m["Saving the settings failed: {1}"] := "Nie udało się zapisać ustawień: {1}"
     return m
 }
 TrDe() {
@@ -5226,6 +5313,7 @@ TrDe() {
     m["Toggle keys"] := "Ein/Aus-Tasten"
     m["Order, export, backup"] := "Ordnung, Export, Backup"
     m["Tips and problems"] := "Tipps und Probleme"
+    m["Saving the settings failed: {1}"] := "Speichern der Einstellungen fehlgeschlagen: {1}"
     return m
 }
 ; ===== END TRANSLATIONS =====
