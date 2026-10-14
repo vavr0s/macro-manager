@@ -97,11 +97,11 @@ CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
 DiscordFile := AssetsDir "\discord.png"
 DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
-DiscordId := "271697935627059202"
+DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: support)
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.19"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.1"   ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,7 +110,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes."
+ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes.`n- The support link in Help now opens the new Macro Manager Discord server."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -3866,15 +3866,15 @@ OpenDiscord(*) {
         return
     last := A_TickCount
     try {
-        Run("discord://-/users/" DiscordId)
+        Run("discord://-/invite/" DiscordInvite)                ; the Discord app opens the invite to the server
         return
     }
     try {
-        Run("https://discord.com/users/" DiscordId)
+        Run("https://discord.gg/" DiscordInvite)
         return
     }
-    A_Clipboard := "https://discord.com/users/" DiscordId
-    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId))
+    A_Clipboard := "https://discord.gg/" DiscordInvite
+    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.gg/" DiscordInvite))
 }
 
 OpenHelp(*) {

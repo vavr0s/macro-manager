@@ -35,15 +35,15 @@ OpenDiscord(*) {
         return
     last := A_TickCount
     try {
-        Run("discord://-/users/" DiscordId)
+        Run("discord://-/invite/" DiscordInvite)                ; the Discord app opens the invite to the server
         return
     }
     try {
-        Run("https://discord.com/users/" DiscordId)
+        Run("https://discord.gg/" DiscordInvite)
         return
     }
-    A_Clipboard := "https://discord.com/users/" DiscordId
-    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.com/users/" DiscordId))
+    A_Clipboard := "https://discord.gg/" DiscordInvite
+    ThemedNote(_T("Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}", "https://discord.gg/" DiscordInvite))
 }
 
 OpenHelp(*) {
