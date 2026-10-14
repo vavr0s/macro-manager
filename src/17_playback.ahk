@@ -125,8 +125,12 @@ CycleFloor(t0) {
 RunMove(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)       ; 1 ms timer while playing (exact delays)
     try RunMove2(m, trig, once)
-    finally MacroBusy--
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)     ; also when the macro stops with an error
+        MacroBusy--
+    }
 }
 
 RunMove2(m, trig, once) {
@@ -136,7 +140,6 @@ RunMove2(m, trig, once) {
     if !acts.Length
         return
     g1 := m["g1"], g2 := m["g2"], g3 := m["g3"], ge := m["ge"]
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     rep := !once && m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
@@ -165,7 +168,6 @@ RunMove2(m, trig, once) {
     }
     ReleaseAll(dirs)
     ReleaseAll(acts)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))          ; "once": don't restart until the key is released
 }
@@ -174,8 +176,12 @@ RunMove2(m, trig, once) {
 RunSeq(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)
     try RunSeq2(m, trig, once)
-    finally MacroBusy--
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)
+        MacroBusy--
+    }
 }
 
 RunSeq2(m, trig, once) {
@@ -192,7 +198,6 @@ RunSeq2(m, trig, once) {
     if !steps.Length
         return
     rep := !once && m["repeat"] && !IsWheel(trig)
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
         t0 := A_TickCount
@@ -217,7 +222,6 @@ RunSeq2(m, trig, once) {
             CycleFloor(t0)
     }
     ReleaseAll(used)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))
 }

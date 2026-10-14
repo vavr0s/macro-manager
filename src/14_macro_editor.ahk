@@ -1,12 +1,20 @@
 ; ============ macro editor ============
 EditMacro(idx) {
+    static open := 0                                  ; one editor at a time (two editors of one macro would overwrite each other)
+    if (open && WinExist("ahk_id " open)) {
+        WinActivate("ahk_id " open)
+        return
+    }
     isNew := !idx
+    if (!isNew && idx > View.Length)
+        return                                        ; the list changed in the meantime
     m := isNew ? Defaults() : View[idx]
     if isNew
         m["profiles"] := CurProfile
     pv := Map("v", m["profiles"])
     origProfs := m["profiles"]
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", isNew ? _T("New macro") : _T("Edit macro"))
+    open := g.Hwnd
     g.SetFont("s9", "Segoe UI")
     try {
         g.AddPicture("x10 y8 w640 h72", LogoFile)             ; same banner as the main window
@@ -176,6 +184,10 @@ EditMacro(idx) {
                 ThemedNote(_T("Enter a trigger key."), , true)
                 return
             }
+            if (st["tkey"] != "" && StrLower(TrigHot(st["tkey"])) = StrLower(TrigHot(key))) {
+                ThemedNote(_T("The toggle key can't be the same as the trigger key."), , true)
+                return
+            }
             if !Detach()
                 return
             StopScript(m)
@@ -205,10 +217,14 @@ EditMacro(idx) {
             if (eSearch.Value != "")
                 eSearch.Value := ""               ; the new macro must be visible
         }
+        if (!isNew && !IndexOf(m))
+            Macros.Push(m)                          ; deleted from the list while the editor was open: keep the edit
         g.Destroy()
         Save()
         Apply()
         Refresh()
+        if (m["enabled"] && (other := KeyClash(m)))
+            Toast(_T("Same trigger key as `"{1}`" - only one of them works", other["name"]))
     }
 
     ; exact delays: on for new macros; older macros keep their timing until this is switched on
@@ -224,6 +240,7 @@ EditMacro(idx) {
     AddBtn(g, "x450 y518 w95 h34", _T("Save"), Commit, "btnprimary")
     AddBtn(g, "x555 y518 w95 h34", _T("Cancel"), (*) => (FinishRec(), g.Destroy()))
     g.OnEvent("Close", (*) => (FinishRec(), g.Destroy()))
+    g.OnEvent("Escape", (*) => (Rec.ih ? 0 : (FinishRec(), g.Destroy())))     ; Esc while recording belongs to the recorder
     Toggle()
     ApplyTheme(g)
     ShowOver(g, "w660 h568", Main)

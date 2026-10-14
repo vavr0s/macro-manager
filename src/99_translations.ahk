@@ -218,6 +218,7 @@ TrCs() {
     m["tap"] := "krátce"
     m["hold"] := "držet"
     m["Exact delays"] := "Přesné prodlevy"
+    m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
     return m
 }
 TrPl() {
@@ -439,6 +440,7 @@ TrPl() {
     m["tap"] := "krótko"
     m["hold"] := "przytrzym."
     m["Exact delays"] := "Dokładne opóźnienia"
+    m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
     return m
 }
 TrDe() {
@@ -660,6 +662,7 @@ TrDe() {
     m["tap"] := "kurz"
     m["hold"] := "halten"
     m["Exact delays"] := "Genaue Verzögerungen"
+    m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
     return m
 }
 ; ===== END TRANSLATIONS =====

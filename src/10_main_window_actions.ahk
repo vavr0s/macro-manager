@@ -141,6 +141,14 @@ OnMasterKey() {
     MasterKey := MKst["key"]
     Save()
     Apply()
+    if (MasterKey != "") {                          ; the same key as a macro: only one of them reacts
+        id := StrLower(TrigHot(MasterKey))
+        for m in Macros
+            if (m["type"] != "script" && (TrigId(m) = id || (m["tkey"] != "" && StrLower(TrigHot(m["tkey"])) = id))) {
+                Toast(_T("Same trigger key as `"{1}`" - only one of them works", m["name"]))
+                break
+            }
+    }
 }
 
 ToggleMaster(*) {

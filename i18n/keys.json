@@ -1419,5 +1419,12 @@
    "Editor toggle button: delays kept exact to ~1 ms (shown as \"✓  Exact delays\" or \"Exact delays: OFF\")"
   ],
   "max_chars": 22
+ },
+ "The toggle key can't be the same as the trigger key.": {
+  "en": "The toggle key can't be the same as the trigger key.",
+  "ctx": [
+   "Error dialog in the macro editor when the Toggle key equals the Trigger key"
+  ],
+  "max_chars": 120
  }
 }

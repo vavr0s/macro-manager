@@ -260,8 +260,11 @@ OnUpdIcon(*) {
         return
     busy := true
     try {
-        if !UpdAvail {
-            r := QueryUpdate()
+        had := UpdAvail
+        r := QueryUpdate()                            ; always fresh: a newer build may have been published since the last check
+        if (r = "error" && had)
+            r := "new"                                ; offline right now: offer what was found before (checksum still verified)
+        if (r != "new") {
             if (r = "error") {
                 ThemedNote(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), true)
                 return

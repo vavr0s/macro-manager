@@ -215,5 +215,6 @@
  "Long press": "Dlouhý stisk",
  "tap": "krátce",
  "hold": "držet",
- "Exact delays": "Přesné prodlevy"
+ "Exact delays": "Přesné prodlevy",
+ "The toggle key can't be the same as the trigger key.": "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
 }

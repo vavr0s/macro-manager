@@ -89,7 +89,7 @@ DragTick() {
         code := ExportCode(m)
         if (code = "")
             continue
-        base := RegExReplace(m["name"], '[\\/:*?"<>|]', "_"), nm := base, k := 1
+        base := SafeFileName(m["name"]), nm := base, k := 1
         while used.Has(StrLower(nm))                    ; two macros with the same name: "name (1).ahk"
             nm := base " (" k++ ")"
         used[StrLower(nm)] := true

@@ -215,5 +215,6 @@
  "Long press": "Lang drücken",
  "tap": "kurz",
  "hold": "halten",
- "Exact delays": "Genaue Verzögerungen"
+ "Exact delays": "Genaue Verzögerungen",
+ "The toggle key can't be the same as the trigger key.": "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
 }

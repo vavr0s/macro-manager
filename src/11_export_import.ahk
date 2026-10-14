@@ -25,8 +25,7 @@ OnExportBtn(*) {
         ThemedNote(_T("Nothing to export (script file is missing)."), , true)
         return
     }
-    safe := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
-    path := FileSelect("S16", A_Desktop "\" safe ".ahk", _T("Export macro"), _T("AutoHotkey scripts (*.ahk)"))
+    path := FileSelect("S16", A_Desktop "\" SafeFileName(m["name"]) ".ahk", _T("Export macro"), _T("AutoHotkey scripts (*.ahk)"))
     if (path = "")
         return
     if !RegExMatch(path, "i)\.ahk$")
@@ -52,11 +51,13 @@ ExportAllTo(dir, list := 0) {
     n := 0
     used := Map()
     for m in (list ? list : Macros) {
+        if (m["type"] != "script" && (Trim(m["hotkey"]) = "" || Trim(m["hotkey"]) = "undefined"))
+            continue                                  ; no trigger key: the file would not run
         code := ""
         try code := ExportCode(m)
         if (code = "")
             continue
-        base := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
+        base := SafeFileName(m["name"])
         nm := base
         k := 1
         while used.Has(StrLower(nm))
@@ -68,6 +69,16 @@ ExportAllTo(dir, list := 0) {
         }
     }
     return n
+}
+
+; a macro name as a file name Windows accepts (no \ / : * ? " < > |, no trailing dot / space, no CON, NUL, COM1 ...)
+SafeFileName(name) {
+    s := RTrim(RegExReplace(name, '[\\/:*?"<>|\x00-\x1F]', "_"), ". ")
+    if (s = "")
+        s := "macro"
+    if RegExMatch(s, "i)^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$")
+        s := "_" s
+    return s
 }
 
 OnImportBtn(*) {

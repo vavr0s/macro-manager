@@ -215,5 +215,6 @@
  "Long press": "Przytrzymanie",
  "tap": "krótko",
  "hold": "przytrzym.",
- "Exact delays": "Dokładne opóźnienia"
+ "Exact delays": "Dokładne opóźnienia",
+ "The toggle key can't be the same as the trigger key.": "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
 }

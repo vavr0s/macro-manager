@@ -94,15 +94,12 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-BadgeMainFile := AssetsDir "\badge_main.png"     ; yellow ! with glow (banner / dark window / light window)
-BadgeDkFile := AssetsDir "\badge_dk.png"
-BadgeLtFile := AssetsDir "\badge_lt.png"
 DiscordFile := AssetsDir "\discord.png"
 DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
 DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "10"    ; bump when the embedded logo/icon change
+AssetVersion := "11"    ; bump when the embedded logo/icon change
 AppVersion := "1.18"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
@@ -192,7 +189,6 @@ try {
     HelpBadgeOn := (SeenVer != AppVersion)
     Main.SetFont("s12 norm", "Segoe MDL2 Assets")
     bUpd := AddBtn(Main, "x782 y46 w28 h28", Chr(0xE896), OnUpdIcon, "btnupd0")      ; download arrow: grey = up to date, green = new version
-    Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     Main.SetFont("s9 norm c000000", "Segoe UI")
 }
 try {
@@ -219,7 +215,7 @@ for i, nm in hdrNames {
 }
 LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
 LV.SetFont("s10")
-LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
+LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
 LV.ModifyCol(1, 300)
 LV.ModifyCol(2, 150)
 LV.ModifyCol(3, 220)
