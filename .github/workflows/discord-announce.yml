@@ -1,0 +1,45 @@
+# Posts a release announcement to Discord when a new version is pushed.
+#   main -> #announcements   (secret DISCORD_WEBHOOK)
+#   beta -> #beta-download   (secret DISCORD_WEBHOOK_BETA, optional secret BETA_ROLE_ID = role to ping)
+# A commit message containing [skip announce] posts nothing (e.g. test updates).
+name: Discord announcement
+on:
+  push:
+    branches: [main, beta]
+    paths: [version.json]
+jobs:
+  announce:
+    if: ${{ !contains(github.event.head_commit.message, '[skip announce]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post to Discord
+        env:
+          BRANCH: ${{ github.ref_name }}
+          HOOK_MAIN: ${{ secrets.DISCORD_WEBHOOK }}
+          HOOK_BETA: ${{ secrets.DISCORD_WEBHOOK_BETA }}
+          BETA_ROLE: ${{ secrets.BETA_ROLE_ID }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          beta = os.environ["BRANCH"] == "beta"
+          hook = os.environ["HOOK_BETA" if beta else "HOOK_MAIN"]
+          if not hook:
+              print("No webhook secret for this branch - nothing posted."); raise SystemExit
+          v = json.load(open("version.json", encoding="utf-8"))
+          notes = "\n".join(l for l in v.get("notes", "").splitlines() if not l.startswith("BETA build")).strip()
+          if beta:
+              title = f"🧪 Beta {v['version']} is ready for testing"
+              tail = "Update from the beta app (green arrow). Feedback → #beta-feedback"
+              color, content = 0x2FD26D, (f"<@&{os.environ['BETA_ROLE']}>" if os.environ.get("BETA_ROLE") else "")
+          else:
+              title = f"🚀 Macro Manager {v['version']} is out!"
+              tail = "Update from the app (green arrow) or download the installer in #download."
+              color, content = 0xD0AE6B, ""
+          body = {"username": "Macro Manager", "content": content,
+                  "allowed_mentions": {"parse": [], "roles": [os.environ["BETA_ROLE"]] if beta and os.environ.get("BETA_ROLE") else []},
+                  "embeds": [{"title": title, "description": (notes + "\n\n" if notes else "") + tail, "color": color}]}
+          req = urllib.request.Request(hook, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "User-Agent": "MacroManager-Announce"})
+          urllib.request.urlopen(req)
+          print("Posted:", title)
+          PY
