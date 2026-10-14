@@ -103,9 +103,9 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.5"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.6"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
-UpdPulse := 0.0         ; 0..1 brightness of the pulsing green update icon
+UpdPulse := 0.0         ; 0..1 phase of the radar rings on the green update icon
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
 UpdBranch := "beta"      ; the test (beta) build uses "beta"
@@ -2364,7 +2364,7 @@ RoleColors(role, hover := false) {
         case "btnupd0":
             return hover ? ["3A3E49", "B8BCC8"] : ["22242B", "6E7380"]
         case "btnupd1":
-            return hover ? ["3FE07F", "FFFFFF"] : [MixCol("16883F", "2FD26D", UpdPulse), "FFFFFF"]     ; pulsing green (UpdPulseTick)
+            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar rings (UpdPulseTick / DrawBtn)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         default:    ; plain button
@@ -2389,9 +2389,7 @@ PaintBtn(hwnd, hover) {
     try {
         if BtnLook.Has(hwnd)
             BtnLook[hwnd].hover := hover
-        c := GuiCtrlFromHwnd(hwnd)
-        if c
-            c.Redraw()
+        DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", 0)     ; repaint without erasing first: no flicker
     }
 }
 
@@ -2435,6 +2433,8 @@ DrawBtn(wParam, lParam, *) {
             FillRound(gr, b, b, w - 2 * b, hh - 2 * b, Max(2, d - 2 * b), col[1])
         } else
             FillRound(gr, 0, 0, w, hh, d, col[1])
+        if (role = "btnupd1" && !lk.hover)
+            RadarRings(gr, w, hh)
         DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
     } else if lk.round {
         br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
@@ -2466,6 +2466,23 @@ FillRound(gr, x, y, w, h, d, hex) {
     DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
     DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
     DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+}
+
+; new version available: two white rings grow from the middle of the icon and fade out, like a radar
+RadarRings(gr, w, h) {
+    cx := w / 2, cy := h / 2
+    rmax := Min(w, h) / 2 - 1.5
+    pw := 1.8 * A_ScreenDPI / 96
+    loop 2 {
+        t := Mod(UpdPulse + (A_Index - 1) / 2, 1)                 ; 0 = just born, 1 = gone
+        r := 3 + (rmax - 3) * t
+        a := Round(255 * (1 - t) ** 1.2)
+        if (a < 4)
+            continue
+        DllCall("gdiplus\GdipCreatePen1", "UInt", (a << 24) | 0xFFFFFF, "Float", pw, "Int", 2, "Ptr*", &pen := 0)
+        DllCall("gdiplus\GdipDrawEllipse", "Ptr", gr, "Ptr", pen, "Float", cx - r, "Float", cy - r, "Float", 2 * r, "Float", 2 * r)
+        DllCall("gdiplus\GdipDeletePen", "Ptr", pen)
+    }
 }
 
 Bgr(hex) {
@@ -3423,25 +3440,17 @@ SetUpdIcon() {
         Roles[bUpd.Hwnd] := UpdAvail ? "btnupd1" : "btnupd0"
         PaintBtn(bUpd.Hwnd, false)
     }
-    SetTimer(UpdPulseTick, UpdAvail ? 40 : 0)      ; new version: the green icon pulses
+    SetTimer(UpdPulseTick, UpdAvail ? 33 : 0)      ; new version: radar rings on the green icon
 }
 
-; one step of the pulse: the green brightens and dims smoothly (about 1.4 s per beat)
+; one frame of the radar rings (a new ring every 0.9 s)
 UpdPulseTick() {
     global UpdPulse
     if (!UpdAvail || !DllCall("IsWindowVisible", "Ptr", Main.Hwnd) || DllCall("IsIconic", "Ptr", Main.Hwnd))
         return                                      ; nothing to see: no repainting
-    UpdPulse := (1 - Cos(2 * 3.14159265 * Mod(A_TickCount, 1400) / 1400)) / 2
+    UpdPulse := Mod(A_TickCount, 1800) / 1800
     if (HoverHwnd != bUpd.Hwnd)
-        try GuiCtrlFromHwnd(bUpd.Hwnd).Redraw()
-}
-
-; colour between a and b ("RRGGBB"), t = 0..1
-MixCol(a, b, t) {
-    va := Integer("0x" a), vb := Integer("0x" b), out := 0
-    for sh in [16, 8, 0]
-        out |= Round(((va >> sh) & 0xFF) + (((vb >> sh) & 0xFF) - ((va >> sh) & 0xFF)) * t) << sh
-    return Format("{:06X}", out)
+        DllCall("InvalidateRect", "Ptr", bUpd.Hwnd, "Ptr", 0, "Int", 0)
 }
 
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it

@@ -1,6 +1,6 @@
 {
-  "version": "1.19.5",
+  "version": "1.19.6",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "b25ff5eca2b42c2203185058b8d4689dc00c185e3199a8f49c99af1c180f182f",
+  "sha256": "965794c988b4cfecd8d59465d0989e256c1756c6fe47ca2369ea3803912f8536",
   "notes": "BETA build - for testing.\n- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.\n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.\n- Windows 11 no longer slows down macro timing while the app sits in the tray.\n- Rounded buttons, tray menu in the dark / light look of the app, title bar in the app colours (Windows 11)."
 }
