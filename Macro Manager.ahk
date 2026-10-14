@@ -13,6 +13,18 @@ Persistent
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+NoThrottle()
+
+; Windows 11 slows the timers of apps whose window is hidden (this app sits in the tray) and may put them into
+; "efficiency mode" - macro delays would then be longer than set. This opts the app out of both.
+NoThrottle() {
+    st := Buffer(12, 0)
+    for mask in [0x5, 0x1] {                      ; EXECUTION_SPEED + IGNORE_TIMER_RESOLUTION (Win11), else only the first
+        NumPut("UInt", 1, "UInt", mask, "UInt", 0, st)
+        try if DllCall("SetProcessInformation", "Ptr", DllCall("GetCurrentProcess", "Ptr"), "Int", 4, "Ptr", st, "UInt", 12)
+            return
+    }
+}
 #HotIfTimeout 150      ; the keyboard hook waits at most this long for "only in app" checks (default 1000 ms stalls all keys)
 
 ; ============ language ============
@@ -58,6 +70,9 @@ if !A_IsAdmin {
 }
 
 Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme (also by the setup dialogs)
+BtnLook := Map()       ; flat button hwnd -> {left, round, hover, badge, pad} (drawn by DrawBtn)
+HelpBadgeOn := false   ; gold "!" on the help button: release notes of this version not opened yet
+OnMessage(0x2B, DrawBtn)       ; WM_DRAWITEM: the flat buttons are drawn by the app
 DarkOn := false
 
 ; ============ first run: install into a folder chosen by the user ============
@@ -80,16 +95,13 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-BadgeMainFile := AssetsDir "\badge_main.png"     ; yellow ! with glow (banner / dark window / light window)
-BadgeDkFile := AssetsDir "\badge_dk.png"
-BadgeLtFile := AssetsDir "\badge_lt.png"
 DiscordFile := AssetsDir "\discord.png"
 DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
 DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.18"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "11"    ; bump when the embedded logo/icon change
+AppVersion := "1.19"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -98,7 +110,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Minor fixes"
+ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -112,6 +124,8 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+HoldMs := 300          ; long press = trigger key held at least this long (macros.ini [main] holdms)
+DblMs := 250           ; double tap = second press within this time (macros.ini [main] doublems)
 HeldKeys := Map()      ; keys a macro holds down right now
 MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
@@ -168,13 +182,14 @@ try {
     Roles[flB.Hwnd] := "skip"
     BtnAlias[flB.Hwnd] := bLang.Hwnd
     Main.SetFont("s13 bold", "Segoe UI")
-    bHelp := AddBtn(Main, "x782 y14 w28 h28", "?", OpenHelp, "btnbanner")                 ; help on top, updates below (same size)
-    bBadge := Main.AddPicture("x810 y12 w16 h16", BadgeMainFile)      ; yellow ! with glow beside the help icon: release notes not read yet
-    Roles[bBadge.Hwnd] := "skip"
-    bBadge.Visible := (SeenVer != AppVersion)
+    ; help on top, updates below (same size). The help control is a bit larger than its button: the gold "!" badge
+    ; (release notes not read yet) is drawn on the button's top right corner
+    bHelp := AddBtn(Main, "x782 y12 w36 h30", "?", OpenHelp, "btnbanner")
+    BtnLook[bHelp.Hwnd].pad := [0, 2, 8, 0]
+    BtnLook[bHelp.Hwnd].badge := true
+    HelpBadgeOn := (SeenVer != AppVersion)
     Main.SetFont("s12 norm", "Segoe MDL2 Assets")
     bUpd := AddBtn(Main, "x782 y46 w28 h28", Chr(0xE896), OnUpdIcon, "btnupd0")      ; download arrow: grey = up to date, green = new version
-    Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     Main.SetFont("s9 norm c000000", "Segoe UI")
 }
 try {
@@ -189,7 +204,7 @@ eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 130, 240, 150]
+hdrW := [300, 150, 220, 150]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
@@ -201,10 +216,10 @@ for i, nm in hdrNames {
 }
 LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
 LV.SetFont("s10")
-LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
+LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
 LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 130)
-LV.ModifyCol(3, 240)
+LV.ModifyCol(2, 150)
+LV.ModifyCol(3, 220)
 LV.ModifyCol(4, 130)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
@@ -244,6 +259,7 @@ if AutoUpd
 A_TrayMenu.Add(_T("Uninstall..."), (*) => UninstallApp())
 A_TrayMenu.Add(_T("Exit"), (*) => ExitApp())
 A_TrayMenu.Default := _T("Open window")
+DarkMenus(DarkOn)
 OnExit(ExitHandler)
 
 Refresh()
@@ -256,6 +272,28 @@ Main.Show()
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
+
+; ============ third-party credits ============
+; Some features follow ideas and small techniques from these MIT-licensed projects (the code here is written
+; for Macro Manager, nothing is copied as a library):
+;   - press modes short tap / double tap / long press (RunPress) .... evilC/TapHoldManager
+;       Copyright (c) 2018 Clive Galway
+;   - exact pauses (StepWait) ....................................... thqby/ahk2_lib (HighPrecisionSleep)
+;       Copyright (c) 2023 thqby
+;   - rounded buttons, themed tray menu (RoundCorners, DarkMenus) ... nperovic/GuiEnhancerKit, ColorButton.ahk
+;       Copyright (c) 2024 Nikola (nperovic)
+;
+; MIT License: Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+; associated documentation files (the "Software"), to deal in the Software without restriction, including without
+; limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+; Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+; The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+; the Software.
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+; THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+; CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+; DEALINGS IN THE SOFTWARE.
 
 ; ============ window handlers ============
 OnMainClose(*) {
@@ -397,7 +435,20 @@ OnMaster(*) {
 
 OnMasterKey() {
     global MasterKey
-    MasterKey := MKst["key"]
+    k := MKst["key"]
+    if (k != "") {                                  ; works in every profile: no macro of any profile may use the key
+        id := KeyId(k)
+        for m in Macros {
+            who := KeyId(m["tkey"]) = id ? _T("the toggle key of `"{1}`"", m["name"]) : (TrigId(m) = id ? _T("the trigger key of `"{1}`"", m["name"]) : "")
+            if (who != "") {
+                ThemedNote(_T("The key {1} is already used as {2}.", k, who), , true)
+                MKst["key"] := MasterKey            ; keep the previous key
+                bMKey.Text := KeyLabel(_T("All macros toggle key:") "  ", MasterKey)
+                return
+            }
+        }
+    }
+    MasterKey := k
     Save()
     Apply()
 }
@@ -423,9 +474,9 @@ ToggleMacro(m, *) {
     Toast(m["name"] ": " (m["enabled"] ? _T("ON") : _T("OFF")))
 }
 
-Toast(txt) {
+Toast(txt, ms := 1200) {
     ToolTip(txt)
-    SetTimer(() => ToolTip(), -1200)
+    SetTimer(() => ToolTip(), -ms)
 }
 
 MoveRow(d) {
@@ -511,7 +562,7 @@ Refresh() {
         if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }
@@ -543,8 +594,7 @@ OnExportBtn(*) {
         ThemedNote(_T("Nothing to export (script file is missing)."), , true)
         return
     }
-    safe := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
-    path := FileSelect("S16", A_Desktop "\" safe ".ahk", _T("Export macro"), _T("AutoHotkey scripts (*.ahk)"))
+    path := FileSelect("S16", A_Desktop "\" SafeFileName(m["name"]) ".ahk", _T("Export macro"), _T("AutoHotkey scripts (*.ahk)"))
     if (path = "")
         return
     if !RegExMatch(path, "i)\.ahk$")
@@ -570,11 +620,13 @@ ExportAllTo(dir, list := 0) {
     n := 0
     used := Map()
     for m in (list ? list : Macros) {
+        if (m["type"] != "script" && (Trim(m["hotkey"]) = "" || Trim(m["hotkey"]) = "undefined"))
+            continue                                  ; no trigger key: the file would not run
         code := ""
         try code := ExportCode(m)
         if (code = "")
             continue
-        base := RegExReplace(m["name"], '[\\/:*?"<>|]', "_")
+        base := SafeFileName(m["name"])
         nm := base
         k := 1
         while used.Has(StrLower(nm))
@@ -586,6 +638,16 @@ ExportAllTo(dir, list := 0) {
         }
     }
     return n
+}
+
+; a macro name as a file name Windows accepts (no \ / : * ? " < > |, no trailing dot / space, no CON, NUL, COM1 ...)
+SafeFileName(name) {
+    s := RTrim(RegExReplace(name, '[\\/:*?"<>|\x00-\x1F]', "_"), ". ")
+    if (s = "")
+        s := "macro"
+    if RegExMatch(s, "i)^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$")
+        s := "_" s
+    return s
 }
 
 OnImportBtn(*) {
@@ -691,12 +753,13 @@ ImportOne(path) {
     if (meta.Has("type") && (meta["type"] = "move" || meta["type"] = "seq")) {
         ; file exported by Macro Manager -> editable native macro
         m["type"] := meta["type"]
-        for k in ["app", "dirs", "actions", "seq", "tkey"]
+        for k in ["app", "dirs", "actions", "seq", "tkey", "press"]
             if meta.Has(k)
                 m[k] := meta[k]
         for k in ["g1", "g2", "g3", "ge", "repeat"]
             if meta.Has(k)
                 m[k] := Num(meta[k])
+        m["exact"] := meta.Has("exact") ? Num(meta["exact"]) : 0     ; exported before exact delays existed: old timing
         m["hotkey"] := (meta.Has("hotkey") && Trim(meta["hotkey"]) != "") ? Trim(meta["hotkey"]) : "undefined"
     } else {
         ; any other script -> runs as its own process while the macro is on
@@ -1020,24 +1083,35 @@ UninstallApp(fromArg := false) {
             LaunchInstalled(dir)
         return false
     }
-    ; offer a backup of the macros before everything is deleted
+    ; offer a backup file (macros, profiles, settings, script files) before everything is deleted
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Export all your macros to a folder before uninstalling?"), [[_T("Cancel"), "", "btn"], [_T("Don't export"), "no", "btn"], [_T("Export first"), "yes", "btnprimary"]], false)
+        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
         if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
         if (r = "yes") {
-            bdir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the backup"))
-            if (bdir = "") {
+            path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+            if (path = "") {
                 if fromArg
                     LaunchInstalled(dir)
                 return false
             }
-            ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"))
+            if !RegExMatch(path, "i)\.mmbackup$")
+                path .= ".mmbackup"
+            try {
+                Save()                                  ; the settings in memory are the newest
+                WriteBackup(path)
+            } catch as e {
+                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall Macro Manager"), true)
+                if fromArg
+                    LaunchInstalled(dir)
+                return false                            ; nothing deleted without the backup the user asked for
+            }
+            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall Macro Manager"))
         }
     }
     ; stop imported scripts started by the manager
@@ -1084,19 +1158,24 @@ ExportCode(m) {
     if (m["type"] = "script")
         return (m["file"] != "" && FileExist(ScriptPath(m))) ? FileRead(ScriptPath(m), "UTF-8") : ""
 
+    press := PressEff(m)
     if (m["type"] = "move") {
-        data := "rep := " (m["repeat"] ? "true" : "false") "`n"
+        data := "rep := " (m["repeat"] && press != "tap" ? "true" : "false") "`n"
             . "dirs := " ArrLit(SplitKeys(m["dirs"])) "`n"
             . "acts := " ArrLit(SplitKeys(m["actions"])) "`n"
             . "g1 := " m["g1"] ", g2 := " m["g2"] ", g3 := " m["g3"] ", ge := " m["ge"]
         body := TplMove()
     } else {
-        data := "rep := " (m["repeat"] ? "true" : "false") "`n"
+        data := "rep := " (m["repeat"] && press != "tap" ? "true" : "false") "`n"
             . "steps := " StepsLit(m["seq"])
         body := TplSeq()
     }
     code := TplHeader() "`n" body
     code := StrReplace(code, "@DATA@", data)
+    code := StrReplace(code, "@PRESS@", press)
+    code := StrReplace(code, "@EXACT@", m["exact"] ? "true" : "false")
+    code := StrReplace(code, "@HOLD@", Round(HoldMs / 1000, 3))
+    code := StrReplace(code, "@DBL@", Round(DblMs / 1000, 3))
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
     app := StrReplace(m["app"], '"', "")
@@ -1104,7 +1183,7 @@ ExportCode(m) {
     code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
     code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
-    for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey"]
+    for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey", "press", "exact"]
         code .= "; MM:" k "=" m[k] "`n"
     return code
 }
@@ -1117,6 +1196,12 @@ TplHeader() {
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+st := Buffer(12, 0)     ; Windows 11: no slowed-down timers / efficiency mode for this background script
+for mask in [0x5, 0x1] {
+    NumPut("UInt", 1, "UInt", mask, "UInt", 0, st)
+    try if DllCall("SetProcessInformation", "Ptr", -1, "Int", 4, "Ptr", st, "UInt", 12)
+        break
+}
 
 if !A_IsAdmin {
     try Run '*RunAs "' A_AhkPath '" "' A_ScriptFullPath '"'
@@ -1125,9 +1210,48 @@ if !A_IsAdmin {
 
 trig := "@TRIG@"
 app := "@APP@"
+press := "@PRESS@"      ; "" = at once, tap = short press, double = pressed twice quickly, hold = held a moment
+exact := @EXACT@        ; true = delays kept to about a millisecond, false = plain Sleep
 @DATA@
 if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
+
+; is this the press the macro waits for? (long press: still held after a moment; double tap: pressed again in time)
+PressOk() {
+    if (press = "hold")
+        return !KeyWait(trig, "P T@HOLD@")
+    if (press = "")
+        return true
+    KeyWait(trig, "P")
+    return press = "tap" || KeyWait(trig, "D P T@DBL@")
+}
+
+; exact pause: most of it a normal Sleep, the rest measured in 1 ms steps (Sleep alone can be ~15 ms longer)
+Wait(ms) {
+    static f := 0
+    if (ms <= 0) {
+        Sleep -1
+        return
+    }
+    if !exact {
+        Sleep ms
+        return
+    }
+    if !f
+        DllCall("QueryPerformanceFrequency", "Int64*", &f)
+    DllCall("QueryPerformanceCounter", "Int64*", &t := 0)
+    stop := t + ms * f / 1000
+    if (ms > 20)
+        Sleep ms - 16
+    loop {
+        DllCall("QueryPerformanceCounter", "Int64*", &t)
+        left := (stop - t) * 1000 / f
+        if (left <= 0)
+            break
+        if (left > 1.5)
+            DllCall("Sleep", "UInt", 1)
+    }
+}
 
 Down(t) {
     s := "{Blind}"            ; held Shift / Ctrl / Alt are left alone (no stuck modifier keys)
@@ -1153,6 +1277,8 @@ TplMove() {
     return "
 (
 @HOT@:: {
+    if !PressOk()
+        return
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
@@ -1162,19 +1288,19 @@ TplMove() {
         if dirs.Length {
             dir := dirs[di]
             Send Down(dir)
-            Sleep g1 > 0 ? g1 : -1
+            Wait(g1)
             Send Down(key)
-            Sleep g2 > 0 ? g2 : -1
+            Wait(g2)
             Send Up(dir)
-            Sleep g3 > 0 ? g3 : -1
+            Wait(g3)
             Send Up(key)
             di := di >= dirs.Length ? 1 : di + 1
         } else {
             Send Down(key)
-            Sleep g2 > 0 ? g2 : -1
+            Wait(g2)
             Send Up(key)
         }
-        Sleep ge > 0 ? ge : -1
+        Wait(ge)
         ai := ai >= acts.Length ? 1 : ai + 1
         if (rep && A_TickCount - t0 < 10)
             Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
@@ -1195,6 +1321,8 @@ TplSeq() {
     return "
 (
 @HOT@:: {
+    if !PressOk()
+        return
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -1210,7 +1338,7 @@ TplSeq() {
                 Send Up(s[2])
             else
                 Send Down(s[2]) Up(s[2])
-            Sleep s[3] > 0 ? s[3] : -1
+            Wait(s[3])
         }
         if (!rep)
             stop := true
@@ -1229,13 +1357,21 @@ TplSeq() {
 
 ; ============ macro editor ============
 EditMacro(idx) {
+    static open := 0                                  ; one editor at a time (two editors of one macro would overwrite each other)
+    if (open && WinExist("ahk_id " open)) {
+        WinActivate("ahk_id " open)
+        return
+    }
     isNew := !idx
+    if (!isNew && idx > View.Length)
+        return                                        ; the list changed in the meantime
     m := isNew ? Defaults() : View[idx]
     if isNew
         m["profiles"] := CurProfile
     pv := Map("v", m["profiles"])
     origProfs := m["profiles"]
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", isNew ? _T("New macro") : _T("Edit macro"))
+    open := g.Hwnd
     g.SetFont("s9", "Segoe UI")
     try {
         g.AddPicture("x10 y8 w640 h72", LogoFile)             ; same banner as the main window
@@ -1265,45 +1401,54 @@ EditMacro(idx) {
     tb := []
     for i, nm in [_T("Move + actions"), _T("Sequence"), _T("Script (.ahk)")]
         tb.Push(AddBtn(g, "x" (150 + (i - 1) * 170) " y208 w160 h26", nm, SetType.Bind(i), i = tsel ? "btnprimary" : "btn"))
-    rl := g.AddText("x10 y244 w136 +0x200 h26", _T("Run"))
+    ; press mode: how the trigger key has to be pressed (different modes can share one key)
+    psel := 1
+    for i, p in ["", "tap", "double", "hold"]
+        if (PressOf(m) = p)
+            psel := i
+    pl := g.AddText("x10 y244 w136 +0x200 h26", _T("Press"))
+    pb := []
+    for i, nm in [_T("Normal"), _T("Short tap"), _T("Double tap"), _T("Long press")]
+        pb.Push(AddBtn(g, "x" (150 + (i - 1) * 126) " y244 w122 h26", nm, SetPress.Bind(i), i = psel ? "btnprimary" : "btn"))
+    rl := g.AddText("x10 y280 w136 +0x200 h26", _T("Run"))
     rb := []
     for i, nm in [_T("Once per key press"), _T("Repeat while key is held")]
-        rb.Push(AddBtn(g, "x" (150 + (i - 1) * 255) " y244 w245 h26", nm, SetRun.Bind(i), i = rsel ? "btnprimary" : "btn"))
+        rb.Push(AddBtn(g, "x" (150 + (i - 1) * 255) " y280 w245 h26", nm, SetRun.Bind(i), i = rsel ? "btnprimary" : "btn"))
 
     ; --- group: move + actions ---
     mv := []
-    mv.Push(g.AddText("x10 y292 w136 +0x200 h26", _T("Directions (optional)")))
-    eDirs := g.AddEdit("x150 y292 w420 h26", m["dirs"])
-    rb1 := AddBtn(g, "x580 y292 w70 h26", _T("Record"), (*) => StartListRec(eDirs, rb1))
+    mv.Push(g.AddText("x10 y328 w136 +0x200 h26", _T("Directions (optional)")))
+    eDirs := g.AddEdit("x150 y328 w420 h26", m["dirs"])
+    rb1 := AddBtn(g, "x580 y328 w70 h26", _T("Record"), (*) => StartListRec(eDirs, rb1))
     mv.Push(eDirs, rb1)
-    mv.Push(g.AddText("x10 y328 w136 +0x200 h26", _T("Actions in order")))
-    eActs := g.AddEdit("x150 y328 w420 h26", m["actions"])
-    rb2 := AddBtn(g, "x580 y328 w70 h26", _T("Record"), (*) => StartListRec(eActs, rb2))
+    mv.Push(g.AddText("x10 y364 w136 +0x200 h26", _T("Actions in order")))
+    eActs := g.AddEdit("x150 y364 w420 h26", m["actions"])
+    rb2 := AddBtn(g, "x580 y364 w70 h26", _T("Record"), (*) => StartListRec(eActs, rb2))
     mv.Push(eActs, rb2)
-    mv.Push(g.AddText("x10 y364 w136 +0x200 h26", _T("Delays (ms)")))
-    e1 := g.AddEdit("x150 y364 w110 h26 Number", m["g1"])
-    e2 := g.AddEdit("x275 y364 w110 h26 Number", m["g2"])
-    e3 := g.AddEdit("x400 y364 w110 h26 Number", m["g3"])
-    e4 := g.AddEdit("x525 y364 w110 h26 Number", m["ge"])
+    mv.Push(g.AddText("x10 y400 w136 +0x200 h26", _T("Delays (ms)")))
+    e1 := g.AddEdit("x150 y400 w110 h26 Number", m["g1"])
+    e2 := g.AddEdit("x275 y400 w110 h26 Number", m["g2"])
+    e3 := g.AddEdit("x400 y400 w110 h26 Number", m["g3"])
+    e4 := g.AddEdit("x525 y400 w110 h26 Number", m["ge"])
     mv.Push(e1, e2, e3, e4)
-    mv.Push(AddHint(g, "x150 y394 w120 h32", _T("dir↓ → action↓")))
-    mv.Push(AddHint(g, "x275 y394 w120 h32", _T("action↓ → dir↑")))
-    mv.Push(AddHint(g, "x400 y394 w120 h32", _T("dir↑ → action↑")))
-    mv.Push(AddHint(g, "x525 y394 w120 h32", _T("between cycles")))
-    mv.Push(AddHint(g, "x10 y434 w640", _T("Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).")))
+    mv.Push(AddHint(g, "x150 y430 w120 h32", _T("dir↓ → action↓")))
+    mv.Push(AddHint(g, "x275 y430 w120 h32", _T("action↓ → dir↑")))
+    mv.Push(AddHint(g, "x400 y430 w120 h32", _T("dir↑ → action↑")))
+    mv.Push(AddHint(g, "x525 y430 w120 h32", _T("between cycles")))
+    mv.Push(AddHint(g, "x10 y470 w640", _T("Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).")))
 
     ; --- group: sequence ---
-    eSeq := g.AddEdit("x10 y292 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
-    sq := [eSeq, AddHint(g, "x10 y418 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
+    eSeq := g.AddEdit("x10 y328 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
+    sq := [eSeq, AddHint(g, "x10 y454 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
 
     ; --- group: script ---
     code := ""
     if (m["type"] = "script" && m["file"] != "" && FileExist(ScriptPath(m)))
         code := FileRead(ScriptPath(m), "UTF-8")
-    eCode := g.AddEdit("x10 y292 w640 h150 Multi WantReturn -Wrap HScroll", code)
+    eCode := g.AddEdit("x10 y328 w640 h150 Multi WantReturn -Wrap HScroll", code)
     eCode.SetFont("s9", "Consolas")
     Roles[eCode.Hwnd] := "code"
-    sc := [eCode, AddHint(g, "x10 y448 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
+    sc := [eCode, AddHint(g, "x10 y484 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
 
     SetSeg(arr, n) {
         for i, c in arr {
@@ -1320,6 +1465,11 @@ EditMacro(idx) {
         rsel := n
         SetSeg(rb, n)
     }
+    SetPress(n, *) {
+        psel := n
+        SetSeg(pb, n)
+        Toggle()
+    }
     Toggle(*) {
         t := tsel
         for c in mv
@@ -1328,12 +1478,17 @@ EditMacro(idx) {
             c.Visible := (t = 2)
         for c in sc
             c.Visible := (t = 3)
+        try bExact.Visible := (t != 3)
         bKey.Enabled := (t != 3)
         eApp.Enabled := (t != 3)
         bApp.Enabled := (t != 3)
-        rl.Visible := (t != 3)
-        for c in rb
+        pl.Visible := (t != 3)
+        for c in pb
             c.Visible := (t != 3)
+        rv := (t != 3 && psel != 2)                 ; a short tap has already been released: it always plays once
+        rl.Visible := rv
+        for c in rb
+            c.Visible := rv
     }
 
     ; a macro that belongs to several profiles: apply the change everywhere, or only in the current profile
@@ -1365,6 +1520,10 @@ EditMacro(idx) {
         FinishRec()
         t := tsel
         nm := Trim(eName.Value)
+        if (st["tkey"] != "" && (who := KeyTaken(KeyId(st["tkey"]), m, pv["v"], true))) {   ; toggle = another key in use
+            ThemedNote(_T("The toggle key {1} is already used as {2}.", st["tkey"], who), , true)
+            return
+        }
         if (t = 3) {
             txt := eCode.Value
             if (Trim(txt) = "") {
@@ -1386,6 +1545,14 @@ EditMacro(idx) {
                 ThemedNote(_T("Enter a trigger key."), , true)
                 return
             }
+            if (st["tkey"] != "" && StrLower(TrigHot(st["tkey"])) = StrLower(TrigHot(key))) {
+                ThemedNote(_T("The toggle key can't be the same as the trigger key."), , true)
+                return
+            }
+            if (who := KeyTaken(KeyId(key), m, pv["v"], false)) {        ; trigger = a toggle key in the same profile
+                ThemedNote(_T("The trigger key {1} is already used as {2}.", key, who), , true)
+                return
+            }
             if !Detach()
                 return
             StopScript(m)
@@ -1404,6 +1571,8 @@ EditMacro(idx) {
                     lines .= (lines = "" ? "" : "|") Trim(l)
             m["seq"] := lines
             m["repeat"] := rsel = 2 ? 1 : 0
+            m["press"] := ["", "tap", "double", "hold"][psel]
+            m["exact"] := ex["v"]
         }
         m["name"] := nm = "" ? "Macro" : nm
         m["profiles"] := pv["v"] = "" ? CurProfile : pv["v"]
@@ -1413,18 +1582,33 @@ EditMacro(idx) {
             if (eSearch.Value != "")
                 eSearch.Value := ""               ; the new macro must be visible
         }
+        if (!isNew && !IndexOf(m))
+            Macros.Push(m)                          ; deleted from the list while the editor was open: keep the edit
         g.Destroy()
         Save()
         Apply()
         Refresh()
+        if (m["enabled"] && (other := KeyClash(m)))
+            Toast(_T("Same trigger key as `"{1}`" - only one of them works", other["name"]))
     }
 
-    AddBtn(g, "x450 y482 w95 h34", _T("Save"), Commit, "btnprimary")
-    AddBtn(g, "x555 y482 w95 h34", _T("Cancel"), (*) => (FinishRec(), g.Destroy()))
+    ; exact delays: on for new macros; older macros keep their timing until this is switched on
+    ex := Map("v", m["exact"] ? 1 : 0)
+    ExLabel() => ex["v"] ? Chr(0x2713) "  " _T("Exact delays") : _T("Exact delays") ": " _T("OFF")
+    bExact := AddBtn(g, "x10 y518 w220 h34", ExLabel(), FlipExact, ex["v"] ? "btnprimary" : "btn")
+    FlipExact(*) {
+        ex["v"] := !ex["v"]
+        bExact.Text := ExLabel()
+        Roles[bExact.Hwnd] := ex["v"] ? "btnprimary" : "btn"
+        PaintBtn(bExact.Hwnd, true)
+    }
+    AddBtn(g, "x450 y518 w95 h34", _T("Save"), Commit, "btnprimary")
+    AddBtn(g, "x555 y518 w95 h34", _T("Cancel"), (*) => (FinishRec(), g.Destroy()))
     g.OnEvent("Close", (*) => (FinishRec(), g.Destroy()))
+    g.OnEvent("Escape", (*) => (Rec.ih ? 0 : (FinishRec(), g.Destroy())))     ; Esc while recording belongs to the recorder
     Toggle()
     ApplyTheme(g)
-    ShowOver(g, "w660 h532", Main)
+    ShowOver(g, "w660 h568", Main)
 }
 
 Num(v) => IsInteger(v) ? Integer(v) : 0
@@ -1433,11 +1617,20 @@ Num(v) => IsInteger(v) ? Integer(v) : 0
 Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
-        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1)
+        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1)
 }
 
+; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),
+; "double" = pressed twice quickly, "hold" = held down for a moment. Different press modes can share one key.
+; (idea: evilC/TapHoldManager, MIT)
+PressOf(m) {
+    p := m.Has("press") ? StrLower(Trim(m["press"])) : ""
+    return (p = "tap" || p = "double" || p = "hold") ? p : ""
+}
+PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
+
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -1445,34 +1638,67 @@ Load() {
         Save()      ; fresh install: empty macro list, the user imports their own
         return
     }
-    MasterOn := IniRead(IniFile, "main", "master", "1") = "1"
-    AutoUpd := IniRead(IniFile, "main", "autoupdate", "1") = "1"
-    SeenVer := IniRead(IniFile, "main", "seenver", "")
-    DarkOn := IniRead(IniFile, "main", "dark", "0") = "1"
-    MasterKey := IniRead(IniFile, "main", "masterkey", "")
-    pl := StrSplit(IniRead(IniFile, "main", "proflist", "Default"), "|")
+    ini := IniParse(FileRead(IniFile))              ; the whole file in one read (one IniRead per value was slow with many macros)
+    Get(sec, key, def) => (ini.Has(sec) && ini[sec].Has(key)) ? ini[sec][key] : def
+    MasterOn := Get("main", "master", "1") = "1"
+    AutoUpd := Get("main", "autoupdate", "1") = "1"
+    SeenVer := Get("main", "seenver", "")
+    DarkOn := Get("main", "dark", "0") = "1"
+    MasterKey := Get("main", "masterkey", "")
+    HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
+    DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
+    pl := StrSplit(Get("main", "proflist", "Default"), "|")
     Profiles := []
     for pn in pl
         if (Trim(pn) != "")
             Profiles.Push(Trim(pn))
     if !Profiles.Length
         Profiles := ["Default"]
-    CurProfile := IniRead(IniFile, "main", "profile", Profiles[1])
+    CurProfile := Get("main", "profile", Profiles[1])
     if !HasProf(JoinProfs(Profiles), CurProfile)
         CurProfile := Profiles[1]
-    n := Integer(IniRead(IniFile, "main", "count", "0"))
+    n := Num(Get("main", "count", "0"))
     loop n {
         s := "m" A_Index
         m := Defaults()
         for k, v in Defaults()
-            m[k] := IniRead(IniFile, s, k, v)
-        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted"]
+            m[k] := Get(s, k, v)
+        m["exact"] := Get(s, "exact", "0")          ; macros saved before exact delays existed keep their old timing
+        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted", "exact"]
             m[k] := Num(m[k])
         m["file"] := RegExReplace(m["file"], "^.*\\", "")   ; keep only the file name
         if (Trim(m["profiles"]) = "")
             m["profiles"] := Profiles[1]
         Macros.Push(m)
     }
+}
+
+; ini text -> Map(section -> Map(key -> value)), read the way IniRead reads it: names without regard to case,
+; the first of two equal keys wins, spaces around the value and one pair of enclosing quotes are dropped
+IniParse(text) {
+    out := Map(), out.CaseSense := "Off"
+    cur := 0
+    for line in StrSplit(text, "`n", "`r") {
+        line := Trim(line, " `t")
+        if (line = "" || SubStr(line, 1, 1) = ";")
+            continue
+        if RegExMatch(line, "^\[(.*)\]$", &h) {
+            sec := Trim(h[1])
+            if !out.Has(sec) {
+                out[sec] := Map(), out[sec].CaseSense := "Off"
+            }
+            cur := out[sec]
+            continue
+        }
+        if (!cur || !(p := InStr(line, "=")))
+            continue
+        k := Trim(SubStr(line, 1, p - 1), " `t"), v := Trim(SubStr(line, p + 1), " `t")
+        if (StrLen(v) >= 2 && (q := SubStr(v, 1, 1)) = SubStr(v, -1) && (q = '"' || q = "'"))
+            v := SubStr(v, 2, -1)
+        if !cur.Has(k)
+            cur[k] := v
+    }
+    return out
 }
 
 ; the whole file is built in memory and written in one go: first to macros.ini.tmp, then swapped in.
@@ -1484,6 +1710,8 @@ Save() {
     t .= "autoupdate=" (AutoUpd ? 1 : 0) "`r`n"
     t .= "seenver=" SeenVer "`r`n"
     t .= "masterkey=" MasterKey "`r`n"
+    t .= "holdms=" HoldMs "`r`n"
+    t .= "doublems=" DblMs "`r`n"
     t .= "language=" Lang "`r`n"
     t .= "proflist=" JoinProfs(Profiles) "`r`n"
     t .= "profile=" CurProfile "`r`n"
@@ -1524,13 +1752,26 @@ Apply() {
     for k in TogReg
         try Hotkey(k, "Off")
     TogReg := []
+    used := Map()                                    ; key -> who uses it (to point out keys used twice)
+    clash := []
     if !Recording {
-        if (MasterKey != "")
+        if (MasterKey != "") {
             RegToggle(MasterKey, ToggleMaster)
+            used[KeyId(MasterKey)] := _T("the All macros toggle key")
+        }
         for m in Macros
-            if (m["tkey"] != "" && InProfile(m))
+            if (m["tkey"] != "" && InProfile(m)) {
                 RegToggle(m["tkey"], ToggleMacro.Bind(m))
+                id := KeyId(m["tkey"]), who := _T("the toggle key of `"{1}`"", m["name"])
+                if used.Has(id)
+                    clash.Push([m["tkey"], used[id], who])
+                else
+                    used[id] := who
+            }
     }
+    ; macros on the same key in the same place share one handler: a "normal" macro takes the key as soon as it
+    ; goes down; otherwise the handler tells short tap / double tap / long press apart (each can be another macro)
+    groups := Map()
     for m in Macros {
         if (m["type"] = "script") {
             SyncScript(m)
@@ -1541,17 +1782,66 @@ Apply() {
         trig := Trim(m["hotkey"])
         if (trig = "" || trig = "undefined")
             continue
+        id := StrLower(TrigHot(trig)) "|" StrLower(m["app"])
+        if !groups.Has(id)
+            groups[id] := {trig: trig, app: m["app"], name: m["name"], set: Map()}
+        groups[id].set[PressEff(m)] := m             ; same key and same press mode: the later macro wins (as before)
+        kid := KeyId(trig)
+        if (used.Has(kid) && !used.Has("!" kid)) {   ; a toggle key (one line per key is enough)
+            clash.Push([trig, used[kid], _T("the trigger key of `"{1}`"", m["name"])])
+            used["!" kid] := true
+        }
+    }
+    if !Recording
+        ClashHint(clash)
+    for id, gr in groups {
+        fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
-            SetCrit(m["app"])
-            Hotkey(TrigHot(trig), MakeRun(m, trig), "On")
-            Registered.Push([TrigHot(trig), m["app"]])
+            SetCrit(gr.app)
+            Hotkey(TrigHot(gr.trig), fn, "On")
+            Registered.Push([TrigHot(gr.trig), gr.app])
         } catch as e {
             HotIf()
-            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
+            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", gr.name, gr.trig, e.Message), , true)
         }
     }
     HotIf()
 }
+
+; one key used both as a toggle key and as a trigger (e.g. after an import): say so once, it would just not work
+ClashHint(clash) {
+    static last := ""
+    txt := ""
+    for c in clash
+        txt .= (txt = "" ? "" : "`n") _T("The key {1} is used twice - as {2} and as {3}. Only one of them works.", c[1], c[2], c[3])
+    if (txt != "" && txt != last)
+        Toast(txt, 5000)
+    last := txt
+}
+
+; comparable form of any key ("" = none)
+KeyId(k) => (Trim(k) = "" || Trim(k) = "undefined") ? "" : StrLower(TrigHot(Trim(k)))
+
+; who already uses key `id` in the profiles `profs` (a macro's toggle key, the All macros key, or - when
+; `triggersToo` - a macro's trigger key): a description such as 'the toggle key of "Heal"', or "" when free
+KeyTaken(id, self, profs, triggersToo) {
+    if (id = "")
+        return ""
+    if (KeyId(MasterKey) = id)
+        return _T("the All macros toggle key")
+    for x in Macros {
+        if (x == self || !ProfOverlap(x["profiles"], profs))
+            continue
+        if (KeyId(x["tkey"]) = id)
+            return _T("the toggle key of `"{1}`"", x["name"])
+        if (triggersToo && TrigId(x) = id)
+            return _T("the trigger key of `"{1}`"", x["name"])
+    }
+    return ""
+}
+
+; press mode that really applies: a wheel has no hold and no release, so wheel macros always play at once
+PressEff(m) => (m["type"] = "script" || IsWheel(m["hotkey"])) ? "" : PressOf(m)
 
 RegToggle(key, fn) {
     try {
@@ -1629,8 +1919,12 @@ KeyClash(m) {
     if (id = "")
         return 0
     app := m["type"] = "script" ? "" : m["app"]
+    p := PressEff(m)
     for x in Macros {
         if (x == m || !x["enabled"] || !InProfile(x) || TrigId(x) != id)
+            continue
+        xp := PressEff(x)
+        if (p != "" && xp != "" && p != xp)          ; e.g. short tap and long press on one key: both work
             continue
         xa := x["type"] = "script" ? "" : x["app"]
         if (app = "" || xa = "" || app = xa)        ; "everywhere" overlaps with every application
@@ -1744,7 +2038,27 @@ SetCrit(app) {
     else
         HotIfWinActive("ahk_exe " app)
 }
-MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : RunPick(m, trig))
+MakePress(set, trig) => (*) => RunPress(set, trig)
+RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) : RunSeq(m, trig, once)
+
+; one key, several press modes: waits only as long as needed to tell them apart.
+; long press = still held after HoldMs; double tap = pressed again within DblMs after release; short tap = neither.
+; (approach of evilC/TapHoldManager, MIT - rewritten for Macro Manager)
+RunPress(set, trig) {
+    if AltGrFake(trig)
+        return
+    k := TrigMain(trig)
+    if set.Has("hold") {
+        if !KeyWait(k, "P T" HoldMs / 1000)             ; not released in time = long press (repeat runs while held)
+            return RunPick(set["hold"], trig)
+    } else
+        KeyWait(k, "P")
+    if (set.Has("double") && KeyWait(k, "D P T" DblMs / 1000))
+        return RunPick(set["double"], trig)             ; held on the 2nd press: "repeat while held" works here too
+    if set.Has("tap")
+        RunPick(set["tap"], trig, true)                 ; the key is already up: plays one pass
+}
 
 Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
 
@@ -1902,12 +2216,36 @@ ReleaseHeld() {
     HeldKeys.Clear()
 }
 
-; a pause between steps: 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait)
-StepWait(ms) {
-    if (ms > 0)
-        Sleep ms
-    else
+; a pause between steps, exact to about a millisecond. A plain Sleep can last up to ~15 ms longer than asked
+; (Windows timer ticks), so the same macro could play at a different speed each time. Here most of the wait is a
+; normal Sleep (the app stays responsive), the rest is measured with the performance counter in 1 ms steps.
+; 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait).
+; (idea: thqby/ahk2_lib HighPrecisionSleep, MIT - done here without machine code)
+; exact = false: the timing of macros made before this existed (a plain Sleep - short delays last ~10-15 ms longer)
+StepWait(ms, exact := true) {
+    static f := 0
+    if (ms <= 0) {
         Sleep -1
+        return
+    }
+    if !exact {
+        Sleep ms
+        return
+    }
+    if !f
+        DllCall("QueryPerformanceFrequency", "Int64*", &f)
+    DllCall("QueryPerformanceCounter", "Int64*", &t := 0)
+    stop := t + ms * f / 1000
+    if (ms > 20)
+        Sleep ms - 16
+    loop {
+        DllCall("QueryPerformanceCounter", "Int64*", &t)
+        left := (stop - t) * 1000 / f
+        if (left <= 0)
+            break
+        if (left > 1.5)
+            DllCall("Sleep", "UInt", 1)                 ; ~1 ms (timeBeginPeriod 1 is on while a macro plays)
+    }
 }
 
 ; repeated macros: one cycle takes at least this long, so a macro with 0 ms delays can't flood
@@ -1919,22 +2257,26 @@ CycleFloor(t0) {
 }
 
 ; ============ type: move + actions ============
-RunMove(m, trig) {
+RunMove(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunMove2(m, trig)
-    finally MacroBusy--
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)       ; 1 ms timer while playing (exact delays)
+    try RunMove2(m, trig, once)
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)     ; also when the macro stops with an error
+        MacroBusy--
+    }
 }
 
-RunMove2(m, trig) {
+RunMove2(m, trig, once) {
+    ex := m["exact"]
     dirs := SplitKeys(m["dirs"])
     acts := SplitKeys(m["actions"])
     if !acts.Length
         return
     g1 := m["g1"], g2 := m["g2"], g3 := m["g3"], ge := m["ge"]
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
-    rep := m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
+    rep := !once && m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
         t0 := A_TickCount
         n++
@@ -1942,39 +2284,43 @@ RunMove2(m, trig) {
         if dirs.Length {
             dir := dirs[di]
             KeyDown(dir)      ; 1. direction down (all keys of a chord together)
-            StepWait(g1)
+            StepWait(g1, ex)
             KeyDown(key)      ; 2. action down
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(dir)        ; 3. direction up
-            StepWait(g3)
+            StepWait(g3, ex)
             KeyUp(key)        ; 4. action up
             di := di >= dirs.Length ? 1 : di + 1
         } else {                   ; no movement: action only
             KeyDown(key)
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(key)
         }
-        StepWait(ge)
+        StepWait(ge, ex)
         ai := ai >= acts.Length ? 1 : ai + 1
         if rep
             CycleFloor(t0)
     }
     ReleaseAll(dirs)
     ReleaseAll(acts)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))          ; "once": don't restart until the key is released
 }
 
 ; ============ type: custom sequence ============
-RunSeq(m, trig) {
+RunSeq(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunSeq2(m, trig)
-    finally MacroBusy--
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)
+    try RunSeq2(m, trig, once)
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)
+        MacroBusy--
+    }
 }
 
-RunSeq2(m, trig) {
+RunSeq2(m, trig, once) {
+    ex := m["exact"]
     steps := []
     used := []
     for line in StrSplit(m["seq"], "|") {
@@ -1986,8 +2332,7 @@ RunSeq2(m, trig) {
     }
     if !steps.Length
         return
-    rep := m["repeat"] && !IsWheel(trig)
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
+    rep := !once && m["repeat"] && !IsWheel(trig)
     stop := false
     while !stop {
         t0 := A_TickCount
@@ -2004,7 +2349,7 @@ RunSeq2(m, trig) {
                 KeyDown(s[2])
                 KeyUp(s[2])
             }
-            StepWait(s[3])
+            StepWait(s[3], ex)
         }
         if !rep
             stop := true
@@ -2012,7 +2357,6 @@ RunSeq2(m, trig) {
             CycleFloor(t0)
     }
     ReleaseAll(used)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))
 }
@@ -2054,7 +2398,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -2062,13 +2406,12 @@ EnsureAssets() {
             B64ToFile(LogoWideB64(), LogoWideFile)
             B64ToFile(CbDarkB64(), CbDarkFile)
             B64ToFile(CbLightB64(), CbLightFile)
-            B64ToFile(BadgeMainB64(), BadgeMainFile)
-            B64ToFile(BadgeDkB64(), BadgeDkFile)
-            B64ToFile(BadgeLtB64(), BadgeLtFile)
             B64ToFile(DiscordB64(), DiscordFile)
             B64ToFile(DiscordHovB64(), DiscordHovFile)
             for c in LangOrder
                 B64ToFile(FlagB64(c), FlagFile(c))
+            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png"]    ; pictures of older versions (the "!" is drawn now)
+                try FileDelete(AssetsDir "\" old)
             WriteText(verFile, AssetVersion)
         }
     }
@@ -2112,7 +2455,22 @@ OnDarkToggle(*) {
     DarkOn := !DarkOn
     swPic.Value := DarkOn ? SwOnFile : SwOffFile
     Save()
+    DarkMenus(DarkOn)
     ApplyTheme(Main)
+}
+
+; tray menu in the app's look: dark or light, whatever Windows uses
+; (SetPreferredAppMode / FlushMenuThemes, uxtheme ordinals 135 / 136 - as in nperovic/GuiEnhancerKit, MIT)
+DarkMenus(on) {
+    try {
+        ux := DllCall("LoadLibrary", "Str", "uxtheme", "Ptr")
+        setMode := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 135, "Ptr")
+        flush := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 136, "Ptr")
+        if (setMode && flush && VerCompare(A_OSVersion, "10.0.18362") >= 0) {
+            DllCall(setMode, "Int", on ? 2 : 3)         ; 2 = always dark, 3 = always light
+            DllCall(flush)
+        }
+    }
 }
 
 SetTheme(hwnd, name := "", sub := "") {
@@ -2122,52 +2480,220 @@ SetTheme(hwnd, name := "", sub := "") {
         DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "Str", name, "Ptr", sub = "" ? 0 : StrPtr(sub))
 }
 
+; [fill, text] or [fill, text, border] - light mode buttons get a thin border so they stand out from the window
 RoleColors(role, hover := false) {
     d := DarkOn
     switch role {
         case "btnprimary":
-            return hover ? ["E3C486", "141414"] : ["D0AE6B", "141414"]
+            if d
+                return hover ? ["E3C486", "141414"] : ["D0AE6B", "141414"]
+            return hover ? ["DDBB78", "141414", "B08D4E"] : ["D0AE6B", "141414", "B08D4E"]
         case "btndanger":
             if d
                 return hover ? ["55292F", "FFB4B4"] : ["3B2226", "FF9C9C"]
-            return hover ? ["F1CBCB", "B3261E"] : ["F8E1E1", "B3261E"]
+            return hover ? ["F0C4C4", "9E1F18", "D69494"] : ["F6D9D9", "9E1F18", "E2AEAE"]
         case "btnghost":
             if d
                 return hover ? ["1F2127", "ECECEF"] : ["15161A", "A9ADB8"]
-            return hover ? ["E9E9EE", "1B1B1F"] : ["F5F5F7", "6A6A74"]
+            return hover ? ["DCDDE4", "1B1B1F", "BDBEC8"] : ["EBEBF0", "3E3E48", "D3D3DB"]
         case "btnbanner":
             return hover ? ["3A3E49", "E3C486"] : ["22242B", "D0AE6B"]
         case "btnupd0":
             return hover ? ["3A3E49", "B8BCC8"] : ["22242B", "6E7380"]
         case "btnupd1":
-            return hover ? ["2E8A4F", "FFFFFF"] : ["1F5C34", "7DF0A0"]
+            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar halo (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
-            return hover ? ["D6D6DE", "1B1B1F"] : ["E4E4EA", "1B1B1F"]
+            return hover ? ["CBCCD6", "111114", "AEB0BC"] : ["DCDDE4", "111114", "BDBEC8"]
     }
 }
 
 ; flat "button" = a clickable text control with its own colours (no system border)
-AddBtn(g, opts, text, handler, role := "btn") {
-    c := g.AddText(opts " +0x200" (InStr(opts, "Left") ? "" : " Center"), text)
+; the button is drawn by the app itself (owner-drawn text control, see DrawBtn): rounded, smooth corners.
+; round = false: square (rows of the drop-down lists)
+AddBtn(g, opts, text, handler, role := "btn", round := true) {
+    c := g.AddText(RegExReplace(opts, "i)\bLeft\b") " +0xD", text)      ; SS_OWNERDRAW ("Left" would clear it; DrawBtn aligns)
     c.OnEvent("Click", handler)
     Roles[c.Hwnd] := role
+    BtnLook[c.Hwnd] := {left: InStr(opts, "Left") > 0, round: round, hover: false, badge: false, pad: [0, 0, 0, 0]}
     return c
 }
 
 PaintBtn(hwnd, hover) {
     try {
-        c := GuiCtrlFromHwnd(hwnd)
-        if !c
-            return
-        col := RoleColors(Roles[hwnd], hover)
-        c.Opt("Background" col[1])
-        c.SetFont("c" col[2])
-        c.Redraw()
+        if BtnLook.Has(hwnd)
+            BtnLook[hwnd].hover := hover
+        DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", 0)     ; repaint without erasing first: no flicker
     }
+}
+
+; WM_DRAWITEM of a flat button: background of the window in the corners, rounded fill (GDI+, anti-aliased),
+; text in the middle. Drawn into a memory bitmap first, so hovering does not flicker.
+; (rounded colour buttons: idea of nperovic/ColorButton.ahk, MIT)
+DrawBtn(wParam, lParam, *) {
+    static ps := A_PtrSize
+    if (NumGet(lParam, 0, "UInt") != 5)                       ; ODT_STATIC only
+        return
+    h := NumGet(lParam, ps = 8 ? 24 : 20, "Ptr")
+    if !(Roles.Has(h) && BtnLook.Has(h))
+        return
+    dc := NumGet(lParam, ps = 8 ? 32 : 24, "Ptr")
+    rcOff := ps = 8 ? 40 : 28
+    w := NumGet(lParam, rcOff + 8, "Int") - NumGet(lParam, rcOff, "Int")
+    hh := NumGet(lParam, rcOff + 12, "Int") - NumGet(lParam, rcOff + 4, "Int")
+    if (w < 1 || hh < 1)
+        return true
+    lk := BtnLook[h]
+    role := Roles[h]
+    s := A_ScreenDPI / 96
+    winBg := DarkOn ? "15161A" : "F5F5F7"
+    mdc := DllCall("CreateCompatibleDC", "Ptr", dc, "Ptr")
+    bmp := DllCall("CreateCompatibleBitmap", "Ptr", dc, "Int", w, "Int", hh, "Ptr")
+    obmp := DllCall("SelectObject", "Ptr", mdc, "Ptr", bmp, "Ptr")
+    r := Buffer(16, 0)
+    if (role = "badge") {                                      ; the yellow "!" on its own (help window, dialogs)
+        FillHex(mdc, 0, 0, w, hh, winBg)
+        if GdipOn() {
+            gr := GrOn(mdc)
+            DrawBadge(gr, w / 2, hh / 2, Min(w, hh) / 2, "")
+            DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+        }
+    } else {
+        col := RoleColors(role, lk.hover)
+        disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
+        under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
+        ; the button itself may be smaller than the control (room for the "!" badge of the help button)
+        fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
+        fw := w - fx - Round(lk.pad[3] * s), fh := hh - fy - Round(lk.pad[4] * s)
+        FillHex(mdc, 0, 0, w, hh, lk.round ? under : col[1])
+        if (lk.round && GdipOn()) {
+            d := Min(fh, Round(12 * s)) + 0.0
+            gr := GrOn(mdc)
+            b := Round(s)                                       ; border width
+            if (col.Length >= 3) {
+                FillRound(gr, fx, fy, fw, fh, d, col[3])        ; border = outer shape, fill = shape inside it
+                FillRound(gr, fx + b, fy + b, fw - 2 * b, fh - 2 * b, Max(2, d - 2 * b), col[1])
+            } else
+                FillRound(gr, fx, fy, fw, fh, d, col[1])
+            if (lk.badge && HelpBadgeOn)
+                DrawBadge(gr, fx + fw, fy + 6 * s, 8 * s, under)
+            DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+        } else if lk.round
+            FillHex(mdc, fx, fy, fw, fh, col[1])
+        txt := ""
+        try txt := GuiCtrlFromHwnd(h).Text
+        font := SendMessage(0x31, 0, 0, h)                      ; WM_GETFONT
+        of := DllCall("SelectObject", "Ptr", mdc, "Ptr", font, "Ptr")
+        DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
+        DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
+        NumPut("Int", fx, "Int", fy, "Int", fx + fw, "Int", fy + fh, r)
+        if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
+            DllCall("TextOutW", "Ptr", mdc, "Int", fx + gx, "Int", fy + gy, "WStr", txt, "Int", 1)   ; icon (?, arrow, ×): the drawn shape itself centred
+        else
+            DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
+        DllCall("SelectObject", "Ptr", mdc, "Ptr", of, "Ptr")
+    }
+    DllCall("BitBlt", "Ptr", dc, "Int", NumGet(lParam, rcOff, "Int"), "Int", NumGet(lParam, rcOff + 4, "Int"), "Int", w, "Int", hh, "Ptr", mdc, "Int", 0, "Int", 0, "UInt", 0xCC0020)
+    DllCall("SelectObject", "Ptr", mdc, "Ptr", obmp, "Ptr")
+    DllCall("DeleteObject", "Ptr", bmp)
+    DllCall("DeleteDC", "Ptr", mdc)
+    return true
+}
+
+FillHex(dc, x, y, w, h, hex) {
+    r := Buffer(16, 0)
+    NumPut("Int", x, "Int", y, "Int", x + w, "Int", y + h, r)
+    br := DllCall("CreateSolidBrush", "UInt", Bgr(hex), "Ptr")
+    DllCall("FillRect", "Ptr", dc, "Ptr", r, "Ptr", br)
+    DllCall("DeleteObject", "Ptr", br)
+}
+
+GrOn(dc) {
+    DllCall("gdiplus\GdipCreateFromHDC", "Ptr", dc, "Ptr*", &gr := 0)
+    DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)        ; anti-alias
+    DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)      ; half-pixel: crisp straight edges
+    return gr
+}
+
+; "new release notes" badge: gold circle with a dark "!", all drawn as shapes (sharp at any size / display scale).
+; ring = colour of a thin outline that separates it from what it overlaps ("" = none)
+DrawBadge(gr, cx, cy, ro, ring) {
+    ri := ro
+    if (ring != "") {
+        FillRound(gr, cx - ro, cy - ro, 2 * ro, 2 * ro, 2 * ro, ring)
+        ri := ro - 1.5 * A_ScreenDPI / 96
+    }
+    FillRound(gr, cx - ri, cy - ri, 2 * ri, 2 * ri, 2 * ri, "F2C94C")
+    bw := Max(1.6, ri * 0.34)                                   ; the bar of the "!"
+    FillRound(gr, cx - bw / 2, cy - ri * 0.62, bw, ri * 0.82, bw, "1B1B1F")
+    dr := Max(0.9, ri * 0.19)                                   ; its dot
+    FillRound(gr, cx - dr, cy + ri * 0.50 - dr, 2 * dr, 2 * dr, 2 * dr, "1B1B1F")
+}
+
+; the badge as its own control (help window, release notes dialog)
+AddBadge(g, opts) {
+    c := g.AddText(opts " +0xD")
+    Roles[c.Hwnd] := "badge"
+    BtnLook[c.Hwnd] := {left: false, round: false, hover: false, badge: false, pad: [0, 0, 0, 0]}
+    return c
+}
+
+; shows / hides the badge on the help button in the banner
+SetHelpBadge(on) {
+    global HelpBadgeOn
+    HelpBadgeOn := on
+    try DllCall("InvalidateRect", "Ptr", bHelp.Hwnd, "Ptr", 0, "Int", 0)
+}
+
+FillRound(gr, x, y, w, h, d, hex) {
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" hex), "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+}
+
+; top-left text position that puts the visible shape of one character exactly in the middle of a w x h box
+; (DrawText centres the character cell, whose empty space above / beside the shape differs per font)
+GlyphCenter(dc, ch, w, h, &x, &y) {
+    gm := Buffer(20, 0), mat := Buffer(16, 0)
+    NumPut("Short", 0, "Short", 1, "Short", 0, "Short", 0, "Short", 0, "Short", 0, "Short", 0, "Short", 1, mat)   ; identity MAT2
+    if (DllCall("GetGlyphOutlineW", "Ptr", dc, "UInt", Ord(ch), "UInt", 0, "Ptr", gm, "UInt", 0, "Ptr", 0, "Ptr", mat, "UInt") = 0xFFFFFFFF)
+        return false
+    bw := NumGet(gm, 0, "UInt"), bh := NumGet(gm, 4, "UInt")
+    ox := NumGet(gm, 8, "Int"), oy := NumGet(gm, 12, "Int")       ; black box corner from the origin (y up)
+    tm := Buffer(60, 0)
+    DllCall("GetTextMetricsW", "Ptr", dc, "Ptr", tm)
+    asc := NumGet(tm, 4, "Int")                                     ; baseline below the top of the cell
+    x := Round((w - bw) / 2 - ox)
+    y := Round((h - bh) / 2 + oy - asc)
+    return bw > 0 && bh > 0
+}
+
+Bgr(hex) {
+    v := Integer("0x" hex)
+    return ((v & 0xFF) << 16) | (v & 0xFF00) | ((v >> 16) & 0xFF)
+}
+
+; GDI+ started once (also used for the list check boxes)
+GdipOn() {
+    static tok := 0
+    if !tok {
+        try {
+            DllCall("LoadLibrary", "Str", "gdiplus", "Ptr")
+            si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
+            NumPut("UInt", 1, si)
+            DllCall("gdiplus\GdiplusStartup", "Ptr*", &tok, "Ptr", si, "Ptr", 0)
+        }
+    }
+    return tok != 0
 }
 
 ; hover effect for the flat buttons
@@ -2207,6 +2733,14 @@ ApplyTheme(g) {
     NumPut("Int", dark ? 1 : 0, flag)
     for attr in [20, 19]                       ; dark title bar (Win10 1809+ / Win11)
         try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+    ; Windows 11: title bar and border in the app's own colours (DWMWA_BORDER / CAPTION / TEXT_COLOR)
+    if (VerCompare(A_OSVersion, "10.0.22000") >= 0) {
+        for attr, col in Map(34, dark ? "2A2D35" : "D6D6DE", 35, win, 36, txt) {
+            rgb := Integer("0x" col)
+            NumPut("UInt", ((rgb & 0xFF) << 16) | (rgb & 0xFF00) | (rgb >> 16), flag)     ; COLORREF = 0x00BBGGRR
+            try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+        }
+    }
     for hwnd, c in g {
         role := Roles.Has(hwnd) ? Roles[hwnd] : ""
         if (role = "skip")
@@ -2219,9 +2753,7 @@ ApplyTheme(g) {
                         c.Opt("Background" col[1])
                         c.SetFont("s9 bold c" col[2])
                     } else if (SubStr(role, 1, 3) = "btn") {
-                        col := RoleColors(role)
-                        c.Opt("Background" col[1])
-                        c.SetFont("s9 c" col[2])
+                        c.SetFont("s9")                     ; colours: DrawBtn
                     } else
                         c.SetFont("c" (role = "hint" ? hint : txt))
                 case "Edit":
@@ -2286,14 +2818,8 @@ ShowOver(g, opts, anchor := 0) {
 
 ; themed check boxes for the list (state image list: 1 = off, 2 = on)
 SetCheckImages(c) {
-    static gdip := 0
     try {
-        if !gdip {
-            si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
-            NumPut("UInt", 1, si)
-            DllCall("gdiplus\GdiplusStartup", "Ptr*", &tok := 0, "Ptr", si, "Ptr", 0)
-            gdip := tok
-        }
+        GdipOn()
         file := DarkOn ? CbDarkFile : CbLightFile
         sz := Round(28 * A_ScreenDPI / 96)
         DllCall("gdiplus\GdipCreateBitmapFromFile", "WStr", file, "Ptr*", &src := 0)
@@ -2608,6 +3134,14 @@ HasProf(list, name) {
 
 InProfile(m) => HasProf(m["profiles"], CurProfile)
 
+; do two profile lists ("a|b") share a profile?
+ProfOverlap(a, b) {
+    for p in StrSplit(a, "|")
+        if (p != "" && HasProf(b, p))
+            return true
+    return false
+}
+
 IndexOf(m) {
     for i, x in Macros
         if (x == m)
@@ -2639,7 +3173,7 @@ LangMenu(*) {
     y := 1
     for code in LangOrder {
         cur := (code = Lang)
-        b := AddBtn(g, "x1 y" y " w" W " h32 Left", "             " LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn")
+        b := AddBtn(g, "x1 y" y " w" W " h32 Left", "             " LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn", false)
         fl := g.AddPicture("x10 y" (y + 8) " w24 h16", FlagFile(code))
         fl.OnEvent("Click", SetLang.Bind(code))
         Roles[fl.Hwnd] := "skip"
@@ -2683,15 +3217,15 @@ ProfileMenu(*) {
     y := 1
     for pn in Profiles {
         cur := (pn = CurProfile)
-        AddBtn(g, "x1 y" y " w" W " h32 Left", (cur ? "  ✓   " : "       ") pn, ProfPick.Bind(pn), cur ? "btnprimary" : "btn")
+        AddBtn(g, "x1 y" y " w" W " h32 Left", (cur ? "  ✓   " : "       ") pn, ProfPick.Bind(pn), cur ? "btnprimary" : "btn", false)
         y += 32
     }
     y += 1                                       ; 1px separator (the window colour shows through)
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "  +   " _T("New profile..."), (*) => (ClosePop(), NewProfile()))
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "  +   " _T("New profile..."), (*) => (ClosePop(), NewProfile()), "btn", false)
     y += 32
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Rename current..."), (*) => (ClosePop(), RenameProfile()))
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Rename current..."), (*) => (ClosePop(), RenameProfile()), "btn", false)
     y += 32
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Delete current"), (*) => (ClosePop(), DeleteProfile()), "btndanger")
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Delete current"), (*) => (ClosePop(), DeleteProfile()), "btndanger", false)
     y += 32
     ApplyTheme(g)
     g.BackColor := DarkOn ? "3A3E49" : "C9C9D2"   ; becomes the 1px frame
@@ -3106,6 +3640,90 @@ SetUpdIcon() {
         Roles[bUpd.Hwnd] := UpdAvail ? "btnupd1" : "btnupd0"
         PaintBtn(bUpd.Hwnd, false)
     }
+    if !UpdAvail
+        UpdPulseTick()                             ; hides the halo
+    SetTimer(UpdPulseTick, UpdAvail ? 33 : 0)      ; new version: radar halo around the green icon
+}
+
+; one frame of the "radar" pulse: a soft green halo grows out of the icon's edge, a little past it, and fades.
+; Drawn in a small transparent click-through window lying over the icon (so it can reach past the button).
+UpdPulseTick() {
+    static ov := 0, dc := 0, dib := 0, gr := 0, sz := 0, m := 0
+    show := UpdAvail && DllCall("IsWindowVisible", "Ptr", Main.Hwnd) && !DllCall("IsIconic", "Ptr", Main.Hwnd)
+        && IconUncovered(ov ? ov.Hwnd : 0)                               ; also when the window is not active
+    if !show {
+        if (ov && DllCall("IsWindowVisible", "Ptr", ov.Hwnd))
+            ov.Hide()
+        return
+    }
+    try {
+        rc := Buffer(16, 0)
+        DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        bx := NumGet(rc, 0, "Int"), by := NumGet(rc, 4, "Int")
+        bw := NumGet(rc, 8, "Int") - bx, bh := NumGet(rc, 12, "Int") - by
+        if !ov {
+            GdipOn()
+            m := Round(9 * A_ScreenDPI / 96)                            ; how far the halo reaches past the button
+            sz := Max(bw, bh) + 2 * m
+            ov := Gui("-Caption +ToolWindow +Owner" Main.Hwnd " +E0x08080020")   ; NOACTIVATE LAYERED TRANSPARENT
+            bi := Buffer(40, 0)
+            NumPut("UInt", 40, "Int", sz, "Int", -sz, "UShort", 1, "UShort", 32, bi)   ; 32-bit, top-down
+            dc := DllCall("CreateCompatibleDC", "Ptr", 0, "Ptr")
+            dib := DllCall("CreateDIBSection", "Ptr", dc, "Ptr", bi, "UInt", 0, "Ptr*", 0, "Ptr", 0, "UInt", 0, "Ptr")
+            DllCall("SelectObject", "Ptr", dc, "Ptr", dib)
+            DllCall("gdiplus\GdipCreateFromHDC", "Ptr", dc, "Ptr*", &gr)
+            DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)
+            DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)
+        }
+        DllCall("gdiplus\GdipGraphicsClear", "Ptr", gr, "UInt", 0)
+        d := Min(bh, Round(12 * A_ScreenDPI / 96))                       ; same corners as the button
+        loop 2 {                                                          ; two waves, half a beat apart
+            t := Mod(A_TickCount / 1600 + (A_Index - 1) / 2, 1)
+            e := 1 + (m - 1) * (1 - (1 - t) ** 2)                         ; grows fast, slows down at the end
+            a := Round(150 * (1 - t) ** 1.5)
+            if (a < 3)
+                continue
+            DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)          ; alternate fill: ring between the two shapes
+            RoundPath(pa, m - e, m - e, bw + 2 * e, bh + 2 * e, d + 2 * e)
+            RoundPath(pa, m, m, bw, bh, d)
+            DllCall("gdiplus\GdipCreateSolidFill", "UInt", (a << 24) | 0x2FD26D, "Ptr*", &fb := 0)
+            DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+            DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+            DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+        }
+        pt := Buffer(8), size := Buffer(8), src := Buffer(8, 0), bl := Buffer(4)
+        NumPut("Int", bx - m, "Int", by - m, pt)
+        NumPut("Int", sz, "Int", sz, size)
+        NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)     ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
+        if !DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
+            ov.Show("NA x" (bx - m) " y" (by - m) " w" sz " h" sz)
+        DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+    }
+}
+
+; is the area around the update icon really showing the app (not covered by another window or one of the
+; app's own dialogs)? The halo window is click-through, so WindowFromPoint looks through it.
+IconUncovered(self := 0) {
+    static m := Round(9 * A_ScreenDPI / 96)
+    rc := Buffer(16, 0)
+    if !DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        return false
+    l := NumGet(rc, 0, "Int") - m, t := NumGet(rc, 4, "Int") - m, r := NumGet(rc, 8, "Int") + m - 1, b := NumGet(rc, 12, "Int") + m - 1
+    for p in [[(l + r) // 2, (t + b) // 2], [l, t], [r, t], [l, b], [r, b]] {
+        h := DllCall("WindowFromPoint", "Int64", (p[2] << 32) | (p[1] & 0xFFFFFFFF), "Ptr")
+        root := h ? DllCall("GetAncestor", "Ptr", h, "UInt", 2, "Ptr") : 0
+        if (root != Main.Hwnd && !(self && root = self))                ; (the halo window itself does not count)
+            return false
+    }
+    return true
+}
+
+RoundPath(pa, x, y, w, h, d) {
+    DllCall("gdiplus\GdipStartPathFigure", "Ptr", pa)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
 }
 
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it
@@ -3115,8 +3733,11 @@ OnUpdIcon(*) {
         return
     busy := true
     try {
-        if !UpdAvail {
-            r := QueryUpdate()
+        had := UpdAvail
+        r := QueryUpdate()                            ; always fresh: a newer build may have been published since the last check
+        if (r = "error" && had)
+            r := "new"                                ; offline right now: offer what was found before (checksum still verified)
+        if (r != "new") {
             if (r = "error") {
                 ThemedNote(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), true)
                 return
@@ -3217,7 +3838,7 @@ HelpTopics() {
     order.Push("Getting started")
     t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
-    t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately).`n`nSave stores the macro, Cancel throws changes away.")
+    t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nPress - how the trigger key has to be pressed. Normal: the macro starts as soon as the key goes down. Short tap: a quick press and release - the macro plays once after the release. Double tap: press the key twice quickly. Long press: hold the key for a moment (with Repeat it keeps playing while you hold it). One key can carry up to three macros this way: short tap, double tap and long press. A Normal macro on the same key takes the whole key. Mouse wheel macros always start at once.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately). Not offered for Short tap - it always plays once.`nExact delays (bottom left) - the delays are kept to about a millisecond. On for new macros. Off = the older timing, where short delays often last 10-15 ms longer than written.`n`nSave stores the macro, Cancel throws changes away.")
     order.Push("Move + actions")
     t["Move + actions"] := _TL("hlp_move", "Made for games where you keep moving (for example A and D) and cast spells in between.`n`nDirections - the movement keys, in order, for example: a,d`nActions in order - the keys to press, one per cycle, for example: 1,2,1,F7,1,F8`n`nEvery cycle does this, with the delays you set:`n  1. direction down`n  2. (delay 1) action down`n  3. (delay 2) direction up`n  4. (delay 3) action up`n  5. (delay 4) pause, then the next direction + next action`n`nThe lists repeat from the start when they end. If Directions is empty, only the actions are pressed: hold time = delay 2, pause = delay 4.`nIf a game ignores the macro, raise the delays (20-30 ms is common).")
     order.Push("Sequence")
@@ -3235,7 +3856,7 @@ HelpTopics() {
     order.Push("Updates")
     t["Updates"] := _TL("hlp_updates", "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access to github.com.")
     order.Push("Tips and problems")
-    t["Tips and problems"] := _TL("hlp_tips", "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys or different profiles.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app.")
+    t["Tips and problems"] := _TL("hlp_tips", "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys, different profiles or different Press modes (short tap / double tap / long press).`n- Macros made before Exact delays existed keep their old timing. If you switch Exact delays on for one of them, it may play faster - then raise its delays a little.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app.")
     return [order, t]
 }
 
@@ -3294,8 +3915,7 @@ OpenHelp(*) {
     unseen := (SeenVer != AppVersion)
     HelpBadge := 0
     if unseen {
-        HelpBadge := g.AddPicture("x172 y101 w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)
-        Roles[HelpBadge.Hwnd] := "skip"
+        HelpBadge := AddBadge(g, "x172 y101 w16 h16")
     }
     g.SetFont("s10", "Segoe UI")
     ed := g.AddEdit("x190 y94 w460 h" (y - 94 + 4) " Multi ReadOnly", "")
@@ -3311,7 +3931,7 @@ OpenHelp(*) {
             SeenVer := AppVersion
             Save()
             try HelpBadge.Visible := false
-            try bBadge.Visible := false
+            SetHelpBadge(false)
         }
     }
     ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
@@ -3447,7 +4067,7 @@ DragTick() {
         code := ExportCode(m)
         if (code = "")
             continue
-        base := RegExReplace(m["name"], '[\\/:*?"<>|]', "_"), nm := base, k := 1
+        base := SafeFileName(m["name"]), nm := base, k := 1
         while used.Has(StrLower(nm))                    ; two macros with the same name: "name (1).ahk"
             nm := base " (" k++ ")"
         used[StrLower(nm)] := true
@@ -3565,8 +4185,7 @@ ThemedAsk(title, heading, body, buttons, warn := true) {
     x0 := 16, y := 16
     if warn {
         try {
-            bp := g.AddPicture("x16 y" (heading = "" ? 16 : 17) " w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)   ; the yellow !
-            Roles[bp.Hwnd] := "skip"
+            AddBadge(g, "x16 y" (heading = "" ? 16 : 17) " w16 h16")   ; the yellow !
             x0 := 40
         }
     }
@@ -4762,170 +5381,6 @@ ZfIDiJt8pFMQdACQ9YL+4UzHZEc6fwI4fCxGzy9JxQAAAABJRU5ErkJggg==
 )"
 }
 
-BadgeMainB64() {
-    return "
-(Join
-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
-YII=
-)"
-}
-
-BadgeDkB64() {
-    return "
-(Join
-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
-)"
-}
-
-BadgeLtB64() {
-    return "
-(Join
-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
-mvrv8/r9/wNv5WChYRKmeQAAAABJRU5ErkJggg==
-)"
-}
-
 FlagB64(c) {
     if (c = "cs")
         return "iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAABvElEQVR42s2YPUtCURjHz9vV640Sq6U1aKxJF1uajJaKIHAsyIaGgqClEoIa+gD1AQoJitZqCzJqKSP6AmJyFS2v2HX0nKfhQmGYL9fLPT6c+fDjx/P8n8PBkcgs6qViCKG0f/JwbWZhahwhxLmglMiimZ6eIwih3MfX4nZiaf+8YJiUEi4EAMhiIggh1cMGB7TTm1Q4dnx5+0YJwRhzLqQBCQAuxLC/r1iuRuNnywcXBaMqS9Vvu9S48Cos0O87uX4Ox45kqarr315Q1WCg5KpqPOESVTWLHCmqWmSg+6raCmU3VbW7JVxT1dnaaqYKwIHTKVBDVUXDpJQgjB041ra3UZYq1askrp7uXtN76/PRiREKwrq02+eHvRIArMbVoUDOqKZiG2HxbnV4V0SjYzaBKADHuKRowYoez94HTb0sqAMtbQ+IgTCp1wO1zezjaj7lgVqJ+ih1ZtaYTTGmvptJBk29wtQq8VBwLJBYV2IUjYGgjuYQ60YMA+eTmvWImLaA3BTTGshlMc2ApIj5F0iWmAZAcsX8BZIupg4IEP5UtJCp72SSIUli6oAIgq3sw0r+RaKYn8K99h3zDUdy4kUbCE0JAAAAAElFTkSuQmCC"
@@ -5319,10 +5774,6 @@ TrCs() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo."
     m["Uninstall Macro Manager"] := "Odinstalovat Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat Macro Manager?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Exportovat všechna makra do složky před odinstalací?"
-    m["Don't export"] := "Neexportovat"
-    m["Export first"] := "Nejdřív exportovat"
-    m["Choose a folder for the backup"] := "Vyber složku pro zálohu"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager byl odinstalován.`nSložka bude za chvilku odstraněna."
     m["New macro"] := "Nové makro"
     m["Edit macro"] := "Upravit makro"
@@ -5423,7 +5874,7 @@ TrCs() {
     m["Could not replace the app file: {1}"] := "Nepodařilo se nahradit soubor aplikace: {1}"
     m["Version {1}"] := "Verze {1}"
     m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Exit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
-    m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě).`n`nUložit makro uloží, Zrušit zahodí změny."
+    m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nStisk - jak se má spouštěcí klávesa stisknout. Normální: makro začne, jakmile klávesu stiskneš. Krátký stisk: rychle stiskni a pusť - makro se přehraje jednou po puštění. Dvojitý stisk: stiskni klávesu dvakrát rychle za sebou. Dlouhý stisk: chvíli klávesu podrž (s Opakováním hraje, dokud ji držíš). Jedna klávesa tak může mít až tři makra: krátký, dvojitý a dlouhý stisk. Normální makro na stejné klávese si vezme celou klávesu. Makra na kolečku myši se spouští vždy hned.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě). U Krátkého stisku se nenabízí - přehraje se vždy jednou.`nPřesné prodlevy (vlevo dole) - prodlevy se dodrží zhruba na milisekundu. U nových maker zapnuté. Vypnuté = dřívější časování, kdy krátké prodlevy často trvají o 10-15 ms déle, než je zapsáno.`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
     m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil Macro Manager, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
@@ -5432,7 +5883,7 @@ TrCs() {
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
     m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu na github.com."
-    m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy nebo různé profily.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
+    m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).`n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
     m["Help"] := "Nápověda"
     m["For support click here"] := "Podpora: klikni sem"
@@ -5461,6 +5912,24 @@ TrCs() {
     m["Toggle keys"] := "Přepínací klávesy"
     m["Order, export, backup"] := "Pořadí, export, záloha"
     m["Tips and problems"] := "Tipy a problémy"
+    m["Press"] := "Stisk"
+    m["Normal"] := "Normální"
+    m["Short tap"] := "Krátký stisk"
+    m["Double tap"] := "Dvojitý stisk"
+    m["Long press"] := "Dlouhý stisk"
+    m["tap"] := "krátce"
+    m["hold"] := "držet"
+    m["Exact delays"] := "Přesné prodlevy"
+    m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
+    m["Don't save"] := "Neukládat"
+    m["the toggle key of `"{1}`""] := "přepínací klávesa makra „{1}“"
+    m["the trigger key of `"{1}`""] := "spouštěcí klávesa makra „{1}“"
+    m["The key {1} is already used as {2}."] := "Klávesa {1} už je použitá jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Přepínací klávesa {1} už je použitá jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Spouštěcí klávesa {1} už je použitá jako {2}."
+    m["the All macros toggle key"] := "přepínač všech maker"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klávesa {1} je použitá dvakrát - jako {2} a jako {3}. Funguje jen jedno z nich."
     return m
 }
 TrPl() {
@@ -5532,10 +6001,6 @@ TrPl() {
     m["This doesn't look like an installed copy, nothing was removed."] := "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte."
     m["Uninstall Macro Manager"] := "Odinstaluj Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować Macro Manager?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Wyeksportować wszystkie makra do folderu przed odinstalowaniem?"
-    m["Don't export"] := "Nie eksportuj"
-    m["Export first"] := "Najpierw eksportuj"
-    m["Choose a folder for the backup"] := "Wybierz folder na kopię zapasową"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager został odinstalowany.`nFolder zostanie za chwilę usunięty."
     m["New macro"] := "Nowe makro"
     m["Edit macro"] := "Edytuj makro"
@@ -5636,7 +6101,7 @@ TrPl() {
     m["Could not replace the app file: {1}"] := "Nie udało się zastąpić pliku aplikacji: {1}"
     m["Version {1}"] := "Wersja {1}"
     m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zamknij.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
-    m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast).`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
+    m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nNaciśnięcie - jak trzeba nacisnąć klawisz wyzwalający. Zwykłe: makro startuje, gdy tylko klawisz zostanie wciśnięty. Krótkie: szybko naciśnij i puść - makro odtwarza się raz po puszczeniu. Podwójne: naciśnij klawisz dwa razy szybko. Przytrzymanie: przytrzymaj klawisz przez chwilę (z Powtarzaniem gra, dopóki go trzymasz). Jeden klawisz może w ten sposób mieć do trzech makr: krótkie, podwójne i przytrzymanie. Zwykłe makro na tym samym klawiszu zajmuje cały klawisz. Makra na kółku myszy zawsze startują od razu.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast). Niedostępne dla Krótkiego - zawsze odtwarza się raz.`nDokładne opóźnienia (na dole po lewej) - opóźnienia są dotrzymywane co do około milisekundy. Włączone dla nowych makr. Wyłączone = dawny sposób, w którym krótkie opóźnienia często trwają o 10-15 ms dłużej, niż wpisano.`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
     m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez Macro Manager, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
@@ -5645,7 +6110,7 @@ TrPl() {
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
     m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu i github.com."
-    m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy lub różnych profili.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
+    m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy, różnych profili lub różnego Naciśnięcia (krótkie / podwójne / przytrzymanie).`n- Makra utworzone przed Dokładnymi opóźnieniami zachowują dawny sposób odmierzania. Gdy włączysz im Dokładne opóźnienia, mogą grać szybciej - wtedy lekko zwiększ opóźnienia.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
     m["Help"] := "Pomoc"
     m["For support click here"] := "Po pomoc kliknij tutaj"
@@ -5674,6 +6139,24 @@ TrPl() {
     m["Toggle keys"] := "Klawisze przełączające"
     m["Order, export, backup"] := "Kolejność i eksport"
     m["Tips and problems"] := "Wskazówki i problemy"
+    m["Press"] := "Naciśnięcie"
+    m["Normal"] := "Zwykłe"
+    m["Short tap"] := "Krótkie"
+    m["Double tap"] := "Podwójne"
+    m["Long press"] := "Przytrzymanie"
+    m["tap"] := "krótko"
+    m["hold"] := "przytrzym."
+    m["Exact delays"] := "Dokładne opóźnienia"
+    m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
+    m["Don't save"] := "Nie zapisuj"
+    m["the toggle key of `"{1}`""] := "klawisz przełącznika makra „{1}”"
+    m["the trigger key of `"{1}`""] := "klawisz wyzwalający makra „{1}”"
+    m["The key {1} is already used as {2}."] := "Klawisz {1} jest już używany jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Klawisz przełącznika {1} jest już używany jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Klawisz wyzwalający {1} jest już używany jako {2}."
+    m["the All macros toggle key"] := "przełącznik wszystkich makr"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klawisz {1} jest użyty dwa razy - jako {2} i jako {3}. Działa tylko jedno z nich."
     return m
 }
 TrDe() {
@@ -5745,10 +6228,6 @@ TrDe() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Das sieht nicht nach einer installierten Kopie aus, es wurde nichts entfernt."
     m["Uninstall Macro Manager"] := "Macro Manager deinstallieren"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Macro Manager deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Alle Makros vor dem Deinstallieren in einen Ordner exportieren?"
-    m["Don't export"] := "Nicht exportieren"
-    m["Export first"] := "Zuerst exportieren"
-    m["Choose a folder for the backup"] := "Wähle einen Ordner für das Backup"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager wurde deinstalliert.`nDer Ordner wird gleich entfernt."
     m["New macro"] := "Neues Makro"
     m["Edit macro"] := "Makro bearbeiten"
@@ -5849,7 +6328,7 @@ TrDe() {
     m["Could not replace the app file: {1}"] := "Die App-Datei konnte nicht ersetzt werden: {1}"
     m["Version {1}"] := "Version {1}"
     m["hlp_start"] := "Macro Manager führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen.`n- Das Suchfeld über der Liste zeigt nur die Makros, deren Name, Taste oder Anwendung den Text enthält. Das Kreuz daneben leert es."
-    m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort).`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
+    m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nDrücken - wie die Auslösetaste gedrückt werden muss. Normal: das Makro startet, sobald die Taste unten ist. Kurz tippen: kurz drücken und loslassen - das Makro spielt einmal nach dem Loslassen. Doppelt tippen: die Taste zweimal schnell drücken. Lang drücken: die Taste einen Moment halten (mit Wiederholen spielt es, solange du sie hältst). Eine Taste kann so bis zu drei Makros tragen: kurz tippen, doppelt tippen und lang drücken. Ein normales Makro auf derselben Taste belegt die ganze Taste. Mausrad-Makros starten immer sofort.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort). Bei Kurz tippen nicht verfügbar - es spielt immer einmal.`nGenaue Verzögerungen (unten links) - die Verzögerungen werden auf etwa eine Millisekunde eingehalten. Für neue Makros an. Aus = das frühere Timing, bei dem kurze Verzögerungen oft 10-15 ms länger dauern als eingetragen.`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
     m["hlp_move"] := "Gedacht für Spiele, in denen du dich ständig bewegst (zum Beispiel A und D) und dazwischen Zauber wirkst.`n`nRichtungen - die Bewegungstasten in Reihenfolge, zum Beispiel: a,d`nAktionen in Folge - die zu drückenden Tasten, eine pro Zyklus, zum Beispiel: 1,2,1,F7,1,F8`n`nJeder Zyklus läuft so ab, mit den eingestellten Verzögerungen:`n  1. Richtung runter`n  2. (Verzögerung 1) Aktion runter`n  3. (Verzögerung 2) Richtung hoch`n  4. (Verzögerung 3) Aktion hoch`n  5. (Verzögerung 4) Pause, dann die nächste Richtung + nächste Aktion`n`nDie Listen beginnen am Ende wieder von vorn. Wenn Richtungen leer ist, werden nur die Aktionen gedrückt: Haltezeit = Verzögerung 2, Pause = Verzögerung 4.`nWenn ein Spiel das Makro ignoriert, erhöhe die Verzögerungen (20-30 ms sind üblich)."
     m["hlp_seq"] := "Eine freie Liste von Schritten. Schreibe einen Schritt pro Zeile:`n`n  down KEY PAUSE   - Taste drücken und halten`n  up KEY PAUSE     - Taste loslassen`n  tap KEY PAUSE    - sofort drücken und loslassen`n`nPAUSE ist die Wartezeit nach dem Schritt in Millisekunden (leer = 0).`n`nBeispiel - schneller A / D-Wechsel:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nBeispiel - Angriff und Zauber:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nBeispiel - zwei Tasten zusammen:`n  tap Shift+4 50`n`nBei Ausführung = Wiederholen laufen die Zeilen in einer Schleife, solange die Auslösetaste gehalten wird; bei Einmal werden sie einmal abgespielt.`nTasten, die beim Loslassen der Auslösetaste noch gehalten werden, werden automatisch losgelassen."
     m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von Macro Manager erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
@@ -5858,7 +6337,7 @@ TrDe() {
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
     m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang zu github.com nötig."
-    m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten oder unterschiedliche Profile.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
+    m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten, unterschiedliche Profile oder unterschiedliches Drücken (kurz / doppelt / lang).`n- Makros, die vor den Genauen Verzögerungen erstellt wurden, behalten ihr altes Timing. Schaltest du sie für eines davon ein, kann es schneller spielen - erhöhe dann seine Verzögerungen etwas.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
     m["Help"] := "Hilfe"
     m["For support click here"] := "Für Support hier klicken"
@@ -5887,6 +6366,24 @@ TrDe() {
     m["Toggle keys"] := "Ein/Aus-Tasten"
     m["Order, export, backup"] := "Ordnung, Export, Backup"
     m["Tips and problems"] := "Tipps und Probleme"
+    m["Press"] := "Drücken"
+    m["Normal"] := "Normal"
+    m["Short tap"] := "Kurz tippen"
+    m["Double tap"] := "Doppelt tippen"
+    m["Long press"] := "Lang drücken"
+    m["tap"] := "kurz"
+    m["hold"] := "halten"
+    m["Exact delays"] := "Genaue Verzögerungen"
+    m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
+    m["Don't save"] := "Nicht speichern"
+    m["the toggle key of `"{1}`""] := "Ein/Aus-Taste von „{1}“"
+    m["the trigger key of `"{1}`""] := "Auslösetaste von „{1}“"
+    m["The key {1} is already used as {2}."] := "Die Taste {1} wird bereits verwendet als {2}."
+    m["The toggle key {1} is already used as {2}."] := "Die Ein/Aus-Taste {1} wird bereits verwendet als {2}."
+    m["The trigger key {1} is already used as {2}."] := "Die Auslösetaste {1} wird bereits verwendet als {2}."
+    m["the All macros toggle key"] := "Taste für alle Makros"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Die Taste {1} ist doppelt belegt - als {2} und als {3}. Nur eines davon funktioniert."
     return m
 }
 ; ===== END TRANSLATIONS =====

@@ -167,6 +167,90 @@ SetUpdIcon() {
         Roles[bUpd.Hwnd] := UpdAvail ? "btnupd1" : "btnupd0"
         PaintBtn(bUpd.Hwnd, false)
     }
+    if !UpdAvail
+        UpdPulseTick()                             ; hides the halo
+    SetTimer(UpdPulseTick, UpdAvail ? 33 : 0)      ; new version: radar halo around the green icon
+}
+
+; one frame of the "radar" pulse: a soft green halo grows out of the icon's edge, a little past it, and fades.
+; Drawn in a small transparent click-through window lying over the icon (so it can reach past the button).
+UpdPulseTick() {
+    static ov := 0, dc := 0, dib := 0, gr := 0, sz := 0, m := 0
+    show := UpdAvail && DllCall("IsWindowVisible", "Ptr", Main.Hwnd) && !DllCall("IsIconic", "Ptr", Main.Hwnd)
+        && IconUncovered(ov ? ov.Hwnd : 0)                               ; also when the window is not active
+    if !show {
+        if (ov && DllCall("IsWindowVisible", "Ptr", ov.Hwnd))
+            ov.Hide()
+        return
+    }
+    try {
+        rc := Buffer(16, 0)
+        DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        bx := NumGet(rc, 0, "Int"), by := NumGet(rc, 4, "Int")
+        bw := NumGet(rc, 8, "Int") - bx, bh := NumGet(rc, 12, "Int") - by
+        if !ov {
+            GdipOn()
+            m := Round(9 * A_ScreenDPI / 96)                            ; how far the halo reaches past the button
+            sz := Max(bw, bh) + 2 * m
+            ov := Gui("-Caption +ToolWindow +Owner" Main.Hwnd " +E0x08080020")   ; NOACTIVATE LAYERED TRANSPARENT
+            bi := Buffer(40, 0)
+            NumPut("UInt", 40, "Int", sz, "Int", -sz, "UShort", 1, "UShort", 32, bi)   ; 32-bit, top-down
+            dc := DllCall("CreateCompatibleDC", "Ptr", 0, "Ptr")
+            dib := DllCall("CreateDIBSection", "Ptr", dc, "Ptr", bi, "UInt", 0, "Ptr*", 0, "Ptr", 0, "UInt", 0, "Ptr")
+            DllCall("SelectObject", "Ptr", dc, "Ptr", dib)
+            DllCall("gdiplus\GdipCreateFromHDC", "Ptr", dc, "Ptr*", &gr)
+            DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)
+            DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)
+        }
+        DllCall("gdiplus\GdipGraphicsClear", "Ptr", gr, "UInt", 0)
+        d := Min(bh, Round(12 * A_ScreenDPI / 96))                       ; same corners as the button
+        loop 2 {                                                          ; two waves, half a beat apart
+            t := Mod(A_TickCount / 1600 + (A_Index - 1) / 2, 1)
+            e := 1 + (m - 1) * (1 - (1 - t) ** 2)                         ; grows fast, slows down at the end
+            a := Round(150 * (1 - t) ** 1.5)
+            if (a < 3)
+                continue
+            DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)          ; alternate fill: ring between the two shapes
+            RoundPath(pa, m - e, m - e, bw + 2 * e, bh + 2 * e, d + 2 * e)
+            RoundPath(pa, m, m, bw, bh, d)
+            DllCall("gdiplus\GdipCreateSolidFill", "UInt", (a << 24) | 0x2FD26D, "Ptr*", &fb := 0)
+            DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+            DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+            DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+        }
+        pt := Buffer(8), size := Buffer(8), src := Buffer(8, 0), bl := Buffer(4)
+        NumPut("Int", bx - m, "Int", by - m, pt)
+        NumPut("Int", sz, "Int", sz, size)
+        NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)     ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
+        if !DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
+            ov.Show("NA x" (bx - m) " y" (by - m) " w" sz " h" sz)
+        DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+    }
+}
+
+; is the area around the update icon really showing the app (not covered by another window or one of the
+; app's own dialogs)? The halo window is click-through, so WindowFromPoint looks through it.
+IconUncovered(self := 0) {
+    static m := Round(9 * A_ScreenDPI / 96)
+    rc := Buffer(16, 0)
+    if !DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        return false
+    l := NumGet(rc, 0, "Int") - m, t := NumGet(rc, 4, "Int") - m, r := NumGet(rc, 8, "Int") + m - 1, b := NumGet(rc, 12, "Int") + m - 1
+    for p in [[(l + r) // 2, (t + b) // 2], [l, t], [r, t], [l, b], [r, b]] {
+        h := DllCall("WindowFromPoint", "Int64", (p[2] << 32) | (p[1] & 0xFFFFFFFF), "Ptr")
+        root := h ? DllCall("GetAncestor", "Ptr", h, "UInt", 2, "Ptr") : 0
+        if (root != Main.Hwnd && !(self && root = self))                ; (the halo window itself does not count)
+            return false
+    }
+    return true
+}
+
+RoundPath(pa, x, y, w, h, d) {
+    DllCall("gdiplus\GdipStartPathFigure", "Ptr", pa)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
 }
 
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it
@@ -176,8 +260,11 @@ OnUpdIcon(*) {
         return
     busy := true
     try {
-        if !UpdAvail {
-            r := QueryUpdate()
+        had := UpdAvail
+        r := QueryUpdate()                            ; always fresh: a newer build may have been published since the last check
+        if (r = "error" && had)
+            r := "new"                                ; offline right now: offer what was found before (checksum still verified)
+        if (r != "new") {
             if (r = "error") {
                 ThemedNote(_T("Could not check for updates. Check your internet connection and try again."), _T("Updates"), true)
                 return

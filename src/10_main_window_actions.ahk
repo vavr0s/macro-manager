@@ -138,7 +138,20 @@ OnMaster(*) {
 
 OnMasterKey() {
     global MasterKey
-    MasterKey := MKst["key"]
+    k := MKst["key"]
+    if (k != "") {                                  ; works in every profile: no macro of any profile may use the key
+        id := KeyId(k)
+        for m in Macros {
+            who := KeyId(m["tkey"]) = id ? _T("the toggle key of `"{1}`"", m["name"]) : (TrigId(m) = id ? _T("the trigger key of `"{1}`"", m["name"]) : "")
+            if (who != "") {
+                ThemedNote(_T("The key {1} is already used as {2}.", k, who), , true)
+                MKst["key"] := MasterKey            ; keep the previous key
+                bMKey.Text := KeyLabel(_T("All macros toggle key:") "  ", MasterKey)
+                return
+            }
+        }
+    }
+    MasterKey := k
     Save()
     Apply()
 }
@@ -164,9 +177,9 @@ ToggleMacro(m, *) {
     Toast(m["name"] ": " (m["enabled"] ? _T("ON") : _T("OFF")))
 }
 
-Toast(txt) {
+Toast(txt, ms := 1200) {
     ToolTip(txt)
-    SetTimer(() => ToolTip(), -1200)
+    SetTimer(() => ToolTip(), -ms)
 }
 
 MoveRow(d) {
@@ -252,7 +265,7 @@ Refresh() {
         if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }

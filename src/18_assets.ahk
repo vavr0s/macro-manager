@@ -4,7 +4,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(BadgeMainFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -12,13 +12,12 @@ EnsureAssets() {
             B64ToFile(LogoWideB64(), LogoWideFile)
             B64ToFile(CbDarkB64(), CbDarkFile)
             B64ToFile(CbLightB64(), CbLightFile)
-            B64ToFile(BadgeMainB64(), BadgeMainFile)
-            B64ToFile(BadgeDkB64(), BadgeDkFile)
-            B64ToFile(BadgeLtB64(), BadgeLtFile)
             B64ToFile(DiscordB64(), DiscordFile)
             B64ToFile(DiscordHovB64(), DiscordHovFile)
             for c in LangOrder
                 B64ToFile(FlagB64(c), FlagFile(c))
+            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png"]    ; pictures of older versions (the "!" is drawn now)
+                try FileDelete(AssetsDir "\" old)
             WriteText(verFile, AssetVersion)
         }
     }

@@ -12,6 +12,18 @@ Persistent
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+NoThrottle()
+
+; Windows 11 slows the timers of apps whose window is hidden (this app sits in the tray) and may put them into
+; "efficiency mode" - macro delays would then be longer than set. This opts the app out of both.
+NoThrottle() {
+    st := Buffer(12, 0)
+    for mask in [0x5, 0x1] {                      ; EXECUTION_SPEED + IGNORE_TIMER_RESOLUTION (Win11), else only the first
+        NumPut("UInt", 1, "UInt", mask, "UInt", 0, st)
+        try if DllCall("SetProcessInformation", "Ptr", DllCall("GetCurrentProcess", "Ptr"), "Int", 4, "Ptr", st, "UInt", 12)
+            return
+    }
+}
 #HotIfTimeout 150      ; the keyboard hook waits at most this long for "only in app" checks (default 1000 ms stalls all keys)
 
 ; ============ language ============
@@ -57,6 +69,9 @@ if !A_IsAdmin {
 }
 
 Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme (also by the setup dialogs)
+BtnLook := Map()       ; flat button hwnd -> {left, round, hover, badge, pad} (drawn by DrawBtn)
+HelpBadgeOn := false   ; gold "!" on the help button: release notes of this version not opened yet
+OnMessage(0x2B, DrawBtn)       ; WM_DRAWITEM: the flat buttons are drawn by the app
 DarkOn := false
 
 ; ============ first run: install into a folder chosen by the user ============
@@ -79,16 +94,13 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-BadgeMainFile := AssetsDir "\badge_main.png"     ; yellow ! with glow (banner / dark window / light window)
-BadgeDkFile := AssetsDir "\badge_dk.png"
-BadgeLtFile := AssetsDir "\badge_lt.png"
 DiscordFile := AssetsDir "\discord.png"
 DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
 DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "10"    ; bump when the embedded logo/icon change
-AppVersion := "1.18"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "11"    ; bump when the embedded logo/icon change
+AppVersion := "1.19"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -97,7 +109,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Minor fixes"
+ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -111,6 +123,8 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+HoldMs := 300          ; long press = trigger key held at least this long (macros.ini [main] holdms)
+DblMs := 250           ; double tap = second press within this time (macros.ini [main] doublems)
 HeldKeys := Map()      ; keys a macro holds down right now
 MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
@@ -167,13 +181,14 @@ try {
     Roles[flB.Hwnd] := "skip"
     BtnAlias[flB.Hwnd] := bLang.Hwnd
     Main.SetFont("s13 bold", "Segoe UI")
-    bHelp := AddBtn(Main, "x782 y14 w28 h28", "?", OpenHelp, "btnbanner")                 ; help on top, updates below (same size)
-    bBadge := Main.AddPicture("x810 y12 w16 h16", BadgeMainFile)      ; yellow ! with glow beside the help icon: release notes not read yet
-    Roles[bBadge.Hwnd] := "skip"
-    bBadge.Visible := (SeenVer != AppVersion)
+    ; help on top, updates below (same size). The help control is a bit larger than its button: the gold "!" badge
+    ; (release notes not read yet) is drawn on the button's top right corner
+    bHelp := AddBtn(Main, "x782 y12 w36 h30", "?", OpenHelp, "btnbanner")
+    BtnLook[bHelp.Hwnd].pad := [0, 2, 8, 0]
+    BtnLook[bHelp.Hwnd].badge := true
+    HelpBadgeOn := (SeenVer != AppVersion)
     Main.SetFont("s12 norm", "Segoe MDL2 Assets")
     bUpd := AddBtn(Main, "x782 y46 w28 h28", Chr(0xE896), OnUpdIcon, "btnupd0")      ; download arrow: grey = up to date, green = new version
-    Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     Main.SetFont("s9 norm c000000", "Segoe UI")
 }
 try {
@@ -188,7 +203,7 @@ eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 130, 240, 150]
+hdrW := [300, 150, 220, 150]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
@@ -200,10 +215,10 @@ for i, nm in hdrNames {
 }
 LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
 LV.SetFont("s10")
-LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
+LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
 LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 130)
-LV.ModifyCol(3, 240)
+LV.ModifyCol(2, 150)
+LV.ModifyCol(3, 220)
 LV.ModifyCol(4, 130)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
@@ -243,6 +258,7 @@ if AutoUpd
 A_TrayMenu.Add(_T("Uninstall..."), (*) => UninstallApp())
 A_TrayMenu.Add(_T("Exit"), (*) => ExitApp())
 A_TrayMenu.Default := _T("Open window")
+DarkMenus(DarkOn)
 OnExit(ExitHandler)
 
 Refresh()

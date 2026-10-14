@@ -15,6 +15,14 @@ HasProf(list, name) {
 
 InProfile(m) => HasProf(m["profiles"], CurProfile)
 
+; do two profile lists ("a|b") share a profile?
+ProfOverlap(a, b) {
+    for p in StrSplit(a, "|")
+        if (p != "" && HasProf(b, p))
+            return true
+    return false
+}
+
 IndexOf(m) {
     for i, x in Macros
         if (x == m)
@@ -46,7 +54,7 @@ LangMenu(*) {
     y := 1
     for code in LangOrder {
         cur := (code = Lang)
-        b := AddBtn(g, "x1 y" y " w" W " h32 Left", "             " LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn")
+        b := AddBtn(g, "x1 y" y " w" W " h32 Left", "             " LangNames[code], SetLang.Bind(code), cur ? "btnprimary" : "btn", false)
         fl := g.AddPicture("x10 y" (y + 8) " w24 h16", FlagFile(code))
         fl.OnEvent("Click", SetLang.Bind(code))
         Roles[fl.Hwnd] := "skip"
@@ -90,15 +98,15 @@ ProfileMenu(*) {
     y := 1
     for pn in Profiles {
         cur := (pn = CurProfile)
-        AddBtn(g, "x1 y" y " w" W " h32 Left", (cur ? "  ✓   " : "       ") pn, ProfPick.Bind(pn), cur ? "btnprimary" : "btn")
+        AddBtn(g, "x1 y" y " w" W " h32 Left", (cur ? "  ✓   " : "       ") pn, ProfPick.Bind(pn), cur ? "btnprimary" : "btn", false)
         y += 32
     }
     y += 1                                       ; 1px separator (the window colour shows through)
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "  +   " _T("New profile..."), (*) => (ClosePop(), NewProfile()))
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "  +   " _T("New profile..."), (*) => (ClosePop(), NewProfile()), "btn", false)
     y += 32
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Rename current..."), (*) => (ClosePop(), RenameProfile()))
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Rename current..."), (*) => (ClosePop(), RenameProfile()), "btn", false)
     y += 32
-    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Delete current"), (*) => (ClosePop(), DeleteProfile()), "btndanger")
+    AddBtn(g, "x1 y" y " w" W " h32 Left", "       " _T("Delete current"), (*) => (ClosePop(), DeleteProfile()), "btndanger", false)
     y += 32
     ApplyTheme(g)
     g.BackColor := DarkOn ? "3A3E49" : "C9C9D2"   ; becomes the 1px frame

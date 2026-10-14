@@ -81,12 +81,36 @@ ReleaseHeld() {
     HeldKeys.Clear()
 }
 
-; a pause between steps: 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait)
-StepWait(ms) {
-    if (ms > 0)
-        Sleep ms
-    else
+; a pause between steps, exact to about a millisecond. A plain Sleep can last up to ~15 ms longer than asked
+; (Windows timer ticks), so the same macro could play at a different speed each time. Here most of the wait is a
+; normal Sleep (the app stays responsive), the rest is measured with the performance counter in 1 ms steps.
+; 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait).
+; (idea: thqby/ahk2_lib HighPrecisionSleep, MIT - done here without machine code)
+; exact = false: the timing of macros made before this existed (a plain Sleep - short delays last ~10-15 ms longer)
+StepWait(ms, exact := true) {
+    static f := 0
+    if (ms <= 0) {
         Sleep -1
+        return
+    }
+    if !exact {
+        Sleep ms
+        return
+    }
+    if !f
+        DllCall("QueryPerformanceFrequency", "Int64*", &f)
+    DllCall("QueryPerformanceCounter", "Int64*", &t := 0)
+    stop := t + ms * f / 1000
+    if (ms > 20)
+        Sleep ms - 16
+    loop {
+        DllCall("QueryPerformanceCounter", "Int64*", &t)
+        left := (stop - t) * 1000 / f
+        if (left <= 0)
+            break
+        if (left > 1.5)
+            DllCall("Sleep", "UInt", 1)                 ; ~1 ms (timeBeginPeriod 1 is on while a macro plays)
+    }
 }
 
 ; repeated macros: one cycle takes at least this long, so a macro with 0 ms delays can't flood
@@ -98,22 +122,26 @@ CycleFloor(t0) {
 }
 
 ; ============ type: move + actions ============
-RunMove(m, trig) {
+RunMove(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunMove2(m, trig)
-    finally MacroBusy--
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)       ; 1 ms timer while playing (exact delays)
+    try RunMove2(m, trig, once)
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)     ; also when the macro stops with an error
+        MacroBusy--
+    }
 }
 
-RunMove2(m, trig) {
+RunMove2(m, trig, once) {
+    ex := m["exact"]
     dirs := SplitKeys(m["dirs"])
     acts := SplitKeys(m["actions"])
     if !acts.Length
         return
     g1 := m["g1"], g2 := m["g2"], g3 := m["g3"], ge := m["ge"]
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
-    rep := m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
+    rep := !once && m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
         t0 := A_TickCount
         n++
@@ -121,39 +149,43 @@ RunMove2(m, trig) {
         if dirs.Length {
             dir := dirs[di]
             KeyDown(dir)      ; 1. direction down (all keys of a chord together)
-            StepWait(g1)
+            StepWait(g1, ex)
             KeyDown(key)      ; 2. action down
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(dir)        ; 3. direction up
-            StepWait(g3)
+            StepWait(g3, ex)
             KeyUp(key)        ; 4. action up
             di := di >= dirs.Length ? 1 : di + 1
         } else {                   ; no movement: action only
             KeyDown(key)
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(key)
         }
-        StepWait(ge)
+        StepWait(ge, ex)
         ai := ai >= acts.Length ? 1 : ai + 1
         if rep
             CycleFloor(t0)
     }
     ReleaseAll(dirs)
     ReleaseAll(acts)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))          ; "once": don't restart until the key is released
 }
 
 ; ============ type: custom sequence ============
-RunSeq(m, trig) {
+RunSeq(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunSeq2(m, trig)
-    finally MacroBusy--
+    DllCall("winmm\timeBeginPeriod", "UInt", 1)
+    try RunSeq2(m, trig, once)
+    finally {
+        DllCall("winmm\timeEndPeriod", "UInt", 1)
+        MacroBusy--
+    }
 }
 
-RunSeq2(m, trig) {
+RunSeq2(m, trig, once) {
+    ex := m["exact"]
     steps := []
     used := []
     for line in StrSplit(m["seq"], "|") {
@@ -165,8 +197,7 @@ RunSeq2(m, trig) {
     }
     if !steps.Length
         return
-    rep := m["repeat"] && !IsWheel(trig)
-    DllCall("winmm\timeBeginPeriod", "UInt", 1)
+    rep := !once && m["repeat"] && !IsWheel(trig)
     stop := false
     while !stop {
         t0 := A_TickCount
@@ -183,7 +214,7 @@ RunSeq2(m, trig) {
                 KeyDown(s[2])
                 KeyUp(s[2])
             }
-            StepWait(s[3])
+            StepWait(s[3], ex)
         }
         if !rep
             stop := true
@@ -191,7 +222,6 @@ RunSeq2(m, trig) {
             CycleFloor(t0)
     }
     ReleaseAll(used)
-    DllCall("winmm\timeEndPeriod", "UInt", 1)
     if (!rep && !IsWheel(trig))
         try KeyWait(TrigMain(trig))
 }
