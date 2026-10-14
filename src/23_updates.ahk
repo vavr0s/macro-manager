@@ -167,6 +167,25 @@ SetUpdIcon() {
         Roles[bUpd.Hwnd] := UpdAvail ? "btnupd1" : "btnupd0"
         PaintBtn(bUpd.Hwnd, false)
     }
+    SetTimer(UpdPulseTick, UpdAvail ? 40 : 0)      ; new version: the green icon pulses
+}
+
+; one step of the pulse: the green brightens and dims smoothly (about 1.4 s per beat)
+UpdPulseTick() {
+    global UpdPulse
+    if (!UpdAvail || !DllCall("IsWindowVisible", "Ptr", Main.Hwnd) || DllCall("IsIconic", "Ptr", Main.Hwnd))
+        return                                      ; nothing to see: no repainting
+    UpdPulse := (1 - Cos(2 * 3.14159265 * Mod(A_TickCount, 1400) / 1400)) / 2
+    if (HoverHwnd != bUpd.Hwnd)
+        try GuiCtrlFromHwnd(bUpd.Hwnd).Redraw()
+}
+
+; colour between a and b ("RRGGBB"), t = 0..1
+MixCol(a, b, t) {
+    va := Integer("0x" a), vb := Integer("0x" b), out := 0
+    for sh in [16, 8, 0]
+        out |= Round(((va >> sh) & 0xFF) + (((vb >> sh) & 0xFF) - ((va >> sh) & 0xFF)) * t) << sh
+    return Format("{:06X}", out)
 }
 
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it

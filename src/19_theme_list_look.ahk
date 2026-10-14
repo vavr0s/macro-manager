@@ -56,7 +56,7 @@ RoleColors(role, hover := false) {
         case "btnupd0":
             return hover ? ["3A3E49", "B8BCC8"] : ["22242B", "6E7380"]
         case "btnupd1":
-            return hover ? ["2E8A4F", "FFFFFF"] : ["1F5C34", "7DF0A0"]
+            return hover ? ["3FE07F", "FFFFFF"] : [MixCol("16883F", "2FD26D", UpdPulse), "FFFFFF"]     ; pulsing green (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         default:    ; plain button
