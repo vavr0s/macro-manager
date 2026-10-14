@@ -68,10 +68,6 @@ TrCs() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo."
     m["Uninstall Macro Manager"] := "Odinstalovat Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat Macro Manager?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Exportovat všechna makra do složky před odinstalací?"
-    m["Don't export"] := "Neexportovat"
-    m["Export first"] := "Nejdřív exportovat"
-    m["Choose a folder for the backup"] := "Vyber složku pro zálohu"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager byl odinstalován.`nSložka bude za chvilku odstraněna."
     m["New macro"] := "Nové makro"
     m["Edit macro"] := "Upravit makro"
@@ -219,6 +215,8 @@ TrCs() {
     m["hold"] := "držet"
     m["Exact delays"] := "Přesné prodlevy"
     m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
+    m["Don't save"] := "Neukládat"
     return m
 }
 TrPl() {
@@ -290,10 +288,6 @@ TrPl() {
     m["This doesn't look like an installed copy, nothing was removed."] := "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte."
     m["Uninstall Macro Manager"] := "Odinstaluj Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować Macro Manager?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Wyeksportować wszystkie makra do folderu przed odinstalowaniem?"
-    m["Don't export"] := "Nie eksportuj"
-    m["Export first"] := "Najpierw eksportuj"
-    m["Choose a folder for the backup"] := "Wybierz folder na kopię zapasową"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager został odinstalowany.`nFolder zostanie za chwilę usunięty."
     m["New macro"] := "Nowe makro"
     m["Edit macro"] := "Edytuj makro"
@@ -441,6 +435,8 @@ TrPl() {
     m["hold"] := "przytrzym."
     m["Exact delays"] := "Dokładne opóźnienia"
     m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
+    m["Don't save"] := "Nie zapisuj"
     return m
 }
 TrDe() {
@@ -512,10 +508,6 @@ TrDe() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Das sieht nicht nach einer installierten Kopie aus, es wurde nichts entfernt."
     m["Uninstall Macro Manager"] := "Macro Manager deinstallieren"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Macro Manager deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Alle Makros vor dem Deinstallieren in einen Ordner exportieren?"
-    m["Don't export"] := "Nicht exportieren"
-    m["Export first"] := "Zuerst exportieren"
-    m["Choose a folder for the backup"] := "Wähle einen Ordner für das Backup"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager wurde deinstalliert.`nDer Ordner wird gleich entfernt."
     m["New macro"] := "Neues Makro"
     m["Edit macro"] := "Makro bearbeiten"
@@ -663,6 +655,8 @@ TrDe() {
     m["hold"] := "halten"
     m["Exact delays"] := "Genaue Verzögerungen"
     m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
+    m["Don't save"] := "Nicht speichern"
     return m
 }
 ; ===== END TRANSLATIONS =====

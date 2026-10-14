@@ -291,24 +291,35 @@ UninstallApp(fromArg := false) {
             LaunchInstalled(dir)
         return false
     }
-    ; offer a backup of the macros before everything is deleted
+    ; offer a backup file (macros, profiles, settings, script files) before everything is deleted
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Export all your macros to a folder before uninstalling?"), [[_T("Cancel"), "", "btn"], [_T("Don't export"), "no", "btn"], [_T("Export first"), "yes", "btnprimary"]], false)
+        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
         if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
         if (r = "yes") {
-            bdir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the backup"))
-            if (bdir = "") {
+            path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+            if (path = "") {
                 if fromArg
                     LaunchInstalled(dir)
                 return false
             }
-            ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"))
+            if !RegExMatch(path, "i)\.mmbackup$")
+                path .= ".mmbackup"
+            try {
+                Save()                                  ; the settings in memory are the newest
+                WriteBackup(path)
+            } catch as e {
+                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall Macro Manager"), true)
+                if fromArg
+                    LaunchInstalled(dir)
+                return false                            ; nothing deleted without the backup the user asked for
+            }
+            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall Macro Manager"))
         }
     }
     ; stop imported scripts started by the manager

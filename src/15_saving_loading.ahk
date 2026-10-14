@@ -23,30 +23,32 @@ Load() {
         Save()      ; fresh install: empty macro list, the user imports their own
         return
     }
-    MasterOn := IniRead(IniFile, "main", "master", "1") = "1"
-    AutoUpd := IniRead(IniFile, "main", "autoupdate", "1") = "1"
-    SeenVer := IniRead(IniFile, "main", "seenver", "")
-    DarkOn := IniRead(IniFile, "main", "dark", "0") = "1"
-    MasterKey := IniRead(IniFile, "main", "masterkey", "")
-    HoldMs := Max(100, Min(2000, Num(IniRead(IniFile, "main", "holdms", HoldMs))))       ; long press: held at least this long
-    DblMs := Max(100, Min(1000, Num(IniRead(IniFile, "main", "doublems", DblMs))))      ; double tap: 2nd press within this time
-    pl := StrSplit(IniRead(IniFile, "main", "proflist", "Default"), "|")
+    ini := IniParse(FileRead(IniFile))              ; the whole file in one read (one IniRead per value was slow with many macros)
+    Get(sec, key, def) => (ini.Has(sec) && ini[sec].Has(key)) ? ini[sec][key] : def
+    MasterOn := Get("main", "master", "1") = "1"
+    AutoUpd := Get("main", "autoupdate", "1") = "1"
+    SeenVer := Get("main", "seenver", "")
+    DarkOn := Get("main", "dark", "0") = "1"
+    MasterKey := Get("main", "masterkey", "")
+    HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
+    DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
+    pl := StrSplit(Get("main", "proflist", "Default"), "|")
     Profiles := []
     for pn in pl
         if (Trim(pn) != "")
             Profiles.Push(Trim(pn))
     if !Profiles.Length
         Profiles := ["Default"]
-    CurProfile := IniRead(IniFile, "main", "profile", Profiles[1])
+    CurProfile := Get("main", "profile", Profiles[1])
     if !HasProf(JoinProfs(Profiles), CurProfile)
         CurProfile := Profiles[1]
-    n := Integer(IniRead(IniFile, "main", "count", "0"))
+    n := Num(Get("main", "count", "0"))
     loop n {
         s := "m" A_Index
         m := Defaults()
         for k, v in Defaults()
-            m[k] := IniRead(IniFile, s, k, v)
-        m["exact"] := IniRead(IniFile, s, "exact", "0")      ; macros saved before exact delays existed keep their old timing
+            m[k] := Get(s, k, v)
+        m["exact"] := Get(s, "exact", "0")          ; macros saved before exact delays existed keep their old timing
         for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted", "exact"]
             m[k] := Num(m[k])
         m["file"] := RegExReplace(m["file"], "^.*\\", "")   ; keep only the file name
@@ -54,6 +56,34 @@ Load() {
             m["profiles"] := Profiles[1]
         Macros.Push(m)
     }
+}
+
+; ini text -> Map(section -> Map(key -> value)), read the way IniRead reads it: names without regard to case,
+; the first of two equal keys wins, spaces around the value and one pair of enclosing quotes are dropped
+IniParse(text) {
+    out := Map(), out.CaseSense := "Off"
+    cur := 0
+    for line in StrSplit(text, "`n", "`r") {
+        line := Trim(line, " `t")
+        if (line = "" || SubStr(line, 1, 1) = ";")
+            continue
+        if RegExMatch(line, "^\[(.*)\]$", &h) {
+            sec := Trim(h[1])
+            if !out.Has(sec) {
+                out[sec] := Map(), out[sec].CaseSense := "Off"
+            }
+            cur := out[sec]
+            continue
+        }
+        if (!cur || !(p := InStr(line, "=")))
+            continue
+        k := Trim(SubStr(line, 1, p - 1), " `t"), v := Trim(SubStr(line, p + 1), " `t")
+        if (StrLen(v) >= 2 && (q := SubStr(v, 1, 1)) = SubStr(v, -1) && (q = '"' || q = "'"))
+            v := SubStr(v, 2, -1)
+        if !cur.Has(k)
+            cur[k] := v
+    }
+    return out
 }
 
 ; the whole file is built in memory and written in one go: first to macros.ini.tmp, then swapped in.

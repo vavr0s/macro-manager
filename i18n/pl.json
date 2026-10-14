@@ -53,8 +53,6 @@
  "This doesn't look like an installed copy, nothing was removed.": "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte.",
  "Uninstall Macro Manager": "Odinstaluj Macro Manager",
  "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": "Odinstalować Macro Manager?\n\nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:\n{1}",
- "Export all your macros to a folder before uninstalling?": "Wyeksportować wszystkie makra do folderu przed odinstalowaniem?",
- "Choose a folder for the backup": "Wybierz folder na kopię zapasową",
  "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": "Macro Manager został odinstalowany.\nFolder zostanie za chwilę usunięty.",
  "New macro": "Nowe makro",
  "Edit macro": "Edytuj makro",
@@ -181,8 +179,6 @@
  "Update and start": "Zaktualizuj i uruchom",
  "Skip": "Pomiń",
  "Create": "Utwórz",
- "Don't export": "Nie eksportuj",
- "Export first": "Najpierw eksportuj",
  "This macro is in several profiles ({1}).": "To makro jest w kilku profilach ({1}).",
  "Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.": "Zastosować zmianę we wszystkich, czy tylko w bieżącym profilu ({1})? Pozostałe profile zachowają wtedy starą, niezmienioną wersję.",
  "Only in \"{1}\"": "Tylko w „{1}”",
@@ -216,5 +212,7 @@
  "tap": "krótko",
  "hold": "przytrzym.",
  "Exact delays": "Dokładne opóźnienia",
- "The toggle key can't be the same as the trigger key.": "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
+ "The toggle key can't be the same as the trigger key.": "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający.",
+ "Don't save": "Nie zapisuj",
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
 }

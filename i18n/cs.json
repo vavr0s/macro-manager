@@ -54,8 +54,6 @@
  "This doesn't look like an installed copy, nothing was removed.": "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo.",
  "Uninstall Macro Manager": "Odinstalovat Macro Manager",
  "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": "Odinstalovat Macro Manager?\n\nTím se trvale smaže celá složka včetně všech maker a nastavení:\n{1}",
- "Export all your macros to a folder before uninstalling?": "Exportovat všechna makra do složky před odinstalací?",
- "Choose a folder for the backup": "Vyber složku pro zálohu",
  "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": "Macro Manager byl odinstalován.\nSložka bude za chvilku odstraněna.",
  "New macro": "Nové makro",
  "Edit macro": "Upravit makro",
@@ -181,8 +179,6 @@
  "Update and start": "Aktualizovat a spustit",
  "Skip": "Přeskočit",
  "Create": "Vytvořit",
- "Don't export": "Neexportovat",
- "Export first": "Nejdřív exportovat",
  "This macro is in several profiles ({1}).": "Toto makro je v několika profilech ({1}).",
  "Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.": "Použít změnu ve všech, nebo jen v aktuálním profilu ({1})? Ostatní profily si pak ponechají starou, nezměněnou verzi.",
  "Only in \"{1}\"": "Jen v „{1}“",
@@ -216,5 +212,7 @@
  "tap": "krátce",
  "hold": "držet",
  "Exact delays": "Přesné prodlevy",
- "The toggle key can't be the same as the trigger key.": "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
+ "The toggle key can't be the same as the trigger key.": "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa.",
+ "Don't save": "Neukládat",
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
 }

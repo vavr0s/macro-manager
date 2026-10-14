@@ -468,30 +468,6 @@
    "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
   ]
  },
- "Export all your macros to a folder before uninstalling?": {
-  "en": "Export all your macros to a folder before uninstalling?",
-  "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
-  ]
- },
- "Don't export": {
-  "en": "Don't export",
-  "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
-  ]
- },
- "Export first": {
-  "en": "Export first",
-  "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)"
-  ]
- },
- "Choose a folder for the backup": {
-  "en": "Choose a folder for the backup",
-  "ctx": [
-   "bdir := DirSelect(\"*\" A_Desktop, 3, _T(\"Choose a folder for the backup\"))"
-  ]
- },
  "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": {
   "en": "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.",
   "ctx": [
@@ -1426,5 +1402,19 @@
    "Error dialog in the macro editor when the Toggle key equals the Trigger key"
   ],
   "max_chars": 120
+ },
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": {
+  "en": "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+  ],
+  "max_chars": 300
+ },
+ "Don't save": {
+  "en": "Don't save",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+  ],
+  "max_chars": 40
  }
 }

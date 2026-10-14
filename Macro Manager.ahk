@@ -101,7 +101,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.16"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.17"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -1081,24 +1081,35 @@ UninstallApp(fromArg := false) {
             LaunchInstalled(dir)
         return false
     }
-    ; offer a backup of the macros before everything is deleted
+    ; offer a backup file (macros, profiles, settings, script files) before everything is deleted
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Export all your macros to a folder before uninstalling?"), [[_T("Cancel"), "", "btn"], [_T("Don't export"), "no", "btn"], [_T("Export first"), "yes", "btnprimary"]], false)
+        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
         if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
         if (r = "yes") {
-            bdir := DirSelect("*" A_Desktop, 3, _T("Choose a folder for the backup"))
-            if (bdir = "") {
+            path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+            if (path = "") {
                 if fromArg
                     LaunchInstalled(dir)
                 return false
             }
-            ThemedNote(_T("{1} macro(s) exported to:`n{2}", ExportAllTo(bdir), bdir), _T("Uninstall Macro Manager"))
+            if !RegExMatch(path, "i)\.mmbackup$")
+                path .= ".mmbackup"
+            try {
+                Save()                                  ; the settings in memory are the newest
+                WriteBackup(path)
+            } catch as e {
+                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall Macro Manager"), true)
+                if fromArg
+                    LaunchInstalled(dir)
+                return false                            ; nothing deleted without the backup the user asked for
+            }
+            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall Macro Manager"))
         }
     }
     ; stop imported scripts started by the manager
@@ -1617,30 +1628,32 @@ Load() {
         Save()      ; fresh install: empty macro list, the user imports their own
         return
     }
-    MasterOn := IniRead(IniFile, "main", "master", "1") = "1"
-    AutoUpd := IniRead(IniFile, "main", "autoupdate", "1") = "1"
-    SeenVer := IniRead(IniFile, "main", "seenver", "")
-    DarkOn := IniRead(IniFile, "main", "dark", "0") = "1"
-    MasterKey := IniRead(IniFile, "main", "masterkey", "")
-    HoldMs := Max(100, Min(2000, Num(IniRead(IniFile, "main", "holdms", HoldMs))))       ; long press: held at least this long
-    DblMs := Max(100, Min(1000, Num(IniRead(IniFile, "main", "doublems", DblMs))))      ; double tap: 2nd press within this time
-    pl := StrSplit(IniRead(IniFile, "main", "proflist", "Default"), "|")
+    ini := IniParse(FileRead(IniFile))              ; the whole file in one read (one IniRead per value was slow with many macros)
+    Get(sec, key, def) => (ini.Has(sec) && ini[sec].Has(key)) ? ini[sec][key] : def
+    MasterOn := Get("main", "master", "1") = "1"
+    AutoUpd := Get("main", "autoupdate", "1") = "1"
+    SeenVer := Get("main", "seenver", "")
+    DarkOn := Get("main", "dark", "0") = "1"
+    MasterKey := Get("main", "masterkey", "")
+    HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
+    DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
+    pl := StrSplit(Get("main", "proflist", "Default"), "|")
     Profiles := []
     for pn in pl
         if (Trim(pn) != "")
             Profiles.Push(Trim(pn))
     if !Profiles.Length
         Profiles := ["Default"]
-    CurProfile := IniRead(IniFile, "main", "profile", Profiles[1])
+    CurProfile := Get("main", "profile", Profiles[1])
     if !HasProf(JoinProfs(Profiles), CurProfile)
         CurProfile := Profiles[1]
-    n := Integer(IniRead(IniFile, "main", "count", "0"))
+    n := Num(Get("main", "count", "0"))
     loop n {
         s := "m" A_Index
         m := Defaults()
         for k, v in Defaults()
-            m[k] := IniRead(IniFile, s, k, v)
-        m["exact"] := IniRead(IniFile, s, "exact", "0")      ; macros saved before exact delays existed keep their old timing
+            m[k] := Get(s, k, v)
+        m["exact"] := Get(s, "exact", "0")          ; macros saved before exact delays existed keep their old timing
         for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted", "exact"]
             m[k] := Num(m[k])
         m["file"] := RegExReplace(m["file"], "^.*\\", "")   ; keep only the file name
@@ -1648,6 +1661,34 @@ Load() {
             m["profiles"] := Profiles[1]
         Macros.Push(m)
     }
+}
+
+; ini text -> Map(section -> Map(key -> value)), read the way IniRead reads it: names without regard to case,
+; the first of two equal keys wins, spaces around the value and one pair of enclosing quotes are dropped
+IniParse(text) {
+    out := Map(), out.CaseSense := "Off"
+    cur := 0
+    for line in StrSplit(text, "`n", "`r") {
+        line := Trim(line, " `t")
+        if (line = "" || SubStr(line, 1, 1) = ";")
+            continue
+        if RegExMatch(line, "^\[(.*)\]$", &h) {
+            sec := Trim(h[1])
+            if !out.Has(sec) {
+                out[sec] := Map(), out[sec].CaseSense := "Off"
+            }
+            cur := out[sec]
+            continue
+        }
+        if (!cur || !(p := InStr(line, "=")))
+            continue
+        k := Trim(SubStr(line, 1, p - 1), " `t"), v := Trim(SubStr(line, p + 1), " `t")
+        if (StrLen(v) >= 2 && (q := SubStr(v, 1, 1)) = SubStr(v, -1) && (q = '"' || q = "'"))
+            v := SubStr(v, 2, -1)
+        if !cur.Has(k)
+            cur[k] := v
+    }
+    return out
 }
 
 ; the whole file is built in memory and written in one go: first to macros.ini.tmp, then swapped in.
@@ -5841,10 +5882,6 @@ TrCs() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo."
     m["Uninstall Macro Manager"] := "Odinstalovat Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat Macro Manager?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Exportovat všechna makra do složky před odinstalací?"
-    m["Don't export"] := "Neexportovat"
-    m["Export first"] := "Nejdřív exportovat"
-    m["Choose a folder for the backup"] := "Vyber složku pro zálohu"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager byl odinstalován.`nSložka bude za chvilku odstraněna."
     m["New macro"] := "Nové makro"
     m["Edit macro"] := "Upravit makro"
@@ -5992,6 +6029,8 @@ TrCs() {
     m["hold"] := "držet"
     m["Exact delays"] := "Přesné prodlevy"
     m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
+    m["Don't save"] := "Neukládat"
     return m
 }
 TrPl() {
@@ -6063,10 +6102,6 @@ TrPl() {
     m["This doesn't look like an installed copy, nothing was removed."] := "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte."
     m["Uninstall Macro Manager"] := "Odinstaluj Macro Manager"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować Macro Manager?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Wyeksportować wszystkie makra do folderu przed odinstalowaniem?"
-    m["Don't export"] := "Nie eksportuj"
-    m["Export first"] := "Najpierw eksportuj"
-    m["Choose a folder for the backup"] := "Wybierz folder na kopię zapasową"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager został odinstalowany.`nFolder zostanie za chwilę usunięty."
     m["New macro"] := "Nowe makro"
     m["Edit macro"] := "Edytuj makro"
@@ -6214,6 +6249,8 @@ TrPl() {
     m["hold"] := "przytrzym."
     m["Exact delays"] := "Dokładne opóźnienia"
     m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
+    m["Don't save"] := "Nie zapisuj"
     return m
 }
 TrDe() {
@@ -6285,10 +6322,6 @@ TrDe() {
     m["This doesn't look like an installed copy, nothing was removed."] := "Das sieht nicht nach einer installierten Kopie aus, es wurde nichts entfernt."
     m["Uninstall Macro Manager"] := "Macro Manager deinstallieren"
     m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Macro Manager deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
-    m["Export all your macros to a folder before uninstalling?"] := "Alle Makros vor dem Deinstallieren in einen Ordner exportieren?"
-    m["Don't export"] := "Nicht exportieren"
-    m["Export first"] := "Zuerst exportieren"
-    m["Choose a folder for the backup"] := "Wähle einen Ordner für das Backup"
     m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager wurde deinstalliert.`nDer Ordner wird gleich entfernt."
     m["New macro"] := "Neues Makro"
     m["Edit macro"] := "Makro bearbeiten"
@@ -6436,6 +6469,8 @@ TrDe() {
     m["hold"] := "halten"
     m["Exact delays"] := "Genaue Verzögerungen"
     m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
+    m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
+    m["Don't save"] := "Nicht speichern"
     return m
 }
 ; ===== END TRANSLATIONS =====
