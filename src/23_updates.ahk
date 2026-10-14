@@ -176,8 +176,10 @@ SetUpdIcon() {
 ; Drawn in a small transparent click-through window lying over the icon (so it can reach past the button).
 UpdPulseTick() {
     static ov := 0, dc := 0, dib := 0, gr := 0, sz := 0, m := 0
+    fg := DllCall("GetForegroundWindow", "Ptr")
     show := UpdAvail && DllCall("IsWindowVisible", "Ptr", Main.Hwnd) && !DllCall("IsIconic", "Ptr", Main.Hwnd)
-        && DllCall("GetForegroundWindow", "Ptr") = Main.Hwnd           ; only while the app window is in front
+        && (fg = Main.Hwnd || DllCall("GetAncestor", "Ptr", fg, "UInt", 3, "Ptr") = Main.Hwnd)   ; only while the app is in front
+    RadarLog("show=" show " fg=" (fg = Main.Hwnd ? "main" : Format("{:#x}", fg)))
     if !show {
         if (ov && DllCall("IsWindowVisible", "Ptr", ov.Hwnd))
             ov.Hide()
@@ -224,8 +226,20 @@ UpdPulseTick() {
         NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)     ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
         if !DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
             ov.Show("NA x" (bx - m) " y" (by - m) " w" sz " h" sz)
-        DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
-    }
+        ok := DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+        RadarLog("ulw=" ok " err=" (ok ? 0 : A_LastError) " vis=" DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
+            " ex=" Format("{:#x}", DllCall("GetWindowLong", "Ptr", ov.Hwnd, "Int", -20, "Int")) " gr=" (gr ? 1 : 0) " dib=" (dib ? 1 : 0) " pos=" bx "," by " " bw "x" bh)
+    } catch as e
+        RadarLog("error: " e.Message " (" e.What " line " e.Line ")")
+}
+
+; beta diagnostics: every new state of the radar pulse, once (config\radar-debug.txt)
+RadarLog(s) {
+    static seen := Map(), n := 0
+    if (seen.Has(s) || n >= 40)
+        return
+    seen[s] := 1, n++
+    try FileAppend(FormatTime(, "HH:mm:ss") "  " s "`n", ConfigDir "\radar-debug.txt", "UTF-8")
 }
 
 RoundPath(pa, x, y, w, h, d) {
