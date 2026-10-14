@@ -137,7 +137,10 @@ DrawBtn(wParam, lParam, *) {
     of := DllCall("SelectObject", "Ptr", mdc, "Ptr", font, "Ptr")
     DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
     DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
-    DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
+    if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, w, hh, &gx, &gy))
+        DllCall("TextOutW", "Ptr", mdc, "Int", gx, "Int", gy, "WStr", txt, "Int", 1)       ; icon (?, arrow, ×): the drawn shape itself centred
+    else
+        DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
     DllCall("SelectObject", "Ptr", mdc, "Ptr", of, "Ptr")
     DllCall("BitBlt", "Ptr", dc, "Int", NumGet(lParam, rcOff, "Int"), "Int", NumGet(lParam, rcOff + 4, "Int"), "Int", w, "Int", hh, "Ptr", mdc, "Int", 0, "Int", 0, "UInt", 0xCC0020)
     DllCall("SelectObject", "Ptr", mdc, "Ptr", obmp, "Ptr")
@@ -156,6 +159,23 @@ FillRound(gr, x, y, w, h, d, hex) {
     DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
     DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
     DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+}
+
+; top-left text position that puts the visible shape of one character exactly in the middle of a w x h box
+; (DrawText centres the character cell, whose empty space above / beside the shape differs per font)
+GlyphCenter(dc, ch, w, h, &x, &y) {
+    gm := Buffer(20, 0), mat := Buffer(16, 0)
+    NumPut("Short", 0, "Short", 1, "Short", 0, "Short", 0, "Short", 0, "Short", 0, "Short", 0, "Short", 1, mat)   ; identity MAT2
+    if (DllCall("GetGlyphOutlineW", "Ptr", dc, "UInt", Ord(ch), "UInt", 0, "Ptr", gm, "UInt", 0, "Ptr", 0, "Ptr", mat, "UInt") = 0xFFFFFFFF)
+        return false
+    bw := NumGet(gm, 0, "UInt"), bh := NumGet(gm, 4, "UInt")
+    ox := NumGet(gm, 8, "Int"), oy := NumGet(gm, 12, "Int")       ; black box corner from the origin (y up)
+    tm := Buffer(60, 0)
+    DllCall("GetTextMetricsW", "Ptr", dc, "Ptr", tm)
+    asc := NumGet(tm, 4, "Int")                                     ; baseline below the top of the cell
+    x := Round((w - bw) / 2 - ox)
+    y := Round((h - bh) / 2 + oy - asc)
+    return bw > 0 && bh > 0
 }
 
 Bgr(hex) {

@@ -176,10 +176,8 @@ SetUpdIcon() {
 ; Drawn in a small transparent click-through window lying over the icon (so it can reach past the button).
 UpdPulseTick() {
     static ov := 0, dc := 0, dib := 0, gr := 0, sz := 0, m := 0
-    fg := DllCall("GetForegroundWindow", "Ptr")
     show := UpdAvail && DllCall("IsWindowVisible", "Ptr", Main.Hwnd) && !DllCall("IsIconic", "Ptr", Main.Hwnd)
-        && (fg = Main.Hwnd || DllCall("GetAncestor", "Ptr", fg, "UInt", 3, "Ptr") = Main.Hwnd)   ; only while the app is in front
-    RadarLog("show=" show " fg=" (fg = Main.Hwnd ? "main" : Format("{:#x}", fg)))
+        && IconUncovered(ov ? ov.Hwnd : 0)                               ; also when the window is not active
     if !show {
         if (ov && DllCall("IsWindowVisible", "Ptr", ov.Hwnd))
             ov.Hide()
@@ -226,20 +224,25 @@ UpdPulseTick() {
         NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)     ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
         if !DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
             ov.Show("NA x" (bx - m) " y" (by - m) " w" sz " h" sz)
-        ok := DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
-        RadarLog("ulw=" ok " err=" (ok ? 0 : A_LastError) " vis=" DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
-            " ex=" Format("{:#x}", DllCall("GetWindowLong", "Ptr", ov.Hwnd, "Int", -20, "Int")) " gr=" (gr ? 1 : 0) " dib=" (dib ? 1 : 0) " pos=" bx "," by " " bw "x" bh)
-    } catch as e
-        RadarLog("error: " e.Message " (" e.What " line " e.Line ")")
+        DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+    }
 }
 
-; beta diagnostics: every new state of the radar pulse, once (config\radar-debug.txt)
-RadarLog(s) {
-    static seen := Map(), n := 0
-    if (seen.Has(s) || n >= 40)
-        return
-    seen[s] := 1, n++
-    try FileAppend(FormatTime(, "HH:mm:ss") "  " s "`n", ConfigDir "\radar-debug.txt", "UTF-8")
+; is the area around the update icon really showing the app (not covered by another window or one of the
+; app's own dialogs)? The halo window is click-through, so WindowFromPoint looks through it.
+IconUncovered(self := 0) {
+    static m := Round(9 * A_ScreenDPI / 96)
+    rc := Buffer(16, 0)
+    if !DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        return false
+    l := NumGet(rc, 0, "Int") - m, t := NumGet(rc, 4, "Int") - m, r := NumGet(rc, 8, "Int") + m - 1, b := NumGet(rc, 12, "Int") + m - 1
+    for p in [[(l + r) // 2, (t + b) // 2], [l, t], [r, t], [l, b], [r, b]] {
+        h := DllCall("WindowFromPoint", "Int64", (p[2] << 32) | (p[1] & 0xFFFFFFFF), "Ptr")
+        root := h ? DllCall("GetAncestor", "Ptr", h, "UInt", 2, "Ptr") : 0
+        if (root != Main.Hwnd && !(self && root = self))                ; (the halo window itself does not count)
+            return false
+    }
+    return true
 }
 
 RoundPath(pa, x, y, w, h, d) {
