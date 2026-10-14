@@ -35,19 +35,22 @@ SetTheme(hwnd, name := "", sub := "") {
         DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "Str", name, "Ptr", sub = "" ? 0 : StrPtr(sub))
 }
 
+; [fill, text] or [fill, text, border] - light mode buttons get a thin border so they stand out from the window
 RoleColors(role, hover := false) {
     d := DarkOn
     switch role {
         case "btnprimary":
-            return hover ? ["E3C486", "141414"] : ["D0AE6B", "141414"]
+            if d
+                return hover ? ["E3C486", "141414"] : ["D0AE6B", "141414"]
+            return hover ? ["DDBB78", "141414", "B08D4E"] : ["D0AE6B", "141414", "B08D4E"]
         case "btndanger":
             if d
                 return hover ? ["55292F", "FFB4B4"] : ["3B2226", "FF9C9C"]
-            return hover ? ["F1CBCB", "B3261E"] : ["F8E1E1", "B3261E"]
+            return hover ? ["F0C4C4", "9E1F18", "D69494"] : ["F6D9D9", "9E1F18", "E2AEAE"]
         case "btnghost":
             if d
                 return hover ? ["1F2127", "ECECEF"] : ["15161A", "A9ADB8"]
-            return hover ? ["E9E9EE", "1B1B1F"] : ["F5F5F7", "6A6A74"]
+            return hover ? ["DCDDE4", "1B1B1F", "BDBEC8"] : ["EBEBF0", "3E3E48", "D3D3DB"]
         case "btnbanner":
             return hover ? ["3A3E49", "E3C486"] : ["22242B", "D0AE6B"]
         case "btnupd0":
@@ -59,7 +62,7 @@ RoleColors(role, hover := false) {
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
-            return hover ? ["D6D6DE", "1B1B1F"] : ["E4E4EA", "1B1B1F"]
+            return hover ? ["CBCCD6", "111114", "AEB0BC"] : ["DCDDE4", "111114", "BDBEC8"]
     }
 }
 
@@ -103,7 +106,7 @@ DrawBtn(wParam, lParam, *) {
     lk := BtnLook[h]
     role := Roles[h]
     col := RoleColors(role, lk.hover)
-    disabled := NumGet(lParam, 16, "UInt") & 4                 ; ODS_DISABLED
+    disabled := !DllCall("IsWindowEnabled", "Ptr", h)          ; (itemState of a static says "disabled" on Windows even when it is not)
     under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : (DarkOn ? "15161A" : "F5F5F7")
     mdc := DllCall("CreateCompatibleDC", "Ptr", dc, "Ptr")
     bmp := DllCall("CreateCompatibleBitmap", "Ptr", dc, "Int", w, "Int", hh, "Ptr")
@@ -118,15 +121,12 @@ DrawBtn(wParam, lParam, *) {
         DllCall("gdiplus\GdipCreateFromHDC", "Ptr", mdc, "Ptr*", &gr := 0)
         DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)        ; anti-alias
         DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)      ; half-pixel: crisp straight edges
-        DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)
-        x2 := w - d, y2 := hh - d
-        for a in [[0, 0, 180], [x2, 0, 270], [x2, y2, 0], [0, y2, 90]]
-            DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
-        DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
-        DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" col[1]), "Ptr*", &fb := 0)
-        DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
-        DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
-        DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+        b := Round(A_ScreenDPI / 96)                               ; border width
+        if (col.Length >= 3) {
+            FillRound(gr, 0, 0, w, hh, d, col[3])                  ; border = outer shape, fill = shape inside it
+            FillRound(gr, b, b, w - 2 * b, hh - 2 * b, Max(2, d - 2 * b), col[1])
+        } else
+            FillRound(gr, 0, 0, w, hh, d, col[1])
         DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
     } else if lk.round {
         br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
@@ -146,6 +146,18 @@ DrawBtn(wParam, lParam, *) {
     DllCall("DeleteObject", "Ptr", bmp)
     DllCall("DeleteDC", "Ptr", mdc)
     return true
+}
+
+FillRound(gr, x, y, w, h, d, hex) {
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" hex), "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
 }
 
 Bgr(hex) {
