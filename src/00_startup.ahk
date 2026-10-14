@@ -69,7 +69,8 @@ if !A_IsAdmin {
 }
 
 Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme (also by the setup dialogs)
-BtnLook := Map()       ; flat button hwnd -> {left, round, hover} (drawn by DrawBtn)
+BtnLook := Map()       ; flat button hwnd -> {left, round, hover, badge, pad} (drawn by DrawBtn)
+HelpBadgeOn := false   ; gold "!" on the help button: release notes of this version not opened yet
 OnMessage(0x2B, DrawBtn)       ; WM_DRAWITEM: the flat buttons are drawn by the app
 DarkOn := false
 
@@ -183,10 +184,12 @@ try {
     Roles[flB.Hwnd] := "skip"
     BtnAlias[flB.Hwnd] := bLang.Hwnd
     Main.SetFont("s13 bold", "Segoe UI")
-    bHelp := AddBtn(Main, "x782 y14 w28 h28", "?", OpenHelp, "btnbanner")                 ; help on top, updates below (same size)
-    bBadge := Main.AddPicture("x810 y12 w16 h16", BadgeMainFile)      ; yellow ! with glow beside the help icon: release notes not read yet
-    Roles[bBadge.Hwnd] := "skip"
-    bBadge.Visible := (SeenVer != AppVersion)
+    ; help on top, updates below (same size). The help control is a bit larger than its button: the gold "!" badge
+    ; (release notes not read yet) is drawn on the button's top right corner
+    bHelp := AddBtn(Main, "x782 y12 w36 h30", "?", OpenHelp, "btnbanner")
+    BtnLook[bHelp.Hwnd].pad := [0, 2, 8, 0]
+    BtnLook[bHelp.Hwnd].badge := true
+    HelpBadgeOn := (SeenVer != AppVersion)
     Main.SetFont("s12 norm", "Segoe MDL2 Assets")
     bUpd := AddBtn(Main, "x782 y46 w28 h28", Chr(0xE896), OnUpdIcon, "btnupd0")      ; download arrow: grey = up to date, green = new version
     Main.SetFont("s9 norm cC9B27C", "Segoe UI")

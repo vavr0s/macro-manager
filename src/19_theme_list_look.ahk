@@ -73,7 +73,7 @@ AddBtn(g, opts, text, handler, role := "btn", round := true) {
     c := g.AddText(RegExReplace(opts, "i)\bLeft\b") " +0xD", text)      ; SS_OWNERDRAW ("Left" would clear it; DrawBtn aligns)
     c.OnEvent("Click", handler)
     Roles[c.Hwnd] := role
-    BtnLook[c.Hwnd] := {left: InStr(opts, "Left") > 0, round: round, hover: false}
+    BtnLook[c.Hwnd] := {left: InStr(opts, "Left") > 0, round: round, hover: false, badge: false, pad: [0, 0, 0, 0]}
     return c
 }
 
@@ -103,50 +103,104 @@ DrawBtn(wParam, lParam, *) {
         return true
     lk := BtnLook[h]
     role := Roles[h]
-    col := RoleColors(role, lk.hover)
-    disabled := !DllCall("IsWindowEnabled", "Ptr", h)          ; (itemState of a static says "disabled" on Windows even when it is not)
-    under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : (DarkOn ? "15161A" : "F5F5F7")
+    s := A_ScreenDPI / 96
+    winBg := DarkOn ? "15161A" : "F5F5F7"
     mdc := DllCall("CreateCompatibleDC", "Ptr", dc, "Ptr")
     bmp := DllCall("CreateCompatibleBitmap", "Ptr", dc, "Int", w, "Int", hh, "Ptr")
     obmp := DllCall("SelectObject", "Ptr", mdc, "Ptr", bmp, "Ptr")
     r := Buffer(16, 0)
-    NumPut("Int", 0, "Int", 0, "Int", w, "Int", hh, r)
-    br := DllCall("CreateSolidBrush", "UInt", Bgr(lk.round ? under : col[1]), "Ptr")
-    DllCall("FillRect", "Ptr", mdc, "Ptr", r, "Ptr", br)
-    DllCall("DeleteObject", "Ptr", br)
-    if (lk.round && GdipOn()) {
-        d := Min(hh, Round(12 * A_ScreenDPI / 96)) + 0.0
-        DllCall("gdiplus\GdipCreateFromHDC", "Ptr", mdc, "Ptr*", &gr := 0)
-        DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)        ; anti-alias
-        DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)      ; half-pixel: crisp straight edges
-        b := Round(A_ScreenDPI / 96)                               ; border width
-        if (col.Length >= 3) {
-            FillRound(gr, 0, 0, w, hh, d, col[3])                  ; border = outer shape, fill = shape inside it
-            FillRound(gr, b, b, w - 2 * b, hh - 2 * b, Max(2, d - 2 * b), col[1])
-        } else
-            FillRound(gr, 0, 0, w, hh, d, col[1])
-        DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
-    } else if lk.round {
-        br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
-        DllCall("FillRect", "Ptr", mdc, "Ptr", r, "Ptr", br)
-        DllCall("DeleteObject", "Ptr", br)
+    if (role = "badge") {                                      ; the yellow "!" on its own (help window, dialogs)
+        FillHex(mdc, 0, 0, w, hh, winBg)
+        if GdipOn() {
+            gr := GrOn(mdc)
+            DrawBadge(gr, w / 2, hh / 2, Min(w, hh) / 2, "")
+            DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+        }
+    } else {
+        col := RoleColors(role, lk.hover)
+        disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
+        under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
+        ; the button itself may be smaller than the control (room for the "!" badge of the help button)
+        fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
+        fw := w - fx - Round(lk.pad[3] * s), fh := hh - fy - Round(lk.pad[4] * s)
+        FillHex(mdc, 0, 0, w, hh, lk.round ? under : col[1])
+        if (lk.round && GdipOn()) {
+            d := Min(fh, Round(12 * s)) + 0.0
+            gr := GrOn(mdc)
+            b := Round(s)                                       ; border width
+            if (col.Length >= 3) {
+                FillRound(gr, fx, fy, fw, fh, d, col[3])        ; border = outer shape, fill = shape inside it
+                FillRound(gr, fx + b, fy + b, fw - 2 * b, fh - 2 * b, Max(2, d - 2 * b), col[1])
+            } else
+                FillRound(gr, fx, fy, fw, fh, d, col[1])
+            if (lk.badge && HelpBadgeOn)
+                DrawBadge(gr, fx + fw, fy + 6 * s, 8 * s, under)
+            DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+        } else if lk.round
+            FillHex(mdc, fx, fy, fw, fh, col[1])
+        txt := ""
+        try txt := GuiCtrlFromHwnd(h).Text
+        font := SendMessage(0x31, 0, 0, h)                      ; WM_GETFONT
+        of := DllCall("SelectObject", "Ptr", mdc, "Ptr", font, "Ptr")
+        DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
+        DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
+        NumPut("Int", fx, "Int", fy, "Int", fx + fw, "Int", fy + fh, r)
+        if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
+            DllCall("TextOutW", "Ptr", mdc, "Int", fx + gx, "Int", fy + gy, "WStr", txt, "Int", 1)   ; icon (?, arrow, ×): the drawn shape itself centred
+        else
+            DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
+        DllCall("SelectObject", "Ptr", mdc, "Ptr", of, "Ptr")
     }
-    txt := ""
-    try txt := GuiCtrlFromHwnd(h).Text
-    font := SendMessage(0x31, 0, 0, h)                          ; WM_GETFONT
-    of := DllCall("SelectObject", "Ptr", mdc, "Ptr", font, "Ptr")
-    DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
-    DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
-    if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, w, hh, &gx, &gy))
-        DllCall("TextOutW", "Ptr", mdc, "Int", gx, "Int", gy, "WStr", txt, "Int", 1)       ; icon (?, arrow, ×): the drawn shape itself centred
-    else
-        DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
-    DllCall("SelectObject", "Ptr", mdc, "Ptr", of, "Ptr")
     DllCall("BitBlt", "Ptr", dc, "Int", NumGet(lParam, rcOff, "Int"), "Int", NumGet(lParam, rcOff + 4, "Int"), "Int", w, "Int", hh, "Ptr", mdc, "Int", 0, "Int", 0, "UInt", 0xCC0020)
     DllCall("SelectObject", "Ptr", mdc, "Ptr", obmp, "Ptr")
     DllCall("DeleteObject", "Ptr", bmp)
     DllCall("DeleteDC", "Ptr", mdc)
     return true
+}
+
+FillHex(dc, x, y, w, h, hex) {
+    r := Buffer(16, 0)
+    NumPut("Int", x, "Int", y, "Int", x + w, "Int", y + h, r)
+    br := DllCall("CreateSolidBrush", "UInt", Bgr(hex), "Ptr")
+    DllCall("FillRect", "Ptr", dc, "Ptr", r, "Ptr", br)
+    DllCall("DeleteObject", "Ptr", br)
+}
+
+GrOn(dc) {
+    DllCall("gdiplus\GdipCreateFromHDC", "Ptr", dc, "Ptr*", &gr := 0)
+    DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)        ; anti-alias
+    DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)      ; half-pixel: crisp straight edges
+    return gr
+}
+
+; "new release notes" badge: gold circle with a dark "!", all drawn as shapes (sharp at any size / display scale).
+; ring = colour of a thin outline that separates it from what it overlaps ("" = none)
+DrawBadge(gr, cx, cy, ro, ring) {
+    ri := ro
+    if (ring != "") {
+        FillRound(gr, cx - ro, cy - ro, 2 * ro, 2 * ro, 2 * ro, ring)
+        ri := ro - 1.5 * A_ScreenDPI / 96
+    }
+    FillRound(gr, cx - ri, cy - ri, 2 * ri, 2 * ri, 2 * ri, "F2C94C")
+    bw := Max(1.6, ri * 0.34)                                   ; the bar of the "!"
+    FillRound(gr, cx - bw / 2, cy - ri * 0.62, bw, ri * 0.82, bw, "1B1B1F")
+    dr := Max(0.9, ri * 0.19)                                   ; its dot
+    FillRound(gr, cx - dr, cy + ri * 0.50 - dr, 2 * dr, 2 * dr, 2 * dr, "1B1B1F")
+}
+
+; the badge as its own control (help window, release notes dialog)
+AddBadge(g, opts) {
+    c := g.AddText(opts " +0xD")
+    Roles[c.Hwnd] := "badge"
+    BtnLook[c.Hwnd] := {left: false, round: false, hover: false, badge: false, pad: [0, 0, 0, 0]}
+    return c
+}
+
+; shows / hides the badge on the help button in the banner
+SetHelpBadge(on) {
+    global HelpBadgeOn
+    HelpBadgeOn := on
+    try DllCall("InvalidateRect", "Ptr", bHelp.Hwnd, "Ptr", 0, "Int", 0)
 }
 
 FillRound(gr, x, y, w, h, d, hex) {

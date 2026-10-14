@@ -84,8 +84,7 @@ OpenHelp(*) {
     unseen := (SeenVer != AppVersion)
     HelpBadge := 0
     if unseen {
-        HelpBadge := g.AddPicture("x172 y101 w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)
-        Roles[HelpBadge.Hwnd] := "skip"
+        HelpBadge := AddBadge(g, "x172 y101 w16 h16")
     }
     g.SetFont("s10", "Segoe UI")
     ed := g.AddEdit("x190 y94 w460 h" (y - 94 + 4) " Multi ReadOnly", "")
@@ -101,7 +100,7 @@ OpenHelp(*) {
             SeenVer := AppVersion
             Save()
             try HelpBadge.Visible := false
-            try bBadge.Visible := false
+            SetHelpBadge(false)
         }
     }
     ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon

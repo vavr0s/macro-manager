@@ -58,8 +58,7 @@ ThemedAsk(title, heading, body, buttons, warn := true) {
     x0 := 16, y := 16
     if warn {
         try {
-            bp := g.AddPicture("x16 y" (heading = "" ? 16 : 17) " w16 h16", DarkOn ? BadgeDkFile : BadgeLtFile)   ; the yellow !
-            Roles[bp.Hwnd] := "skip"
+            AddBadge(g, "x16 y" (heading = "" ? 16 : 17) " w16 h16")   ; the yellow !
             x0 := 40
         }
     }
