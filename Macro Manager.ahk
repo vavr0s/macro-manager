@@ -103,9 +103,8 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.7"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.8"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
-UpdPulse := 0.0         ; 0..1 phase of the radar rings on the green update icon
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
 UpdBranch := "beta"      ; the test (beta) build uses "beta"
@@ -2364,7 +2363,7 @@ RoleColors(role, hover := false) {
         case "btnupd0":
             return hover ? ["3A3E49", "B8BCC8"] : ["22242B", "6E7380"]
         case "btnupd1":
-            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar rings (UpdPulseTick / DrawBtn)
+            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar halo (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         default:    ; plain button
@@ -2433,8 +2432,6 @@ DrawBtn(wParam, lParam, *) {
             FillRound(gr, b, b, w - 2 * b, hh - 2 * b, Max(2, d - 2 * b), col[1])
         } else
             FillRound(gr, 0, 0, w, hh, d, col[1])
-        if (role = "btnupd1" && !lk.hover)
-            RadarRings(gr, w, hh)
         DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
     } else if lk.round {
         br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
@@ -2466,23 +2463,6 @@ FillRound(gr, x, y, w, h, d, hex) {
     DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
     DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
     DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
-}
-
-; new version available: two white rings grow from the middle of the icon and fade out, like a radar
-RadarRings(gr, w, h) {
-    cx := w / 2, cy := h / 2
-    rmax := Min(w, h) / 2 - 1.5
-    pw := 1.8 * A_ScreenDPI / 96
-    loop 2 {
-        t := Mod(UpdPulse + (A_Index - 1) / 2, 1)                 ; 0 = just born, 1 = gone
-        r := 3 + (rmax - 3) * t
-        a := Round(255 * (1 - t) ** 1.2)
-        if (a < 4)
-            continue
-        DllCall("gdiplus\GdipCreatePen1", "UInt", (a << 24) | 0xFFFFFF, "Float", pw, "Int", 2, "Ptr*", &pen := 0)
-        DllCall("gdiplus\GdipDrawEllipse", "Ptr", gr, "Ptr", pen, "Float", cx - r, "Float", cy - r, "Float", 2 * r, "Float", 2 * r)
-        DllCall("gdiplus\GdipDeletePen", "Ptr", pen)
-    }
 }
 
 Bgr(hex) {
@@ -3440,17 +3420,73 @@ SetUpdIcon() {
         Roles[bUpd.Hwnd] := UpdAvail ? "btnupd1" : "btnupd0"
         PaintBtn(bUpd.Hwnd, false)
     }
-    SetTimer(UpdPulseTick, UpdAvail ? 33 : 0)      ; new version: radar rings on the green icon
+    if !UpdAvail
+        UpdPulseTick()                             ; hides the halo
+    SetTimer(UpdPulseTick, UpdAvail ? 33 : 0)      ; new version: radar halo around the green icon
 }
 
-; one frame of the radar rings (a new ring every 0.9 s)
+; one frame of the "radar" pulse: a soft green halo grows out of the icon's edge, a little past it, and fades.
+; Drawn in a small transparent click-through window lying over the icon (so it can reach past the button).
 UpdPulseTick() {
-    global UpdPulse
-    if (!UpdAvail || !DllCall("IsWindowVisible", "Ptr", Main.Hwnd) || DllCall("IsIconic", "Ptr", Main.Hwnd))
-        return                                      ; nothing to see: no repainting
-    UpdPulse := Mod(A_TickCount, 1800) / 1800
-    if (HoverHwnd != bUpd.Hwnd)
-        DllCall("InvalidateRect", "Ptr", bUpd.Hwnd, "Ptr", 0, "Int", 0)
+    static ov := 0, dc := 0, dib := 0, gr := 0, sz := 0, m := 0
+    show := UpdAvail && DllCall("IsWindowVisible", "Ptr", Main.Hwnd) && !DllCall("IsIconic", "Ptr", Main.Hwnd)
+        && DllCall("GetForegroundWindow", "Ptr") = Main.Hwnd           ; only while the app window is in front
+    if !show {
+        if (ov && DllCall("IsWindowVisible", "Ptr", ov.Hwnd))
+            ov.Hide()
+        return
+    }
+    try {
+        rc := Buffer(16, 0)
+        DllCall("GetWindowRect", "Ptr", bUpd.Hwnd, "Ptr", rc)
+        bx := NumGet(rc, 0, "Int"), by := NumGet(rc, 4, "Int")
+        bw := NumGet(rc, 8, "Int") - bx, bh := NumGet(rc, 12, "Int") - by
+        if !ov {
+            GdipOn()
+            m := Round(9 * A_ScreenDPI / 96)                            ; how far the halo reaches past the button
+            sz := Max(bw, bh) + 2 * m
+            ov := Gui("-Caption +ToolWindow +Owner" Main.Hwnd " +E0x08080020")   ; NOACTIVATE LAYERED TRANSPARENT
+            bi := Buffer(40, 0)
+            NumPut("UInt", 40, "Int", sz, "Int", -sz, "UShort", 1, "UShort", 32, bi)   ; 32-bit, top-down
+            dc := DllCall("CreateCompatibleDC", "Ptr", 0, "Ptr")
+            dib := DllCall("CreateDIBSection", "Ptr", dc, "Ptr", bi, "UInt", 0, "Ptr*", 0, "Ptr", 0, "UInt", 0, "Ptr")
+            DllCall("SelectObject", "Ptr", dc, "Ptr", dib)
+            DllCall("gdiplus\GdipCreateFromHDC", "Ptr", dc, "Ptr*", &gr)
+            DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)
+            DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)
+        }
+        DllCall("gdiplus\GdipGraphicsClear", "Ptr", gr, "UInt", 0)
+        d := Min(bh, Round(12 * A_ScreenDPI / 96))                       ; same corners as the button
+        loop 2 {                                                          ; two waves, half a beat apart
+            t := Mod(A_TickCount / 1600 + (A_Index - 1) / 2, 1)
+            e := 1 + (m - 1) * (1 - (1 - t) ** 2)                         ; grows fast, slows down at the end
+            a := Round(150 * (1 - t) ** 1.5)
+            if (a < 3)
+                continue
+            DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)          ; alternate fill: ring between the two shapes
+            RoundPath(pa, m - e, m - e, bw + 2 * e, bh + 2 * e, d + 2 * e)
+            RoundPath(pa, m, m, bw, bh, d)
+            DllCall("gdiplus\GdipCreateSolidFill", "UInt", (a << 24) | 0x2FD26D, "Ptr*", &fb := 0)
+            DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+            DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+            DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+        }
+        pt := Buffer(8), size := Buffer(8), src := Buffer(8, 0), bl := Buffer(4)
+        NumPut("Int", bx - m, "Int", by - m, pt)
+        NumPut("Int", sz, "Int", sz, size)
+        NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)     ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
+        if !DllCall("IsWindowVisible", "Ptr", ov.Hwnd)
+            ov.Show("NA x" (bx - m) " y" (by - m) " w" sz " h" sz)
+        DllCall("UpdateLayeredWindow", "Ptr", ov.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", size, "Ptr", dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+    }
+}
+
+RoundPath(pa, x, y, w, h, d) {
+    DllCall("gdiplus\GdipStartPathFigure", "Ptr", pa)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
 }
 
 ; click on the banner icon / tray item: check, and when there is a new version ask whether to install it

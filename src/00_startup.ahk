@@ -104,7 +104,6 @@ SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "10"    ; bump when the embedded logo/icon change
 AppVersion := "1.18"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
-UpdPulse := 0.0         ; 0..1 phase of the radar rings on the green update icon
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
 UpdBranch := "main"      ; the test (beta) build uses "beta"

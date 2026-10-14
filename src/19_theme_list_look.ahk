@@ -56,7 +56,7 @@ RoleColors(role, hover := false) {
         case "btnupd0":
             return hover ? ["3A3E49", "B8BCC8"] : ["22242B", "6E7380"]
         case "btnupd1":
-            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar rings (UpdPulseTick / DrawBtn)
+            return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar halo (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         default:    ; plain button
@@ -125,8 +125,6 @@ DrawBtn(wParam, lParam, *) {
             FillRound(gr, b, b, w - 2 * b, hh - 2 * b, Max(2, d - 2 * b), col[1])
         } else
             FillRound(gr, 0, 0, w, hh, d, col[1])
-        if (role = "btnupd1" && !lk.hover)
-            RadarRings(gr, w, hh)
         DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
     } else if lk.round {
         br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
@@ -158,23 +156,6 @@ FillRound(gr, x, y, w, h, d, hex) {
     DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
     DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
     DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
-}
-
-; new version available: two white rings grow from the middle of the icon and fade out, like a radar
-RadarRings(gr, w, h) {
-    cx := w / 2, cy := h / 2
-    rmax := Min(w, h) / 2 - 1.5
-    pw := 1.8 * A_ScreenDPI / 96
-    loop 2 {
-        t := Mod(UpdPulse + (A_Index - 1) / 2, 1)                 ; 0 = just born, 1 = gone
-        r := 3 + (rmax - 3) * t
-        a := Round(255 * (1 - t) ** 1.2)
-        if (a < 4)
-            continue
-        DllCall("gdiplus\GdipCreatePen1", "UInt", (a << 24) | 0xFFFFFF, "Float", pw, "Int", 2, "Ptr*", &pen := 0)
-        DllCall("gdiplus\GdipDrawEllipse", "Ptr", gr, "Ptr", pen, "Float", cx - r, "Float", cy - r, "Float", 2 * r, "Float", 2 * r)
-        DllCall("gdiplus\GdipDeletePen", "Ptr", pen)
-    }
 }
 
 Bgr(hex) {
