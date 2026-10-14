@@ -13,6 +13,18 @@ Persistent
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+NoThrottle()
+
+; Windows 11 slows the timers of apps whose window is hidden (this app sits in the tray) and may put them into
+; "efficiency mode" - macro delays would then be longer than set. This opts the app out of both.
+NoThrottle() {
+    st := Buffer(12, 0)
+    for mask in [0x5, 0x1] {                      ; EXECUTION_SPEED + IGNORE_TIMER_RESOLUTION (Win11), else only the first
+        NumPut("UInt", 1, "UInt", mask, "UInt", 0, st)
+        try if DllCall("SetProcessInformation", "Ptr", DllCall("GetCurrentProcess", "Ptr"), "Int", 4, "Ptr", st, "UInt", 12)
+            return
+    }
+}
 #HotIfTimeout 150      ; the keyboard hook waits at most this long for "only in app" checks (default 1000 ms stalls all keys)
 
 ; ============ language ============
@@ -89,7 +101,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b10"    ; bump when the embedded logo/icon change
-AppVersion := "1.18.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -98,7 +110,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Minor fixes"
+ReleaseNotes := "BETA build - for testing.`n- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- Rounded buttons, tray menu in the dark / light look of the app, title bar in the app colours (Windows 11)."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -112,6 +124,8 @@ DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
 MasterKey := ""        ; optional hotkey that toggles "All macros"
+HoldMs := 300          ; long press = trigger key held at least this long (macros.ini [main] holdms)
+DblMs := 250           ; double tap = second press within this time (macros.ini [main] doublems)
 HeldKeys := Map()      ; keys a macro holds down right now
 MacroBusy := 0         ; number of macros playing right now (background update checks wait)
 TogReg := []           ; registered toggle hotkeys
@@ -192,7 +206,7 @@ eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 130, 240, 150]
+hdrW := [300, 150, 220, 150]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
@@ -206,8 +220,8 @@ LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select                             ; full-row select: the whole row can be picked / dragged, not only the Name cell
 LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 130)
-LV.ModifyCol(3, 240)
+LV.ModifyCol(2, 150)
+LV.ModifyCol(3, 220)
 LV.ModifyCol(4, 130)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
@@ -247,6 +261,7 @@ if AutoUpd
 A_TrayMenu.Add(_T("Uninstall..."), (*) => UninstallApp())
 A_TrayMenu.Add(_T("Exit"), (*) => ExitApp())
 A_TrayMenu.Default := _T("Open window")
+DarkMenus(DarkOn)
 OnExit(ExitHandler)
 
 Refresh()
@@ -259,6 +274,28 @@ Main.Show()
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
+
+; ============ third-party credits ============
+; Some features follow ideas and small techniques from these MIT-licensed projects (the code here is written
+; for Macro Manager, nothing is copied as a library):
+;   - press modes short tap / double tap / long press (RunPress) .... evilC/TapHoldManager
+;       Copyright (c) 2018 Clive Galway
+;   - exact pauses (StepWait) ....................................... thqby/ahk2_lib (HighPrecisionSleep)
+;       Copyright (c) 2023 thqby
+;   - rounded buttons, themed tray menu (RoundCorners, DarkMenus) ... nperovic/GuiEnhancerKit, ColorButton.ahk
+;       Copyright (c) 2024 Nikola (nperovic)
+;
+; MIT License: Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+; associated documentation files (the "Software"), to deal in the Software without restriction, including without
+; limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+; Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+; The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+; the Software.
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+; THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+; CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+; DEALINGS IN THE SOFTWARE.
 
 ; ============ window handlers ============
 OnMainClose(*) {
@@ -514,7 +551,7 @@ Refresh() {
         if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }
@@ -694,12 +731,13 @@ ImportOne(path) {
     if (meta.Has("type") && (meta["type"] = "move" || meta["type"] = "seq")) {
         ; file exported by Macro Manager -> editable native macro
         m["type"] := meta["type"]
-        for k in ["app", "dirs", "actions", "seq", "tkey"]
+        for k in ["app", "dirs", "actions", "seq", "tkey", "press"]
             if meta.Has(k)
                 m[k] := meta[k]
         for k in ["g1", "g2", "g3", "ge", "repeat"]
             if meta.Has(k)
                 m[k] := Num(meta[k])
+        m["exact"] := meta.Has("exact") ? Num(meta["exact"]) : 0     ; exported before exact delays existed: old timing
         m["hotkey"] := (meta.Has("hotkey") && Trim(meta["hotkey"]) != "") ? Trim(meta["hotkey"]) : "undefined"
     } else {
         ; any other script -> runs as its own process while the macro is on
@@ -1087,19 +1125,24 @@ ExportCode(m) {
     if (m["type"] = "script")
         return (m["file"] != "" && FileExist(ScriptPath(m))) ? FileRead(ScriptPath(m), "UTF-8") : ""
 
+    press := PressEff(m)
     if (m["type"] = "move") {
-        data := "rep := " (m["repeat"] ? "true" : "false") "`n"
+        data := "rep := " (m["repeat"] && press != "tap" ? "true" : "false") "`n"
             . "dirs := " ArrLit(SplitKeys(m["dirs"])) "`n"
             . "acts := " ArrLit(SplitKeys(m["actions"])) "`n"
             . "g1 := " m["g1"] ", g2 := " m["g2"] ", g3 := " m["g3"] ", ge := " m["ge"]
         body := TplMove()
     } else {
-        data := "rep := " (m["repeat"] ? "true" : "false") "`n"
+        data := "rep := " (m["repeat"] && press != "tap" ? "true" : "false") "`n"
             . "steps := " StepsLit(m["seq"])
         body := TplSeq()
     }
     code := TplHeader() "`n" body
     code := StrReplace(code, "@DATA@", data)
+    code := StrReplace(code, "@PRESS@", press)
+    code := StrReplace(code, "@EXACT@", m["exact"] ? "true" : "false")
+    code := StrReplace(code, "@HOLD@", Round(HoldMs / 1000, 3))
+    code := StrReplace(code, "@DBL@", Round(DblMs / 1000, 3))
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
     app := StrReplace(m["app"], '"', "")
@@ -1107,7 +1150,7 @@ ExportCode(m) {
     code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
     code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
-    for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey"]
+    for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey", "press", "exact"]
         code .= "; MM:" k "=" m[k] "`n"
     return code
 }
@@ -1120,6 +1163,12 @@ TplHeader() {
 SendMode "Event"
 SetKeyDelay -1, -1
 ProcessSetPriority "High"
+st := Buffer(12, 0)     ; Windows 11: no slowed-down timers / efficiency mode for this background script
+for mask in [0x5, 0x1] {
+    NumPut("UInt", 1, "UInt", mask, "UInt", 0, st)
+    try if DllCall("SetProcessInformation", "Ptr", -1, "Int", 4, "Ptr", st, "UInt", 12)
+        break
+}
 
 if !A_IsAdmin {
     try Run '*RunAs "' A_AhkPath '" "' A_ScriptFullPath '"'
@@ -1128,9 +1177,48 @@ if !A_IsAdmin {
 
 trig := "@TRIG@"
 app := "@APP@"
+press := "@PRESS@"      ; "" = at once, tap = short press, double = pressed twice quickly, hold = held a moment
+exact := @EXACT@        ; true = delays kept to about a millisecond, false = plain Sleep
 @DATA@
 if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
+
+; is this the press the macro waits for? (long press: still held after a moment; double tap: pressed again in time)
+PressOk() {
+    if (press = "hold")
+        return !KeyWait(trig, "P T@HOLD@")
+    if (press = "")
+        return true
+    KeyWait(trig, "P")
+    return press = "tap" || KeyWait(trig, "D P T@DBL@")
+}
+
+; exact pause: most of it a normal Sleep, the rest measured in 1 ms steps (Sleep alone can be ~15 ms longer)
+Wait(ms) {
+    static f := 0
+    if (ms <= 0) {
+        Sleep -1
+        return
+    }
+    if !exact {
+        Sleep ms
+        return
+    }
+    if !f
+        DllCall("QueryPerformanceFrequency", "Int64*", &f)
+    DllCall("QueryPerformanceCounter", "Int64*", &t := 0)
+    stop := t + ms * f / 1000
+    if (ms > 20)
+        Sleep ms - 16
+    loop {
+        DllCall("QueryPerformanceCounter", "Int64*", &t)
+        left := (stop - t) * 1000 / f
+        if (left <= 0)
+            break
+        if (left > 1.5)
+            DllCall("Sleep", "UInt", 1)
+    }
+}
 
 Down(t) {
     s := "{Blind}"            ; held Shift / Ctrl / Alt are left alone (no stuck modifier keys)
@@ -1156,6 +1244,8 @@ TplMove() {
     return "
 (
 @HOT@:: {
+    if !PressOk()
+        return
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
@@ -1165,19 +1255,19 @@ TplMove() {
         if dirs.Length {
             dir := dirs[di]
             Send Down(dir)
-            Sleep g1 > 0 ? g1 : -1
+            Wait(g1)
             Send Down(key)
-            Sleep g2 > 0 ? g2 : -1
+            Wait(g2)
             Send Up(dir)
-            Sleep g3 > 0 ? g3 : -1
+            Wait(g3)
             Send Up(key)
             di := di >= dirs.Length ? 1 : di + 1
         } else {
             Send Down(key)
-            Sleep g2 > 0 ? g2 : -1
+            Wait(g2)
             Send Up(key)
         }
-        Sleep ge > 0 ? ge : -1
+        Wait(ge)
         ai := ai >= acts.Length ? 1 : ai + 1
         if (rep && A_TickCount - t0 < 10)
             Sleep 10 - (A_TickCount - t0)       ; never flood Windows with key events
@@ -1198,6 +1288,8 @@ TplSeq() {
     return "
 (
 @HOT@:: {
+    if !PressOk()
+        return
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -1213,7 +1305,7 @@ TplSeq() {
                 Send Up(s[2])
             else
                 Send Down(s[2]) Up(s[2])
-            Sleep s[3] > 0 ? s[3] : -1
+            Wait(s[3])
         }
         if (!rep)
             stop := true
@@ -1268,45 +1360,54 @@ EditMacro(idx) {
     tb := []
     for i, nm in [_T("Move + actions"), _T("Sequence"), _T("Script (.ahk)")]
         tb.Push(AddBtn(g, "x" (150 + (i - 1) * 170) " y208 w160 h26", nm, SetType.Bind(i), i = tsel ? "btnprimary" : "btn"))
-    rl := g.AddText("x10 y244 w136 +0x200 h26", _T("Run"))
+    ; press mode: how the trigger key has to be pressed (different modes can share one key)
+    psel := 1
+    for i, p in ["", "tap", "double", "hold"]
+        if (PressOf(m) = p)
+            psel := i
+    pl := g.AddText("x10 y244 w136 +0x200 h26", _T("Press"))
+    pb := []
+    for i, nm in [_T("Normal"), _T("Short tap"), _T("Double tap"), _T("Long press")]
+        pb.Push(AddBtn(g, "x" (150 + (i - 1) * 126) " y244 w122 h26", nm, SetPress.Bind(i), i = psel ? "btnprimary" : "btn"))
+    rl := g.AddText("x10 y280 w136 +0x200 h26", _T("Run"))
     rb := []
     for i, nm in [_T("Once per key press"), _T("Repeat while key is held")]
-        rb.Push(AddBtn(g, "x" (150 + (i - 1) * 255) " y244 w245 h26", nm, SetRun.Bind(i), i = rsel ? "btnprimary" : "btn"))
+        rb.Push(AddBtn(g, "x" (150 + (i - 1) * 255) " y280 w245 h26", nm, SetRun.Bind(i), i = rsel ? "btnprimary" : "btn"))
 
     ; --- group: move + actions ---
     mv := []
-    mv.Push(g.AddText("x10 y292 w136 +0x200 h26", _T("Directions (optional)")))
-    eDirs := g.AddEdit("x150 y292 w420 h26", m["dirs"])
-    rb1 := AddBtn(g, "x580 y292 w70 h26", _T("Record"), (*) => StartListRec(eDirs, rb1))
+    mv.Push(g.AddText("x10 y328 w136 +0x200 h26", _T("Directions (optional)")))
+    eDirs := g.AddEdit("x150 y328 w420 h26", m["dirs"])
+    rb1 := AddBtn(g, "x580 y328 w70 h26", _T("Record"), (*) => StartListRec(eDirs, rb1))
     mv.Push(eDirs, rb1)
-    mv.Push(g.AddText("x10 y328 w136 +0x200 h26", _T("Actions in order")))
-    eActs := g.AddEdit("x150 y328 w420 h26", m["actions"])
-    rb2 := AddBtn(g, "x580 y328 w70 h26", _T("Record"), (*) => StartListRec(eActs, rb2))
+    mv.Push(g.AddText("x10 y364 w136 +0x200 h26", _T("Actions in order")))
+    eActs := g.AddEdit("x150 y364 w420 h26", m["actions"])
+    rb2 := AddBtn(g, "x580 y364 w70 h26", _T("Record"), (*) => StartListRec(eActs, rb2))
     mv.Push(eActs, rb2)
-    mv.Push(g.AddText("x10 y364 w136 +0x200 h26", _T("Delays (ms)")))
-    e1 := g.AddEdit("x150 y364 w110 h26 Number", m["g1"])
-    e2 := g.AddEdit("x275 y364 w110 h26 Number", m["g2"])
-    e3 := g.AddEdit("x400 y364 w110 h26 Number", m["g3"])
-    e4 := g.AddEdit("x525 y364 w110 h26 Number", m["ge"])
+    mv.Push(g.AddText("x10 y400 w136 +0x200 h26", _T("Delays (ms)")))
+    e1 := g.AddEdit("x150 y400 w110 h26 Number", m["g1"])
+    e2 := g.AddEdit("x275 y400 w110 h26 Number", m["g2"])
+    e3 := g.AddEdit("x400 y400 w110 h26 Number", m["g3"])
+    e4 := g.AddEdit("x525 y400 w110 h26 Number", m["ge"])
     mv.Push(e1, e2, e3, e4)
-    mv.Push(AddHint(g, "x150 y394 w120 h32", _T("dir↓ → action↓")))
-    mv.Push(AddHint(g, "x275 y394 w120 h32", _T("action↓ → dir↑")))
-    mv.Push(AddHint(g, "x400 y394 w120 h32", _T("dir↑ → action↑")))
-    mv.Push(AddHint(g, "x525 y394 w120 h32", _T("between cycles")))
-    mv.Push(AddHint(g, "x10 y434 w640", _T("Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).")))
+    mv.Push(AddHint(g, "x150 y430 w120 h32", _T("dir↓ → action↓")))
+    mv.Push(AddHint(g, "x275 y430 w120 h32", _T("action↓ → dir↑")))
+    mv.Push(AddHint(g, "x400 y430 w120 h32", _T("dir↑ → action↑")))
+    mv.Push(AddHint(g, "x525 y430 w120 h32", _T("between cycles")))
+    mv.Push(AddHint(g, "x10 y470 w640", _T("Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).")))
 
     ; --- group: sequence ---
-    eSeq := g.AddEdit("x10 y292 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
-    sq := [eSeq, AddHint(g, "x10 y418 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
+    eSeq := g.AddEdit("x10 y328 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
+    sq := [eSeq, AddHint(g, "x10 y454 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
 
     ; --- group: script ---
     code := ""
     if (m["type"] = "script" && m["file"] != "" && FileExist(ScriptPath(m)))
         code := FileRead(ScriptPath(m), "UTF-8")
-    eCode := g.AddEdit("x10 y292 w640 h150 Multi WantReturn -Wrap HScroll", code)
+    eCode := g.AddEdit("x10 y328 w640 h150 Multi WantReturn -Wrap HScroll", code)
     eCode.SetFont("s9", "Consolas")
     Roles[eCode.Hwnd] := "code"
-    sc := [eCode, AddHint(g, "x10 y448 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
+    sc := [eCode, AddHint(g, "x10 y484 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
 
     SetSeg(arr, n) {
         for i, c in arr {
@@ -1323,6 +1424,11 @@ EditMacro(idx) {
         rsel := n
         SetSeg(rb, n)
     }
+    SetPress(n, *) {
+        psel := n
+        SetSeg(pb, n)
+        Toggle()
+    }
     Toggle(*) {
         t := tsel
         for c in mv
@@ -1331,12 +1437,17 @@ EditMacro(idx) {
             c.Visible := (t = 2)
         for c in sc
             c.Visible := (t = 3)
+        try bExact.Visible := (t != 3)
         bKey.Enabled := (t != 3)
         eApp.Enabled := (t != 3)
         bApp.Enabled := (t != 3)
-        rl.Visible := (t != 3)
-        for c in rb
+        pl.Visible := (t != 3)
+        for c in pb
             c.Visible := (t != 3)
+        rv := (t != 3 && psel != 2)                 ; a short tap has already been released: it always plays once
+        rl.Visible := rv
+        for c in rb
+            c.Visible := rv
     }
 
     ; a macro that belongs to several profiles: apply the change everywhere, or only in the current profile
@@ -1407,6 +1518,8 @@ EditMacro(idx) {
                     lines .= (lines = "" ? "" : "|") Trim(l)
             m["seq"] := lines
             m["repeat"] := rsel = 2 ? 1 : 0
+            m["press"] := ["", "tap", "double", "hold"][psel]
+            m["exact"] := ex["v"]
         }
         m["name"] := nm = "" ? "Macro" : nm
         m["profiles"] := pv["v"] = "" ? CurProfile : pv["v"]
@@ -1422,12 +1535,22 @@ EditMacro(idx) {
         Refresh()
     }
 
-    AddBtn(g, "x450 y482 w95 h34", _T("Save"), Commit, "btnprimary")
-    AddBtn(g, "x555 y482 w95 h34", _T("Cancel"), (*) => (FinishRec(), g.Destroy()))
+    ; exact delays: on for new macros; older macros keep their timing until this is switched on
+    ex := Map("v", m["exact"] ? 1 : 0)
+    ExLabel() => ex["v"] ? Chr(0x2713) "  " _T("Exact delays") : _T("Exact delays") ": " _T("OFF")
+    bExact := AddBtn(g, "x10 y518 w220 h34", ExLabel(), FlipExact, ex["v"] ? "btnprimary" : "btn")
+    FlipExact(*) {
+        ex["v"] := !ex["v"]
+        bExact.Text := ExLabel()
+        Roles[bExact.Hwnd] := ex["v"] ? "btnprimary" : "btn"
+        PaintBtn(bExact.Hwnd, true)
+    }
+    AddBtn(g, "x450 y518 w95 h34", _T("Save"), Commit, "btnprimary")
+    AddBtn(g, "x555 y518 w95 h34", _T("Cancel"), (*) => (FinishRec(), g.Destroy()))
     g.OnEvent("Close", (*) => (FinishRec(), g.Destroy()))
     Toggle()
     ApplyTheme(g)
-    ShowOver(g, "w660 h532", Main)
+    ShowOver(g, "w660 h568", Main)
 }
 
 Num(v) => IsInteger(v) ? Integer(v) : 0
@@ -1436,11 +1559,20 @@ Num(v) => IsInteger(v) ? Integer(v) : 0
 Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
-        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1)
+        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1)
 }
 
+; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),
+; "double" = pressed twice quickly, "hold" = held down for a moment. Different press modes can share one key.
+; (idea: evilC/TapHoldManager, MIT)
+PressOf(m) {
+    p := m.Has("press") ? StrLower(Trim(m["press"])) : ""
+    return (p = "tap" || p = "double" || p = "hold") ? p : ""
+}
+PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
+
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -1453,6 +1585,8 @@ Load() {
     SeenVer := IniRead(IniFile, "main", "seenver", "")
     DarkOn := IniRead(IniFile, "main", "dark", "0") = "1"
     MasterKey := IniRead(IniFile, "main", "masterkey", "")
+    HoldMs := Max(100, Min(2000, Num(IniRead(IniFile, "main", "holdms", HoldMs))))       ; long press: held at least this long
+    DblMs := Max(100, Min(1000, Num(IniRead(IniFile, "main", "doublems", DblMs))))      ; double tap: 2nd press within this time
     pl := StrSplit(IniRead(IniFile, "main", "proflist", "Default"), "|")
     Profiles := []
     for pn in pl
@@ -1469,7 +1603,8 @@ Load() {
         m := Defaults()
         for k, v in Defaults()
             m[k] := IniRead(IniFile, s, k, v)
-        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted"]
+        m["exact"] := IniRead(IniFile, s, "exact", "0")      ; macros saved before exact delays existed keep their old timing
+        for k in ["enabled", "g1", "g2", "g3", "ge", "repeat", "trusted", "exact"]
             m[k] := Num(m[k])
         m["file"] := RegExReplace(m["file"], "^.*\\", "")   ; keep only the file name
         if (Trim(m["profiles"]) = "")
@@ -1487,6 +1622,8 @@ Save() {
     t .= "autoupdate=" (AutoUpd ? 1 : 0) "`r`n"
     t .= "seenver=" SeenVer "`r`n"
     t .= "masterkey=" MasterKey "`r`n"
+    t .= "holdms=" HoldMs "`r`n"
+    t .= "doublems=" DblMs "`r`n"
     t .= "language=" Lang "`r`n"
     t .= "proflist=" JoinProfs(Profiles) "`r`n"
     t .= "profile=" CurProfile "`r`n"
@@ -1534,6 +1671,9 @@ Apply() {
             if (m["tkey"] != "" && InProfile(m))
                 RegToggle(m["tkey"], ToggleMacro.Bind(m))
     }
+    ; macros on the same key in the same place share one handler: a "normal" macro takes the key as soon as it
+    ; goes down; otherwise the handler tells short tap / double tap / long press apart (each can be another macro)
+    groups := Map()
     for m in Macros {
         if (m["type"] = "script") {
             SyncScript(m)
@@ -1544,17 +1684,27 @@ Apply() {
         trig := Trim(m["hotkey"])
         if (trig = "" || trig = "undefined")
             continue
+        id := StrLower(TrigHot(trig)) "|" StrLower(m["app"])
+        if !groups.Has(id)
+            groups[id] := {trig: trig, app: m["app"], name: m["name"], set: Map()}
+        groups[id].set[PressEff(m)] := m             ; same key and same press mode: the later macro wins (as before)
+    }
+    for id, gr in groups {
+        fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
-            SetCrit(m["app"])
-            Hotkey(TrigHot(trig), MakeRun(m, trig), "On")
-            Registered.Push([TrigHot(trig), m["app"]])
+            SetCrit(gr.app)
+            Hotkey(TrigHot(gr.trig), fn, "On")
+            Registered.Push([TrigHot(gr.trig), gr.app])
         } catch as e {
             HotIf()
-            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
+            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", gr.name, gr.trig, e.Message), , true)
         }
     }
     HotIf()
 }
+
+; press mode that really applies: a wheel has no hold and no release, so wheel macros always play at once
+PressEff(m) => (m["type"] = "script" || IsWheel(m["hotkey"])) ? "" : PressOf(m)
 
 RegToggle(key, fn) {
     try {
@@ -1632,8 +1782,12 @@ KeyClash(m) {
     if (id = "")
         return 0
     app := m["type"] = "script" ? "" : m["app"]
+    p := PressEff(m)
     for x in Macros {
         if (x == m || !x["enabled"] || !InProfile(x) || TrigId(x) != id)
+            continue
+        xp := PressEff(x)
+        if (p != "" && xp != "" && p != xp)          ; e.g. short tap and long press on one key: both work
             continue
         xa := x["type"] = "script" ? "" : x["app"]
         if (app = "" || xa = "" || app = xa)        ; "everywhere" overlaps with every application
@@ -1747,7 +1901,27 @@ SetCrit(app) {
     else
         HotIfWinActive("ahk_exe " app)
 }
-MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : RunPick(m, trig))
+MakePress(set, trig) => (*) => RunPress(set, trig)
+RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) : RunSeq(m, trig, once)
+
+; one key, several press modes: waits only as long as needed to tell them apart.
+; long press = still held after HoldMs; double tap = pressed again within DblMs after release; short tap = neither.
+; (approach of evilC/TapHoldManager, MIT - rewritten for Macro Manager)
+RunPress(set, trig) {
+    if AltGrFake(trig)
+        return
+    k := TrigMain(trig)
+    if set.Has("hold") {
+        if !KeyWait(k, "P T" HoldMs / 1000)             ; not released in time = long press (repeat runs while held)
+            return RunPick(set["hold"], trig)
+    } else
+        KeyWait(k, "P")
+    if (set.Has("double") && KeyWait(k, "D P T" DblMs / 1000))
+        return RunPick(set["double"], trig)             ; held on the 2nd press: "repeat while held" works here too
+    if set.Has("tap")
+        RunPick(set["tap"], trig, true)                 ; the key is already up: plays one pass
+}
 
 Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
 
@@ -1905,12 +2079,36 @@ ReleaseHeld() {
     HeldKeys.Clear()
 }
 
-; a pause between steps: 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait)
-StepWait(ms) {
-    if (ms > 0)
-        Sleep ms
-    else
+; a pause between steps, exact to about a millisecond. A plain Sleep can last up to ~15 ms longer than asked
+; (Windows timer ticks), so the same macro could play at a different speed each time. Here most of the wait is a
+; normal Sleep (the app stays responsive), the rest is measured with the performance counter in 1 ms steps.
+; 0 still lets Windows and the app breathe (Sleep -1 = handle messages, no wait).
+; (idea: thqby/ahk2_lib HighPrecisionSleep, MIT - done here without machine code)
+; exact = false: the timing of macros made before this existed (a plain Sleep - short delays last ~10-15 ms longer)
+StepWait(ms, exact := true) {
+    static f := 0
+    if (ms <= 0) {
         Sleep -1
+        return
+    }
+    if !exact {
+        Sleep ms
+        return
+    }
+    if !f
+        DllCall("QueryPerformanceFrequency", "Int64*", &f)
+    DllCall("QueryPerformanceCounter", "Int64*", &t := 0)
+    stop := t + ms * f / 1000
+    if (ms > 20)
+        Sleep ms - 16
+    loop {
+        DllCall("QueryPerformanceCounter", "Int64*", &t)
+        left := (stop - t) * 1000 / f
+        if (left <= 0)
+            break
+        if (left > 1.5)
+            DllCall("Sleep", "UInt", 1)                 ; ~1 ms (timeBeginPeriod 1 is on while a macro plays)
+    }
 }
 
 ; repeated macros: one cycle takes at least this long, so a macro with 0 ms delays can't flood
@@ -1922,14 +2120,15 @@ CycleFloor(t0) {
 }
 
 ; ============ type: move + actions ============
-RunMove(m, trig) {
+RunMove(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunMove2(m, trig)
+    try RunMove2(m, trig, once)
     finally MacroBusy--
 }
 
-RunMove2(m, trig) {
+RunMove2(m, trig, once) {
+    ex := m["exact"]
     dirs := SplitKeys(m["dirs"])
     acts := SplitKeys(m["actions"])
     if !acts.Length
@@ -1937,7 +2136,7 @@ RunMove2(m, trig) {
     g1 := m["g1"], g2 := m["g2"], g3 := m["g3"], ge := m["ge"]
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
-    rep := m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
+    rep := !once && m["repeat"] && !IsWheel(trig)          ; a wheel can't be held
     while (rep ? Active(m, trig) : n < acts.Length) {      ; once = every action one time
         t0 := A_TickCount
         n++
@@ -1945,19 +2144,19 @@ RunMove2(m, trig) {
         if dirs.Length {
             dir := dirs[di]
             KeyDown(dir)      ; 1. direction down (all keys of a chord together)
-            StepWait(g1)
+            StepWait(g1, ex)
             KeyDown(key)      ; 2. action down
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(dir)        ; 3. direction up
-            StepWait(g3)
+            StepWait(g3, ex)
             KeyUp(key)        ; 4. action up
             di := di >= dirs.Length ? 1 : di + 1
         } else {                   ; no movement: action only
             KeyDown(key)
-            StepWait(g2)
+            StepWait(g2, ex)
             KeyUp(key)
         }
-        StepWait(ge)
+        StepWait(ge, ex)
         ai := ai >= acts.Length ? 1 : ai + 1
         if rep
             CycleFloor(t0)
@@ -1970,14 +2169,15 @@ RunMove2(m, trig) {
 }
 
 ; ============ type: custom sequence ============
-RunSeq(m, trig) {
+RunSeq(m, trig, once := false) {
     global MacroBusy
     MacroBusy++
-    try RunSeq2(m, trig)
+    try RunSeq2(m, trig, once)
     finally MacroBusy--
 }
 
-RunSeq2(m, trig) {
+RunSeq2(m, trig, once) {
+    ex := m["exact"]
     steps := []
     used := []
     for line in StrSplit(m["seq"], "|") {
@@ -1989,7 +2189,7 @@ RunSeq2(m, trig) {
     }
     if !steps.Length
         return
-    rep := m["repeat"] && !IsWheel(trig)
+    rep := !once && m["repeat"] && !IsWheel(trig)
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -2007,7 +2207,7 @@ RunSeq2(m, trig) {
                 KeyDown(s[2])
                 KeyUp(s[2])
             }
-            StepWait(s[3])
+            StepWait(s[3], ex)
         }
         if !rep
             stop := true
@@ -2115,7 +2315,22 @@ OnDarkToggle(*) {
     DarkOn := !DarkOn
     swPic.Value := DarkOn ? SwOnFile : SwOffFile
     Save()
+    DarkMenus(DarkOn)
     ApplyTheme(Main)
+}
+
+; tray menu in the app's look: dark or light, whatever Windows uses
+; (SetPreferredAppMode / FlushMenuThemes, uxtheme ordinals 135 / 136 - as in nperovic/GuiEnhancerKit, MIT)
+DarkMenus(on) {
+    try {
+        ux := DllCall("LoadLibrary", "Str", "uxtheme", "Ptr")
+        setMode := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 135, "Ptr")
+        flush := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 136, "Ptr")
+        if (setMode && flush && VerCompare(A_OSVersion, "10.0.18362") >= 0) {
+            DllCall(setMode, "Int", on ? 2 : 3)         ; 2 = always dark, 3 = always light
+            DllCall(flush)
+        }
+    }
 }
 
 SetTheme(hwnd, name := "", sub := "") {
@@ -2158,7 +2373,23 @@ AddBtn(g, opts, text, handler, role := "btn") {
     c := g.AddText(opts " +0x200" (InStr(opts, "Left") ? "" : " Center"), text)
     c.OnEvent("Click", handler)
     Roles[c.Hwnd] := role
+    RoundCorners(c)
     return c
+}
+
+; rounded corners for a flat button (window region; idea: GuiEnhancerKit SetRounded, nperovic, MIT)
+RoundCorners(c, d := 10) {
+    try {
+        rc := Buffer(16, 0)
+        DllCall("GetClientRect", "Ptr", c.Hwnd, "Ptr", rc)
+        w := NumGet(rc, 8, "Int"), h := NumGet(rc, 12, "Int")
+        if (w < 8 || h < 8)
+            return
+        d := Round(Min(h, d * A_ScreenDPI / 96))
+        rgn := DllCall("CreateRoundRectRgn", "Int", 0, "Int", 0, "Int", w + 1, "Int", h + 1, "Int", d, "Int", d, "Ptr")
+        if rgn && !DllCall("SetWindowRgn", "Ptr", c.Hwnd, "Ptr", rgn, "Int", 1)
+            DllCall("DeleteObject", "Ptr", rgn)                ; on success Windows owns the region
+    }
 }
 
 PaintBtn(hwnd, hover) {
@@ -2210,6 +2441,14 @@ ApplyTheme(g) {
     NumPut("Int", dark ? 1 : 0, flag)
     for attr in [20, 19]                       ; dark title bar (Win10 1809+ / Win11)
         try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+    ; Windows 11: title bar and border in the app's own colours (DWMWA_BORDER / CAPTION / TEXT_COLOR)
+    if (VerCompare(A_OSVersion, "10.0.22000") >= 0) {
+        for attr, col in Map(34, dark ? "2A2D35" : "D6D6DE", 35, win, 36, txt) {
+            rgb := Integer("0x" col)
+            NumPut("UInt", ((rgb & 0xFF) << 16) | (rgb & 0xFF00) | (rgb >> 16), flag)     ; COLORREF = 0x00BBGGRR
+            try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+        }
+    }
     for hwnd, c in g {
         role := Roles.Has(hwnd) ? Roles[hwnd] : ""
         if (role = "skip")
@@ -3220,7 +3459,7 @@ HelpTopics() {
     order.Push("Getting started")
     t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
-    t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately).`n`nSave stores the macro, Cancel throws changes away.")
+    t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nPress - how the trigger key has to be pressed. Normal: the macro starts as soon as the key goes down. Short tap: a quick press and release - the macro plays once after the release. Double tap: press the key twice quickly. Long press: hold the key for a moment (with Repeat it keeps playing while you hold it). One key can carry up to three macros this way: short tap, double tap and long press. A Normal macro on the same key takes the whole key. Mouse wheel macros always start at once.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately). Not offered for Short tap - it always plays once.`nExact delays (bottom left) - the delays are kept to about a millisecond. On for new macros. Off = the older timing, where short delays often last 10-15 ms longer than written.`n`nSave stores the macro, Cancel throws changes away.")
     order.Push("Move + actions")
     t["Move + actions"] := _TL("hlp_move", "Made for games where you keep moving (for example A and D) and cast spells in between.`n`nDirections - the movement keys, in order, for example: a,d`nActions in order - the keys to press, one per cycle, for example: 1,2,1,F7,1,F8`n`nEvery cycle does this, with the delays you set:`n  1. direction down`n  2. (delay 1) action down`n  3. (delay 2) direction up`n  4. (delay 3) action up`n  5. (delay 4) pause, then the next direction + next action`n`nThe lists repeat from the start when they end. If Directions is empty, only the actions are pressed: hold time = delay 2, pause = delay 4.`nIf a game ignores the macro, raise the delays (20-30 ms is common).")
     order.Push("Sequence")
@@ -3238,7 +3477,7 @@ HelpTopics() {
     order.Push("Updates")
     t["Updates"] := _TL("hlp_updates", "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access to github.com.")
     order.Push("Tips and problems")
-    t["Tips and problems"] := _TL("hlp_tips", "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys or different profiles.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app.")
+    t["Tips and problems"] := _TL("hlp_tips", "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys, different profiles or different Press modes (short tap / double tap / long press).`n- Macros made before Exact delays existed keep their old timing. If you switch Exact delays on for one of them, it may play faster - then raise its delays a little.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app.")
     return [order, t]
 }
 
@@ -5601,7 +5840,7 @@ TrCs() {
     m["Could not replace the app file: {1}"] := "Nepodařilo se nahradit soubor aplikace: {1}"
     m["Version {1}"] := "Verze {1}"
     m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Exit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
-    m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě).`n`nUložit makro uloží, Zrušit zahodí změny."
+    m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nStisk - jak se má spouštěcí klávesa stisknout. Normální: makro začne, jakmile klávesu stiskneš. Krátký stisk: rychle stiskni a pusť - makro se přehraje jednou po puštění. Dvojitý stisk: stiskni klávesu dvakrát rychle za sebou. Dlouhý stisk: chvíli klávesu podrž (s Opakováním hraje, dokud ji držíš). Jedna klávesa tak může mít až tři makra: krátký, dvojitý a dlouhý stisk. Normální makro na stejné klávese si vezme celou klávesu. Makra na kolečku myši se spouští vždy hned.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě). U Krátkého stisku se nenabízí - přehraje se vždy jednou.`nPřesné prodlevy (vlevo dole) - prodlevy se dodrží zhruba na milisekundu. U nových maker zapnuté. Vypnuté = dřívější časování, kdy krátké prodlevy často trvají o 10-15 ms déle, než je zapsáno.`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
     m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil Macro Manager, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
@@ -5610,7 +5849,7 @@ TrCs() {
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
     m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu na github.com."
-    m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy nebo různé profily.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
+    m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).`n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
     m["Help"] := "Nápověda"
     m["For support click here"] := "Podpora: klikni sem"
@@ -5639,6 +5878,14 @@ TrCs() {
     m["Toggle keys"] := "Přepínací klávesy"
     m["Order, export, backup"] := "Pořadí, export, záloha"
     m["Tips and problems"] := "Tipy a problémy"
+    m["Press"] := "Stisk"
+    m["Normal"] := "Normální"
+    m["Short tap"] := "Krátký stisk"
+    m["Double tap"] := "Dvojitý stisk"
+    m["Long press"] := "Dlouhý stisk"
+    m["tap"] := "krátce"
+    m["hold"] := "držet"
+    m["Exact delays"] := "Přesné prodlevy"
     return m
 }
 TrPl() {
@@ -5814,7 +6061,7 @@ TrPl() {
     m["Could not replace the app file: {1}"] := "Nie udało się zastąpić pliku aplikacji: {1}"
     m["Version {1}"] := "Wersja {1}"
     m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zamknij.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
-    m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast).`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
+    m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nNaciśnięcie - jak trzeba nacisnąć klawisz wyzwalający. Zwykłe: makro startuje, gdy tylko klawisz zostanie wciśnięty. Krótkie: szybko naciśnij i puść - makro odtwarza się raz po puszczeniu. Podwójne: naciśnij klawisz dwa razy szybko. Przytrzymanie: przytrzymaj klawisz przez chwilę (z Powtarzaniem gra, dopóki go trzymasz). Jeden klawisz może w ten sposób mieć do trzech makr: krótkie, podwójne i przytrzymanie. Zwykłe makro na tym samym klawiszu zajmuje cały klawisz. Makra na kółku myszy zawsze startują od razu.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast). Niedostępne dla Krótkiego - zawsze odtwarza się raz.`nDokładne opóźnienia (na dole po lewej) - opóźnienia są dotrzymywane co do około milisekundy. Włączone dla nowych makr. Wyłączone = dawny sposób, w którym krótkie opóźnienia często trwają o 10-15 ms dłużej, niż wpisano.`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
     m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez Macro Manager, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
@@ -5823,7 +6070,7 @@ TrPl() {
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
     m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu i github.com."
-    m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy lub różnych profili.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
+    m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy, różnych profili lub różnego Naciśnięcia (krótkie / podwójne / przytrzymanie).`n- Makra utworzone przed Dokładnymi opóźnieniami zachowują dawny sposób odmierzania. Gdy włączysz im Dokładne opóźnienia, mogą grać szybciej - wtedy lekko zwiększ opóźnienia.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
     m["Help"] := "Pomoc"
     m["For support click here"] := "Po pomoc kliknij tutaj"
@@ -5852,6 +6099,14 @@ TrPl() {
     m["Toggle keys"] := "Klawisze przełączające"
     m["Order, export, backup"] := "Kolejność i eksport"
     m["Tips and problems"] := "Wskazówki i problemy"
+    m["Press"] := "Naciśnięcie"
+    m["Normal"] := "Zwykłe"
+    m["Short tap"] := "Krótkie"
+    m["Double tap"] := "Podwójne"
+    m["Long press"] := "Przytrzymanie"
+    m["tap"] := "krótko"
+    m["hold"] := "przytrzym."
+    m["Exact delays"] := "Dokładne opóźnienia"
     return m
 }
 TrDe() {
@@ -6027,7 +6282,7 @@ TrDe() {
     m["Could not replace the app file: {1}"] := "Die App-Datei konnte nicht ersetzt werden: {1}"
     m["Version {1}"] := "Version {1}"
     m["hlp_start"] := "Macro Manager führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen.`n- Das Suchfeld über der Liste zeigt nur die Makros, deren Name, Taste oder Anwendung den Text enthält. Das Kreuz daneben leert es."
-    m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort).`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
+    m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nDrücken - wie die Auslösetaste gedrückt werden muss. Normal: das Makro startet, sobald die Taste unten ist. Kurz tippen: kurz drücken und loslassen - das Makro spielt einmal nach dem Loslassen. Doppelt tippen: die Taste zweimal schnell drücken. Lang drücken: die Taste einen Moment halten (mit Wiederholen spielt es, solange du sie hältst). Eine Taste kann so bis zu drei Makros tragen: kurz tippen, doppelt tippen und lang drücken. Ein normales Makro auf derselben Taste belegt die ganze Taste. Mausrad-Makros starten immer sofort.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort). Bei Kurz tippen nicht verfügbar - es spielt immer einmal.`nGenaue Verzögerungen (unten links) - die Verzögerungen werden auf etwa eine Millisekunde eingehalten. Für neue Makros an. Aus = das frühere Timing, bei dem kurze Verzögerungen oft 10-15 ms länger dauern als eingetragen.`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
     m["hlp_move"] := "Gedacht für Spiele, in denen du dich ständig bewegst (zum Beispiel A und D) und dazwischen Zauber wirkst.`n`nRichtungen - die Bewegungstasten in Reihenfolge, zum Beispiel: a,d`nAktionen in Folge - die zu drückenden Tasten, eine pro Zyklus, zum Beispiel: 1,2,1,F7,1,F8`n`nJeder Zyklus läuft so ab, mit den eingestellten Verzögerungen:`n  1. Richtung runter`n  2. (Verzögerung 1) Aktion runter`n  3. (Verzögerung 2) Richtung hoch`n  4. (Verzögerung 3) Aktion hoch`n  5. (Verzögerung 4) Pause, dann die nächste Richtung + nächste Aktion`n`nDie Listen beginnen am Ende wieder von vorn. Wenn Richtungen leer ist, werden nur die Aktionen gedrückt: Haltezeit = Verzögerung 2, Pause = Verzögerung 4.`nWenn ein Spiel das Makro ignoriert, erhöhe die Verzögerungen (20-30 ms sind üblich)."
     m["hlp_seq"] := "Eine freie Liste von Schritten. Schreibe einen Schritt pro Zeile:`n`n  down KEY PAUSE   - Taste drücken und halten`n  up KEY PAUSE     - Taste loslassen`n  tap KEY PAUSE    - sofort drücken und loslassen`n`nPAUSE ist die Wartezeit nach dem Schritt in Millisekunden (leer = 0).`n`nBeispiel - schneller A / D-Wechsel:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nBeispiel - Angriff und Zauber:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nBeispiel - zwei Tasten zusammen:`n  tap Shift+4 50`n`nBei Ausführung = Wiederholen laufen die Zeilen in einer Schleife, solange die Auslösetaste gehalten wird; bei Einmal werden sie einmal abgespielt.`nTasten, die beim Loslassen der Auslösetaste noch gehalten werden, werden automatisch losgelassen."
     m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von Macro Manager erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
@@ -6036,7 +6291,7 @@ TrDe() {
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
     m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang zu github.com nötig."
-    m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten oder unterschiedliche Profile.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
+    m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten, unterschiedliche Profile oder unterschiedliches Drücken (kurz / doppelt / lang).`n- Makros, die vor den Genauen Verzögerungen erstellt wurden, behalten ihr altes Timing. Schaltest du sie für eines davon ein, kann es schneller spielen - erhöhe dann seine Verzögerungen etwas.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
     m["Help"] := "Hilfe"
     m["For support click here"] := "Für Support hier klicken"
@@ -6065,6 +6320,14 @@ TrDe() {
     m["Toggle keys"] := "Ein/Aus-Tasten"
     m["Order, export, backup"] := "Ordnung, Export, Backup"
     m["Tips and problems"] := "Tipps und Probleme"
+    m["Press"] := "Drücken"
+    m["Normal"] := "Normal"
+    m["Short tap"] := "Kurz tippen"
+    m["Double tap"] := "Doppelt tippen"
+    m["Long press"] := "Lang drücken"
+    m["tap"] := "kurz"
+    m["hold"] := "halten"
+    m["Exact delays"] := "Genaue Verzögerungen"
     return m
 }
 ; ===== END TRANSLATIONS =====

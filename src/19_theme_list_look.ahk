@@ -10,7 +10,22 @@ OnDarkToggle(*) {
     DarkOn := !DarkOn
     swPic.Value := DarkOn ? SwOnFile : SwOffFile
     Save()
+    DarkMenus(DarkOn)
     ApplyTheme(Main)
+}
+
+; tray menu in the app's look: dark or light, whatever Windows uses
+; (SetPreferredAppMode / FlushMenuThemes, uxtheme ordinals 135 / 136 - as in nperovic/GuiEnhancerKit, MIT)
+DarkMenus(on) {
+    try {
+        ux := DllCall("LoadLibrary", "Str", "uxtheme", "Ptr")
+        setMode := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 135, "Ptr")
+        flush := DllCall("GetProcAddress", "Ptr", ux, "Ptr", 136, "Ptr")
+        if (setMode && flush && VerCompare(A_OSVersion, "10.0.18362") >= 0) {
+            DllCall(setMode, "Int", on ? 2 : 3)         ; 2 = always dark, 3 = always light
+            DllCall(flush)
+        }
+    }
 }
 
 SetTheme(hwnd, name := "", sub := "") {
@@ -53,7 +68,23 @@ AddBtn(g, opts, text, handler, role := "btn") {
     c := g.AddText(opts " +0x200" (InStr(opts, "Left") ? "" : " Center"), text)
     c.OnEvent("Click", handler)
     Roles[c.Hwnd] := role
+    RoundCorners(c)
     return c
+}
+
+; rounded corners for a flat button (window region; idea: GuiEnhancerKit SetRounded, nperovic, MIT)
+RoundCorners(c, d := 10) {
+    try {
+        rc := Buffer(16, 0)
+        DllCall("GetClientRect", "Ptr", c.Hwnd, "Ptr", rc)
+        w := NumGet(rc, 8, "Int"), h := NumGet(rc, 12, "Int")
+        if (w < 8 || h < 8)
+            return
+        d := Round(Min(h, d * A_ScreenDPI / 96))
+        rgn := DllCall("CreateRoundRectRgn", "Int", 0, "Int", 0, "Int", w + 1, "Int", h + 1, "Int", d, "Int", d, "Ptr")
+        if rgn && !DllCall("SetWindowRgn", "Ptr", c.Hwnd, "Ptr", rgn, "Int", 1)
+            DllCall("DeleteObject", "Ptr", rgn)                ; on success Windows owns the region
+    }
 }
 
 PaintBtn(hwnd, hover) {
@@ -105,6 +136,14 @@ ApplyTheme(g) {
     NumPut("Int", dark ? 1 : 0, flag)
     for attr in [20, 19]                       ; dark title bar (Win10 1809+ / Win11)
         try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+    ; Windows 11: title bar and border in the app's own colours (DWMWA_BORDER / CAPTION / TEXT_COLOR)
+    if (VerCompare(A_OSVersion, "10.0.22000") >= 0) {
+        for attr, col in Map(34, dark ? "2A2D35" : "D6D6DE", 35, win, 36, txt) {
+            rgb := Integer("0x" col)
+            NumPut("UInt", ((rgb & 0xFF) << 16) | (rgb & 0xFF00) | (rgb >> 16), flag)     ; COLORREF = 0x00BBGGRR
+            try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "Int", attr, "Ptr", flag, "Int", 4)
+        }
+    }
     for hwnd, c in g {
         role := Roles.Has(hwnd) ? Roles[hwnd] : ""
         if (role = "skip")

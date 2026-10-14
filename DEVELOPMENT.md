@@ -10,3 +10,10 @@ That file is **built** - do not edit it directly.
   (English text is the key, see `i18n/keys.json`). `i18n/check.py <lang>` checks placeholders / line breaks.
 
 Release channels: branch `main` = stable, branch `beta` = test builds (own registry keys, "(beta)" label).
+
+## Third-party credits
+
+Some features follow ideas and small techniques from MIT-licensed projects (see `src/01_credits.ahk` for the
+notices): press modes - [evilC/TapHoldManager](https://github.com/evilC/TapHoldManager); exact delays -
+[thqby/ahk2_lib](https://github.com/thqby/ahk2_lib) (HighPrecisionSleep); rounded buttons and themed tray menu -
+[nperovic/GuiEnhancerKit](https://github.com/nperovic/GuiEnhancerKit) / ColorButton.ahk.

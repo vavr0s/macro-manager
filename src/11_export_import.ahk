@@ -173,12 +173,13 @@ ImportOne(path) {
     if (meta.Has("type") && (meta["type"] = "move" || meta["type"] = "seq")) {
         ; file exported by Macro Manager -> editable native macro
         m["type"] := meta["type"]
-        for k in ["app", "dirs", "actions", "seq", "tkey"]
+        for k in ["app", "dirs", "actions", "seq", "tkey", "press"]
             if meta.Has(k)
                 m[k] := meta[k]
         for k in ["g1", "g2", "g3", "ge", "repeat"]
             if meta.Has(k)
                 m[k] := Num(meta[k])
+        m["exact"] := meta.Has("exact") ? Num(meta["exact"]) : 0     ; exported before exact delays existed: old timing
         m["hotkey"] := (meta.Has("hotkey") && Trim(meta["hotkey"]) != "") ? Trim(meta["hotkey"]) : "undefined"
     } else {
         ; any other script -> runs as its own process while the macro is on

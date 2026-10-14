@@ -252,7 +252,7 @@ Refresh() {
         if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"], (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }

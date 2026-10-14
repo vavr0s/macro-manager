@@ -19,6 +19,9 @@ Apply() {
             if (m["tkey"] != "" && InProfile(m))
                 RegToggle(m["tkey"], ToggleMacro.Bind(m))
     }
+    ; macros on the same key in the same place share one handler: a "normal" macro takes the key as soon as it
+    ; goes down; otherwise the handler tells short tap / double tap / long press apart (each can be another macro)
+    groups := Map()
     for m in Macros {
         if (m["type"] = "script") {
             SyncScript(m)
@@ -29,17 +32,27 @@ Apply() {
         trig := Trim(m["hotkey"])
         if (trig = "" || trig = "undefined")
             continue
+        id := StrLower(TrigHot(trig)) "|" StrLower(m["app"])
+        if !groups.Has(id)
+            groups[id] := {trig: trig, app: m["app"], name: m["name"], set: Map()}
+        groups[id].set[PressEff(m)] := m             ; same key and same press mode: the later macro wins (as before)
+    }
+    for id, gr in groups {
+        fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
-            SetCrit(m["app"])
-            Hotkey(TrigHot(trig), MakeRun(m, trig), "On")
-            Registered.Push([TrigHot(trig), m["app"]])
+            SetCrit(gr.app)
+            Hotkey(TrigHot(gr.trig), fn, "On")
+            Registered.Push([TrigHot(gr.trig), gr.app])
         } catch as e {
             HotIf()
-            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", m["name"], trig, e.Message), , true)
+            ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", gr.name, gr.trig, e.Message), , true)
         }
     }
     HotIf()
 }
+
+; press mode that really applies: a wheel has no hold and no release, so wheel macros always play at once
+PressEff(m) => (m["type"] = "script" || IsWheel(m["hotkey"])) ? "" : PressOf(m)
 
 RegToggle(key, fn) {
     try {
@@ -117,8 +130,12 @@ KeyClash(m) {
     if (id = "")
         return 0
     app := m["type"] = "script" ? "" : m["app"]
+    p := PressEff(m)
     for x in Macros {
         if (x == m || !x["enabled"] || !InProfile(x) || TrigId(x) != id)
+            continue
+        xp := PressEff(x)
+        if (p != "" && xp != "" && p != xp)          ; e.g. short tap and long press on one key: both work
             continue
         xa := x["type"] = "script" ? "" : x["app"]
         if (app = "" || xa = "" || app = xa)        ; "everywhere" overlaps with every application
@@ -232,7 +249,27 @@ SetCrit(app) {
     else
         HotIfWinActive("ahk_exe " app)
 }
-MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (m["type"] = "move" ? RunMove(m, trig) : RunSeq(m, trig)))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : RunPick(m, trig))
+MakePress(set, trig) => (*) => RunPress(set, trig)
+RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) : RunSeq(m, trig, once)
+
+; one key, several press modes: waits only as long as needed to tell them apart.
+; long press = still held after HoldMs; double tap = pressed again within DblMs after release; short tap = neither.
+; (approach of evilC/TapHoldManager, MIT - rewritten for Macro Manager)
+RunPress(set, trig) {
+    if AltGrFake(trig)
+        return
+    k := TrigMain(trig)
+    if set.Has("hold") {
+        if !KeyWait(k, "P T" HoldMs / 1000)             ; not released in time = long press (repeat runs while held)
+            return RunPick(set["hold"], trig)
+    } else
+        KeyWait(k, "P")
+    if (set.Has("double") && KeyWait(k, "D P T" DblMs / 1000))
+        return RunPick(set["double"], trig)             ; held on the 2nd press: "repeat while held" works here too
+    if set.Has("tap")
+        RunPick(set["tap"], trig, true)                 ; the key is already up: plays one pass
+}
 
 Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
 
