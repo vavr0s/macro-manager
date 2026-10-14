@@ -217,6 +217,13 @@ TrCs() {
     m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
     m["Don't save"] := "Neukládat"
+    m["the toggle key of `"{1}`""] := "přepínací klávesa makra „{1}“"
+    m["the trigger key of `"{1}`""] := "spouštěcí klávesa makra „{1}“"
+    m["The key {1} is already used as {2}."] := "Klávesa {1} už je použitá jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Přepínací klávesa {1} už je použitá jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Spouštěcí klávesa {1} už je použitá jako {2}."
+    m["the All macros toggle key"] := "přepínač všech maker"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klávesa {1} je použitá dvakrát - jako {2} a jako {3}. Funguje jen jedno z nich."
     return m
 }
 TrPl() {
@@ -437,6 +444,13 @@ TrPl() {
     m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
     m["Don't save"] := "Nie zapisuj"
+    m["the toggle key of `"{1}`""] := "klawisz przełącznika makra „{1}”"
+    m["the trigger key of `"{1}`""] := "klawisz wyzwalający makra „{1}”"
+    m["The key {1} is already used as {2}."] := "Klawisz {1} jest już używany jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Klawisz przełącznika {1} jest już używany jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Klawisz wyzwalający {1} jest już używany jako {2}."
+    m["the All macros toggle key"] := "przełącznik wszystkich makr"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klawisz {1} jest użyty dwa razy - jako {2} i jako {3}. Działa tylko jedno z nich."
     return m
 }
 TrDe() {
@@ -657,6 +671,13 @@ TrDe() {
     m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
     m["Don't save"] := "Nicht speichern"
+    m["the toggle key of `"{1}`""] := "Ein/Aus-Taste von „{1}“"
+    m["the trigger key of `"{1}`""] := "Auslösetaste von „{1}“"
+    m["The key {1} is already used as {2}."] := "Die Taste {1} wird bereits verwendet als {2}."
+    m["The toggle key {1} is already used as {2}."] := "Die Ein/Aus-Taste {1} wird bereits verwendet als {2}."
+    m["The trigger key {1} is already used as {2}."] := "Die Auslösetaste {1} wird bereits verwendet als {2}."
+    m["the All macros toggle key"] := "Taste für alle Makros"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Die Taste {1} ist doppelt belegt - als {2} und als {3}. Nur eines davon funktioniert."
     return m
 }
 ; ===== END TRANSLATIONS =====

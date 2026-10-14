@@ -214,5 +214,12 @@
  "Exact delays": "Dokładne opóźnienia",
  "The toggle key can't be the same as the trigger key.": "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający.",
  "Don't save": "Nie zapisuj",
- "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć...",
+ "The toggle key {1} is already used as {2}.": "Klawisz przełącznika {1} jest już używany jako {2}.",
+ "The trigger key {1} is already used as {2}.": "Klawisz wyzwalający {1} jest już używany jako {2}.",
+ "The key {1} is already used as {2}.": "Klawisz {1} jest już używany jako {2}.",
+ "the All macros toggle key": "przełącznik wszystkich makr",
+ "the toggle key of \"{1}\"": "klawisz przełącznika makra „{1}”",
+ "the trigger key of \"{1}\"": "klawisz wyzwalający makra „{1}”",
+ "The key {1} is used twice - as {2} and as {3}. Only one of them works.": "Klawisz {1} jest użyty dwa razy - jako {2} i jako {3}. Działa tylko jedno z nich."
 }

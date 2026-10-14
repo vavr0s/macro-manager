@@ -1416,5 +1416,59 @@
    "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
   ],
   "max_chars": 40
+ },
+ "the toggle key of \"{1}\"": {
+  "en": "the toggle key of \"{1}\"",
+  "ctx": [
+   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
+   "id := KeyId(m[\"tkey\"]), who := _T(\"the toggle key of `\"{1}`\"\", m[\"name\"])",
+   "return _T(\"the toggle key of `\"{1}`\"\", x[\"name\"])"
+  ],
+  "max_chars": 300
+ },
+ "the trigger key of \"{1}\"": {
+  "en": "the trigger key of \"{1}\"",
+  "ctx": [
+   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
+   "clash.Push([trig, used[kid], _T(\"the trigger key of `\"{1}`\"\", m[\"name\"])])",
+   "return _T(\"the trigger key of `\"{1}`\"\", x[\"name\"])"
+  ],
+  "max_chars": 300
+ },
+ "The key {1} is already used as {2}.": {
+  "en": "The key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The key {1} is already used as {2}.\", k, who), , true)"
+  ],
+  "max_chars": 300
+ },
+ "The toggle key {1} is already used as {2}.": {
+  "en": "The toggle key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The toggle key {1} is already used as {2}.\", st[\"tkey\"], who), , true)"
+  ],
+  "max_chars": 300
+ },
+ "The trigger key {1} is already used as {2}.": {
+  "en": "The trigger key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The trigger key {1} is already used as {2}.\", key, who), , true)"
+  ],
+  "max_chars": 300
+ },
+ "the All macros toggle key": {
+  "en": "the All macros toggle key",
+  "ctx": [
+   "used[KeyId(MasterKey)] := _T(\"the All macros toggle key\")",
+   "return _T(\"the All macros toggle key\")"
+  ],
+  "max_chars": 300
+ },
+ "The key {1} is used twice - as {2} and as {3}. Only one of them works.": {
+  "en": "The key {1} is used twice - as {2} and as {3}. Only one of them works.",
+  "ctx": [
+   "txt .= (txt = \"\" ? \"\" : \"`n\") _T(\"The key {1} is used twice - as {2} and as {3}. Only one of them works.\", c[1], c[2], c[3])"
+  ],
+  "max_chars": 300
  }
 }

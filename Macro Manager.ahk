@@ -101,7 +101,7 @@ DiscordId := "271697935627059202"
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.17"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.19.18"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -438,17 +438,22 @@ OnMaster(*) {
 
 OnMasterKey() {
     global MasterKey
-    MasterKey := MKst["key"]
+    k := MKst["key"]
+    if (k != "") {                                  ; works in every profile: no macro of any profile may use the key
+        id := KeyId(k)
+        for m in Macros {
+            who := KeyId(m["tkey"]) = id ? _T("the toggle key of `"{1}`"", m["name"]) : (TrigId(m) = id ? _T("the trigger key of `"{1}`"", m["name"]) : "")
+            if (who != "") {
+                ThemedNote(_T("The key {1} is already used as {2}.", k, who), , true)
+                MKst["key"] := MasterKey            ; keep the previous key
+                bMKey.Text := KeyLabel(_T("All macros toggle key:") "  ", MasterKey)
+                return
+            }
+        }
+    }
+    MasterKey := k
     Save()
     Apply()
-    if (MasterKey != "") {                          ; the same key as a macro: only one of them reacts
-        id := StrLower(TrigHot(MasterKey))
-        for m in Macros
-            if (m["type"] != "script" && (TrigId(m) = id || (m["tkey"] != "" && StrLower(TrigHot(m["tkey"])) = id))) {
-                Toast(_T("Same trigger key as `"{1}`" - only one of them works", m["name"]))
-                break
-            }
-    }
 }
 
 ToggleMaster(*) {
@@ -472,9 +477,9 @@ ToggleMacro(m, *) {
     Toast(m["name"] ": " (m["enabled"] ? _T("ON") : _T("OFF")))
 }
 
-Toast(txt) {
+Toast(txt, ms := 1200) {
     ToolTip(txt)
-    SetTimer(() => ToolTip(), -1200)
+    SetTimer(() => ToolTip(), -ms)
 }
 
 MoveRow(d) {
@@ -1518,6 +1523,10 @@ EditMacro(idx) {
         FinishRec()
         t := tsel
         nm := Trim(eName.Value)
+        if (st["tkey"] != "" && (who := KeyTaken(KeyId(st["tkey"]), m, pv["v"], true))) {   ; toggle = another key in use
+            ThemedNote(_T("The toggle key {1} is already used as {2}.", st["tkey"], who), , true)
+            return
+        }
         if (t = 3) {
             txt := eCode.Value
             if (Trim(txt) = "") {
@@ -1541,6 +1550,10 @@ EditMacro(idx) {
             }
             if (st["tkey"] != "" && StrLower(TrigHot(st["tkey"])) = StrLower(TrigHot(key))) {
                 ThemedNote(_T("The toggle key can't be the same as the trigger key."), , true)
+                return
+            }
+            if (who := KeyTaken(KeyId(key), m, pv["v"], false)) {        ; trigger = a toggle key in the same profile
+                ThemedNote(_T("The trigger key {1} is already used as {2}.", key, who), , true)
                 return
             }
             if !Detach()
@@ -1742,12 +1755,22 @@ Apply() {
     for k in TogReg
         try Hotkey(k, "Off")
     TogReg := []
+    used := Map()                                    ; key -> who uses it (to point out keys used twice)
+    clash := []
     if !Recording {
-        if (MasterKey != "")
+        if (MasterKey != "") {
             RegToggle(MasterKey, ToggleMaster)
+            used[KeyId(MasterKey)] := _T("the All macros toggle key")
+        }
         for m in Macros
-            if (m["tkey"] != "" && InProfile(m))
+            if (m["tkey"] != "" && InProfile(m)) {
                 RegToggle(m["tkey"], ToggleMacro.Bind(m))
+                id := KeyId(m["tkey"]), who := _T("the toggle key of `"{1}`"", m["name"])
+                if used.Has(id)
+                    clash.Push([m["tkey"], used[id], who])
+                else
+                    used[id] := who
+            }
     }
     ; macros on the same key in the same place share one handler: a "normal" macro takes the key as soon as it
     ; goes down; otherwise the handler tells short tap / double tap / long press apart (each can be another macro)
@@ -1766,7 +1789,14 @@ Apply() {
         if !groups.Has(id)
             groups[id] := {trig: trig, app: m["app"], name: m["name"], set: Map()}
         groups[id].set[PressEff(m)] := m             ; same key and same press mode: the later macro wins (as before)
+        kid := KeyId(trig)
+        if (used.Has(kid) && !used.Has("!" kid)) {   ; a toggle key (one line per key is enough)
+            clash.Push([trig, used[kid], _T("the trigger key of `"{1}`"", m["name"])])
+            used["!" kid] := true
+        }
     }
+    if !Recording
+        ClashHint(clash)
     for id, gr in groups {
         fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
@@ -1779,6 +1809,38 @@ Apply() {
         }
     }
     HotIf()
+}
+
+; one key used both as a toggle key and as a trigger (e.g. after an import): say so once, it would just not work
+ClashHint(clash) {
+    static last := ""
+    txt := ""
+    for c in clash
+        txt .= (txt = "" ? "" : "`n") _T("The key {1} is used twice - as {2} and as {3}. Only one of them works.", c[1], c[2], c[3])
+    if (txt != "" && txt != last)
+        Toast(txt, 5000)
+    last := txt
+}
+
+; comparable form of any key ("" = none)
+KeyId(k) => (Trim(k) = "" || Trim(k) = "undefined") ? "" : StrLower(TrigHot(Trim(k)))
+
+; who already uses key `id` in the profiles `profs` (a macro's toggle key, the All macros key, or - when
+; `triggersToo` - a macro's trigger key): a description such as 'the toggle key of "Heal"', or "" when free
+KeyTaken(id, self, profs, triggersToo) {
+    if (id = "")
+        return ""
+    if (KeyId(MasterKey) = id)
+        return _T("the All macros toggle key")
+    for x in Macros {
+        if (x == self || !ProfOverlap(x["profiles"], profs))
+            continue
+        if (KeyId(x["tkey"]) = id)
+            return _T("the toggle key of `"{1}`"", x["name"])
+        if (triggersToo && TrigId(x) = id)
+            return _T("the trigger key of `"{1}`"", x["name"])
+    }
+    return ""
 }
 
 ; press mode that really applies: a wheel has no hold and no release, so wheel macros always play at once
@@ -3074,6 +3136,14 @@ HasProf(list, name) {
 }
 
 InProfile(m) => HasProf(m["profiles"], CurProfile)
+
+; do two profile lists ("a|b") share a profile?
+ProfOverlap(a, b) {
+    for p in StrSplit(a, "|")
+        if (p != "" && HasProf(b, p))
+            return true
+    return false
+}
 
 IndexOf(m) {
     for i, x in Macros
@@ -6031,6 +6101,13 @@ TrCs() {
     m["The toggle key can't be the same as the trigger key."] := "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
     m["Don't save"] := "Neukládat"
+    m["the toggle key of `"{1}`""] := "přepínací klávesa makra „{1}“"
+    m["the trigger key of `"{1}`""] := "spouštěcí klávesa makra „{1}“"
+    m["The key {1} is already used as {2}."] := "Klávesa {1} už je použitá jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Přepínací klávesa {1} už je použitá jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Spouštěcí klávesa {1} už je použitá jako {2}."
+    m["the All macros toggle key"] := "přepínač všech maker"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klávesa {1} je použitá dvakrát - jako {2} a jako {3}. Funguje jen jedno z nich."
     return m
 }
 TrPl() {
@@ -6251,6 +6328,13 @@ TrPl() {
     m["The toggle key can't be the same as the trigger key."] := "Klawisz przełącznika nie może być taki sam jak klawisz wyzwalający."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
     m["Don't save"] := "Nie zapisuj"
+    m["the toggle key of `"{1}`""] := "klawisz przełącznika makra „{1}”"
+    m["the trigger key of `"{1}`""] := "klawisz wyzwalający makra „{1}”"
+    m["The key {1} is already used as {2}."] := "Klawisz {1} jest już używany jako {2}."
+    m["The toggle key {1} is already used as {2}."] := "Klawisz przełącznika {1} jest już używany jako {2}."
+    m["The trigger key {1} is already used as {2}."] := "Klawisz wyzwalający {1} jest już używany jako {2}."
+    m["the All macros toggle key"] := "przełącznik wszystkich makr"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Klawisz {1} jest użyty dwa razy - jako {2} i jako {3}. Działa tylko jedno z nich."
     return m
 }
 TrDe() {
@@ -6471,6 +6555,13 @@ TrDe() {
     m["The toggle key can't be the same as the trigger key."] := "Die Ein/Aus-Taste darf nicht dieselbe sein wie die Auslösetaste."
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
     m["Don't save"] := "Nicht speichern"
+    m["the toggle key of `"{1}`""] := "Ein/Aus-Taste von „{1}“"
+    m["the trigger key of `"{1}`""] := "Auslösetaste von „{1}“"
+    m["The key {1} is already used as {2}."] := "Die Taste {1} wird bereits verwendet als {2}."
+    m["The toggle key {1} is already used as {2}."] := "Die Ein/Aus-Taste {1} wird bereits verwendet als {2}."
+    m["The trigger key {1} is already used as {2}."] := "Die Auslösetaste {1} wird bereits verwendet als {2}."
+    m["the All macros toggle key"] := "Taste für alle Makros"
+    m["The key {1} is used twice - as {2} and as {3}. Only one of them works."] := "Die Taste {1} ist doppelt belegt - als {2} und als {3}. Nur eines davon funktioniert."
     return m
 }
 ; ===== END TRANSLATIONS =====

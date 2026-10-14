@@ -163,6 +163,10 @@ EditMacro(idx) {
         FinishRec()
         t := tsel
         nm := Trim(eName.Value)
+        if (st["tkey"] != "" && (who := KeyTaken(KeyId(st["tkey"]), m, pv["v"], true))) {   ; toggle = another key in use
+            ThemedNote(_T("The toggle key {1} is already used as {2}.", st["tkey"], who), , true)
+            return
+        }
         if (t = 3) {
             txt := eCode.Value
             if (Trim(txt) = "") {
@@ -186,6 +190,10 @@ EditMacro(idx) {
             }
             if (st["tkey"] != "" && StrLower(TrigHot(st["tkey"])) = StrLower(TrigHot(key))) {
                 ThemedNote(_T("The toggle key can't be the same as the trigger key."), , true)
+                return
+            }
+            if (who := KeyTaken(KeyId(key), m, pv["v"], false)) {        ; trigger = a toggle key in the same profile
+                ThemedNote(_T("The trigger key {1} is already used as {2}.", key, who), , true)
                 return
             }
             if !Detach()

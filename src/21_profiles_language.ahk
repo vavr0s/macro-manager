@@ -15,6 +15,14 @@ HasProf(list, name) {
 
 InProfile(m) => HasProf(m["profiles"], CurProfile)
 
+; do two profile lists ("a|b") share a profile?
+ProfOverlap(a, b) {
+    for p in StrSplit(a, "|")
+        if (p != "" && HasProf(b, p))
+            return true
+    return false
+}
+
 IndexOf(m) {
     for i, x in Macros
         if (x == m)

@@ -138,17 +138,22 @@ OnMaster(*) {
 
 OnMasterKey() {
     global MasterKey
-    MasterKey := MKst["key"]
+    k := MKst["key"]
+    if (k != "") {                                  ; works in every profile: no macro of any profile may use the key
+        id := KeyId(k)
+        for m in Macros {
+            who := KeyId(m["tkey"]) = id ? _T("the toggle key of `"{1}`"", m["name"]) : (TrigId(m) = id ? _T("the trigger key of `"{1}`"", m["name"]) : "")
+            if (who != "") {
+                ThemedNote(_T("The key {1} is already used as {2}.", k, who), , true)
+                MKst["key"] := MasterKey            ; keep the previous key
+                bMKey.Text := KeyLabel(_T("All macros toggle key:") "  ", MasterKey)
+                return
+            }
+        }
+    }
+    MasterKey := k
     Save()
     Apply()
-    if (MasterKey != "") {                          ; the same key as a macro: only one of them reacts
-        id := StrLower(TrigHot(MasterKey))
-        for m in Macros
-            if (m["type"] != "script" && (TrigId(m) = id || (m["tkey"] != "" && StrLower(TrigHot(m["tkey"])) = id))) {
-                Toast(_T("Same trigger key as `"{1}`" - only one of them works", m["name"]))
-                break
-            }
-    }
 }
 
 ToggleMaster(*) {
@@ -172,9 +177,9 @@ ToggleMacro(m, *) {
     Toast(m["name"] ": " (m["enabled"] ? _T("ON") : _T("OFF")))
 }
 
-Toast(txt) {
+Toast(txt, ms := 1200) {
     ToolTip(txt)
-    SetTimer(() => ToolTip(), -1200)
+    SetTimer(() => ToolTip(), -ms)
 }
 
 MoveRow(d) {

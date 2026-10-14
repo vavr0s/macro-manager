@@ -214,5 +214,12 @@
  "Exact delays": "Přesné prodlevy",
  "The toggle key can't be the same as the trigger key.": "Přepínací klávesa nemůže být stejná jako spouštěcí klávesa.",
  "Don't save": "Neukládat",
- "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit...",
+ "The toggle key {1} is already used as {2}.": "Přepínací klávesa {1} už je použitá jako {2}.",
+ "The trigger key {1} is already used as {2}.": "Spouštěcí klávesa {1} už je použitá jako {2}.",
+ "The key {1} is already used as {2}.": "Klávesa {1} už je použitá jako {2}.",
+ "the All macros toggle key": "přepínač všech maker",
+ "the toggle key of \"{1}\"": "přepínací klávesa makra „{1}“",
+ "the trigger key of \"{1}\"": "spouštěcí klávesa makra „{1}“",
+ "The key {1} is used twice - as {2} and as {3}. Only one of them works.": "Klávesa {1} je použitá dvakrát - jako {2} a jako {3}. Funguje jen jedno z nich."
 }
