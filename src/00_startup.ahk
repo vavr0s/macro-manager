@@ -69,6 +69,8 @@ if !A_IsAdmin {
 }
 
 Roles := Map()         ; control hwnd -> role (hint / skip / code) used by the theme (also by the setup dialogs)
+BtnLook := Map()       ; flat button hwnd -> {left, round, hover} (drawn by DrawBtn)
+OnMessage(0x2B, DrawBtn)       ; WM_DRAWITEM: the flat buttons are drawn by the app
 DarkOn := false
 
 ; ============ first run: install into a folder chosen by the user ============

@@ -64,39 +64,107 @@ RoleColors(role, hover := false) {
 }
 
 ; flat "button" = a clickable text control with its own colours (no system border)
-AddBtn(g, opts, text, handler, role := "btn") {
-    c := g.AddText(opts " +0x200" (InStr(opts, "Left") ? "" : " Center"), text)
+; the button is drawn by the app itself (owner-drawn text control, see DrawBtn): rounded, smooth corners.
+; round = false: square (rows of the drop-down lists)
+AddBtn(g, opts, text, handler, role := "btn", round := true) {
+    c := g.AddText(RegExReplace(opts, "i)\bLeft\b") " +0xD", text)      ; SS_OWNERDRAW ("Left" would clear it; DrawBtn aligns)
     c.OnEvent("Click", handler)
     Roles[c.Hwnd] := role
-    RoundCorners(c)
+    BtnLook[c.Hwnd] := {left: InStr(opts, "Left") > 0, round: round, hover: false}
     return c
-}
-
-; rounded corners for a flat button (window region; idea: GuiEnhancerKit SetRounded, nperovic, MIT)
-RoundCorners(c, d := 10) {
-    try {
-        rc := Buffer(16, 0)
-        DllCall("GetClientRect", "Ptr", c.Hwnd, "Ptr", rc)
-        w := NumGet(rc, 8, "Int"), h := NumGet(rc, 12, "Int")
-        if (w < 8 || h < 8)
-            return
-        d := Round(Min(h, d * A_ScreenDPI / 96))
-        rgn := DllCall("CreateRoundRectRgn", "Int", 0, "Int", 0, "Int", w + 1, "Int", h + 1, "Int", d, "Int", d, "Ptr")
-        if rgn && !DllCall("SetWindowRgn", "Ptr", c.Hwnd, "Ptr", rgn, "Int", 1)
-            DllCall("DeleteObject", "Ptr", rgn)                ; on success Windows owns the region
-    }
 }
 
 PaintBtn(hwnd, hover) {
     try {
+        if BtnLook.Has(hwnd)
+            BtnLook[hwnd].hover := hover
         c := GuiCtrlFromHwnd(hwnd)
-        if !c
-            return
-        col := RoleColors(Roles[hwnd], hover)
-        c.Opt("Background" col[1])
-        c.SetFont("c" col[2])
-        c.Redraw()
+        if c
+            c.Redraw()
     }
+}
+
+; WM_DRAWITEM of a flat button: background of the window in the corners, rounded fill (GDI+, anti-aliased),
+; text in the middle. Drawn into a memory bitmap first, so hovering does not flicker.
+; (rounded colour buttons: idea of nperovic/ColorButton.ahk, MIT)
+DrawBtn(wParam, lParam, *) {
+    static ps := A_PtrSize
+    if (NumGet(lParam, 0, "UInt") != 5)                       ; ODT_STATIC only
+        return
+    h := NumGet(lParam, ps = 8 ? 24 : 20, "Ptr")
+    if !(Roles.Has(h) && BtnLook.Has(h))
+        return
+    dc := NumGet(lParam, ps = 8 ? 32 : 24, "Ptr")
+    rcOff := ps = 8 ? 40 : 28
+    w := NumGet(lParam, rcOff + 8, "Int") - NumGet(lParam, rcOff, "Int")
+    hh := NumGet(lParam, rcOff + 12, "Int") - NumGet(lParam, rcOff + 4, "Int")
+    if (w < 1 || hh < 1)
+        return true
+    lk := BtnLook[h]
+    role := Roles[h]
+    col := RoleColors(role, lk.hover)
+    disabled := NumGet(lParam, 16, "UInt") & 4                 ; ODS_DISABLED
+    under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : (DarkOn ? "15161A" : "F5F5F7")
+    mdc := DllCall("CreateCompatibleDC", "Ptr", dc, "Ptr")
+    bmp := DllCall("CreateCompatibleBitmap", "Ptr", dc, "Int", w, "Int", hh, "Ptr")
+    obmp := DllCall("SelectObject", "Ptr", mdc, "Ptr", bmp, "Ptr")
+    r := Buffer(16, 0)
+    NumPut("Int", 0, "Int", 0, "Int", w, "Int", hh, r)
+    br := DllCall("CreateSolidBrush", "UInt", Bgr(lk.round ? under : col[1]), "Ptr")
+    DllCall("FillRect", "Ptr", mdc, "Ptr", r, "Ptr", br)
+    DllCall("DeleteObject", "Ptr", br)
+    if (lk.round && GdipOn()) {
+        d := Min(hh, Round(12 * A_ScreenDPI / 96)) + 0.0
+        DllCall("gdiplus\GdipCreateFromHDC", "Ptr", mdc, "Ptr*", &gr := 0)
+        DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)        ; anti-alias
+        DllCall("gdiplus\GdipSetPixelOffsetMode", "Ptr", gr, "Int", 4)      ; half-pixel: crisp straight edges
+        DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)
+        x2 := w - d, y2 := hh - d
+        for a in [[0, 0, 180], [x2, 0, 270], [x2, y2, 0], [0, y2, 90]]
+            DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+        DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+        DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" col[1]), "Ptr*", &fb := 0)
+        DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+        DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+        DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+        DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+    } else if lk.round {
+        br := DllCall("CreateSolidBrush", "UInt", Bgr(col[1]), "Ptr")
+        DllCall("FillRect", "Ptr", mdc, "Ptr", r, "Ptr", br)
+        DllCall("DeleteObject", "Ptr", br)
+    }
+    txt := ""
+    try txt := GuiCtrlFromHwnd(h).Text
+    font := SendMessage(0x31, 0, 0, h)                          ; WM_GETFONT
+    of := DllCall("SelectObject", "Ptr", mdc, "Ptr", font, "Ptr")
+    DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
+    DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
+    DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
+    DllCall("SelectObject", "Ptr", mdc, "Ptr", of, "Ptr")
+    DllCall("BitBlt", "Ptr", dc, "Int", NumGet(lParam, rcOff, "Int"), "Int", NumGet(lParam, rcOff + 4, "Int"), "Int", w, "Int", hh, "Ptr", mdc, "Int", 0, "Int", 0, "UInt", 0xCC0020)
+    DllCall("SelectObject", "Ptr", mdc, "Ptr", obmp, "Ptr")
+    DllCall("DeleteObject", "Ptr", bmp)
+    DllCall("DeleteDC", "Ptr", mdc)
+    return true
+}
+
+Bgr(hex) {
+    v := Integer("0x" hex)
+    return ((v & 0xFF) << 16) | (v & 0xFF00) | ((v >> 16) & 0xFF)
+}
+
+; GDI+ started once (also used for the list check boxes)
+GdipOn() {
+    static tok := 0
+    if !tok {
+        try {
+            DllCall("LoadLibrary", "Str", "gdiplus", "Ptr")
+            si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
+            NumPut("UInt", 1, si)
+            DllCall("gdiplus\GdiplusStartup", "Ptr*", &tok, "Ptr", si, "Ptr", 0)
+        }
+    }
+    return tok != 0
 }
 
 ; hover effect for the flat buttons
@@ -156,9 +224,7 @@ ApplyTheme(g) {
                         c.Opt("Background" col[1])
                         c.SetFont("s9 bold c" col[2])
                     } else if (SubStr(role, 1, 3) = "btn") {
-                        col := RoleColors(role)
-                        c.Opt("Background" col[1])
-                        c.SetFont("s9 c" col[2])
+                        c.SetFont("s9")                     ; colours: DrawBtn
                     } else
                         c.SetFont("c" (role = "hint" ? hint : txt))
                 case "Edit":
@@ -223,14 +289,8 @@ ShowOver(g, opts, anchor := 0) {
 
 ; themed check boxes for the list (state image list: 1 = off, 2 = on)
 SetCheckImages(c) {
-    static gdip := 0
     try {
-        if !gdip {
-            si := Buffer(A_PtrSize = 8 ? 24 : 16, 0)
-            NumPut("UInt", 1, si)
-            DllCall("gdiplus\GdiplusStartup", "Ptr*", &tok := 0, "Ptr", si, "Ptr", 0)
-            gdip := tok
-        }
+        GdipOn()
         file := DarkOn ? CbDarkFile : CbLightFile
         sz := Round(28 * A_ScreenDPI / 96)
         DllCall("gdiplus\GdipCreateBitmapFromFile", "WStr", file, "Ptr*", &src := 0)
