@@ -1,0 +1,27 @@
+{
+  "_about": "Release notes of the version being built: one line per change, every language. tools/set_notes.py writes them into the app (Help) and into version.json (update window). Do not use double quotes or backticks.",
+  "en": [
+    "Release notes are now shown in the language of the app (English, Czech, Polish, German) - in Help and in the update window.",
+    "Czech: the tray menu item Exit is now Ukončit. Polish: Zamknij is now Zakończ, and Release notes is translated.",
+    "The flag on the language button no longer disappears when you point at it or open the menu.",
+    "Dark mode: the help text and the script / sequence boxes have dark scroll bars."
+  ],
+  "cs": [
+    "Poznámky k verzi se teď zobrazují v jazyce aplikace (angličtina, čeština, polština, němčina) – v Nápovědě i v okně aktualizace.",
+    "Čeština: položka Exit v menu u ikony se teď jmenuje Ukončit. Polština: Zamknij je teď Zakończ a přeložené jsou i poznámky k verzi.",
+    "Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.",
+    "Tmavý režim: text nápovědy a pole skriptu a sekvence mají tmavé posuvníky."
+  ],
+  "pl": [
+    "Informacje o wersji są teraz wyświetlane w języku aplikacji (angielski, czeski, polski, niemiecki) – w Pomocy i w oknie aktualizacji.",
+    "Czeski: pozycja Exit w menu ikony to teraz Ukončit. Polski: Zamknij to teraz Zakończ, a Informacje o wersji są przetłumaczone.",
+    "Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.",
+    "Tryb ciemny: tekst pomocy oraz pola skryptu i sekwencji mają ciemne paski przewijania."
+  ],
+  "de": [
+    "Versionshinweise werden jetzt in der Sprache der App angezeigt (Englisch, Tschechisch, Polnisch, Deutsch) – in der Hilfe und im Update-Fenster.",
+    "Tschechisch: Der Menüpunkt Exit am Symbol heißt jetzt Ukončit. Polnisch: Zamknij heißt jetzt Zakończ, und Release notes ist übersetzt.",
+    "Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.",
+    "Dunkelmodus: Der Hilfetext und die Skript- und Sequenzfelder haben dunkle Bildlaufleisten."
+  ]
+}

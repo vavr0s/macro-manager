@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.20.4"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.20.5"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -109,8 +109,11 @@ UpdBranch := "beta"      ; the test (beta) build uses "beta"
 UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/version.json"      ; fallback (cached by GitHub for ~5 min)
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
-; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Czech: the tray menu item Exit is now Ukončit; Polish: Zamknij is now Zakończ.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: the help text and the script / sequence boxes have dark scroll bars."
+; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
+; tools/notes.json). No double quotes here.
+ReleaseNotes := "BETA build - for testing.`n- Release notes are now shown in the language of the app (English, Czech, Polish, German) - in Help and in the update window.`n- Czech: the tray menu item Exit is now Ukončit. Polish: Zamknij is now Zakończ, and Release notes is translated.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: the help text and the script / sequence boxes have dark scroll bars."
+; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Poznámky k verzi se teď zobrazují v jazyce aplikace (angličtina, čeština, polština, němčina) – v Nápovědě i v okně aktualizace.`n- Čeština: položka Exit v menu u ikony se teď jmenuje Ukončit. Polština: Zamknij je teď Zakończ a přeložené jsou i poznámky k verzi.`n- Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.`n- Tmavý režim: text nápovědy a pole skriptu a sekvence mají tmavé posuvníky.", "pl", "Wersja BETA – do testów.`n- Informacje o wersji są teraz wyświetlane w języku aplikacji (angielski, czeski, polski, niemiecki) – w Pomocy i w oknie aktualizacji.`n- Czeski: pozycja Exit w menu ikony to teraz Ukončit. Polski: Zamknij to teraz Zakończ, a Informacje o wersji są przetłumaczone.`n- Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.`n- Tryb ciemny: tekst pomocy oraz pola skryptu i sekwencji mają ciemne paski przewijania.", "de", "BETA-Version – zum Testen.`n- Versionshinweise werden jetzt in der Sprache der App angezeigt (Englisch, Tschechisch, Polnisch, Deutsch) – in der Hilfe und im Update-Fenster.`n- Tschechisch: Der Menüpunkt Exit am Symbol heißt jetzt Ukončit. Polnisch: Zamknij heißt jetzt Zakończ, und Release notes ist übersetzt.`n- Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.`n- Dunkelmodus: Der Hilfetext und die Skript- und Sequenzfelder haben dunkle Bildlaufleisten.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -3599,6 +3602,9 @@ PickProfiles(owner, cur) {
 
 ProfMark(pn, on) => (on ? "  ✓   " : "       ") pn
 
+; release notes of this version in a language (English when there is no translation)
+NotesFor(lang) => (lang != "en" && ReleaseNotesL.Has(lang) && ReleaseNotesL[lang] != "") ? ReleaseNotesL[lang] : ReleaseNotes
+
 ; ============ application picker ============
 ; returns the chosen exe name (or `cur` when cancelled)
 PickApp(owner, cur) {
@@ -3844,11 +3850,34 @@ QueryUpdate() {
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
         || !RegExMatch(info, '"sha256"\s*:\s*"([0-9a-fA-F]{64})"', &ms))
         return "error"
-    notes := RegExMatch(info, '"notes"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn) ? StrReplace(mn[1], "\n", "`n") : ""
+    notes := ""                                   ; release notes in the app language, English if not translated
+    for key in (Lang = "en" ? ["notes"] : ["notes_" Lang, "notes"])
+        if (notes = "" && RegExMatch(info, '"' key '"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn))
+            notes := JsonUnesc(mn[1])
     UpdInfo := Map("ver", mv[1], "url", mu[1], "sha", StrLower(ms[1]), "notes", notes)
     UpdAvail := VerNewer(mv[1], AppVersion) && RegExMatch(mu[1], "^https://raw\.githubusercontent\.com/vavr0s/")
     SetUpdIcon()
     return UpdAvail ? "new" : "latest"
+}
+
+; a JSON string value as text: \n \" \\ \/ \t and \uXXXX (version.json keeps accented letters as \uXXXX, so the
+; text arrives right whatever character set the answer is read with)
+JsonUnesc(s) {
+    out := "", i := 1, n := StrLen(s)
+    while (i <= n) {
+        c := SubStr(s, i, 1)
+        if (c != "\" || i = n) {
+            out .= c, i++
+            continue
+        }
+        e := SubStr(s, i + 1, 1)
+        if (e = "u" && RegExMatch(SubStr(s, i + 2, 4), "^[0-9a-fA-F]{4}$")) {
+            out .= Chr(Integer("0x" SubStr(s, i + 2, 4))), i += 6
+            continue
+        }
+        out .= e = "n" ? "`n" : e = "t" ? "`t" : e = "r" ? "" : e, i += 2
+    }
+    return out
 }
 
 SetUpdIcon() {
@@ -4050,7 +4079,7 @@ HelpTopics() {
     t := Map()
     order := []
     order.Push("Release notes")
-    t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" ReleaseNotes
+    t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" NotesFor(Lang)
     order.Push("Getting started")
     t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
@@ -6528,7 +6557,7 @@ TrPl() {
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Wszystkie obecne makra, profile i ustawienia zostaną zastąpione kopią z {1} ({2} makr). Aplikacja uruchomi się ponownie.`n`nObecny stan zostanie najpierw zapisany jako:`n{3}"
     m["Restore"] := "Przywróć"
     m["The backup could not be restored:`n{1}"] := "Nie udało się przywrócić kopii:`n{1}"
-    m["Release notes"] := "Release notes"
+    m["Release notes"] := "Informacje o wersji"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
     m["Keys and recording"] := "Klawisze i nagrywanie"

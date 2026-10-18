@@ -426,7 +426,7 @@ TrPl() {
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Wszystkie obecne makra, profile i ustawienia zostaną zastąpione kopią z {1} ({2} makr). Aplikacja uruchomi się ponownie.`n`nObecny stan zostanie najpierw zapisany jako:`n{3}"
     m["Restore"] := "Przywróć"
     m["The backup could not be restored:`n{1}"] := "Nie udało się przywrócić kopii:`n{1}"
-    m["Release notes"] := "Release notes"
+    m["Release notes"] := "Informacje o wersji"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
     m["Keys and recording"] := "Klawisze i nagrywanie"

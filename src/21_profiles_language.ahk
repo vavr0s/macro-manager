@@ -271,3 +271,6 @@ PickProfiles(owner, cur) {
 }
 
 ProfMark(pn, on) => (on ? "  ✓   " : "       ") pn
+
+; release notes of this version in a language (English when there is no translation)
+NotesFor(lang) => (lang != "en" && ReleaseNotesL.Has(lang) && ReleaseNotesL[lang] != "") ? ReleaseNotesL[lang] : ReleaseNotes

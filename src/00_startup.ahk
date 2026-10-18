@@ -108,8 +108,11 @@ UpdBranch := "main"      ; the test (beta) build uses "beta"
 UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/version.json"      ; fallback (cached by GitHub for ~5 min)
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
-; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
+; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
+; tools/notes.json). No double quotes here.
 ReleaseNotes := "- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop) - in the app and in exported .ahk macros.`n- After the app starts, macros that are on are always shown ticked.`n- The app checks for updates in the background every 15 minutes, so new versions no longer show up late.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with a grey hint.`n- Script macros show a dash instead of 'undefined' as their key.`n- Help: the support link lights up when you point at it."
+; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
+ReleaseNotesL := Map()
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
