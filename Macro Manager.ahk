@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.20.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.20.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,7 +110,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).`n- After the app starts, macros that are on are shown ticked again (they were sometimes shown unticked).`n- Script macros show a dash instead of 'undefined' in the Key column.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with New macro as a grey hint - just type the name.`n- Help: the support link lights up when you point at it."
+ReleaseNotes := "BETA build - for testing.`n- Macros exported to .ahk: long press, double tap and Repeat while key is held also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).`n- The app checks for a new version in the background every 15 minutes instead of every 2. GitHub allows only 60 checks an hour per internet address, so several copies of the app could use them up and a new version showed up only minutes later. A click on the arrow still checks right away.`n- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).`n- After the app starts, macros that are on are shown ticked again (they were sometimes shown unticked).`n- Script macros show a dash instead of 'undefined' in the Key column.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with New macro as a grey hint - just type the name.`n- Help: the support link lights up when you point at it."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -1195,8 +1195,16 @@ ExportCode(m) {
     code := StrReplace(code, "@DATA@", data)
     code := StrReplace(code, "@PRESS@", press)
     code := StrReplace(code, "@EXACT@", m["exact"] ? "true" : "false")
-    code := StrReplace(code, "@HOLD@", Round(HoldMs / 1000, 3))
+    code := StrReplace(code, "@HOLDMS@", HoldMs)
+    code := StrReplace(code, "@DBLMS@", DblMs)
     code := StrReplace(code, "@DBL@", Round(DblMs / 1000, 3))
+    mods := "["                                       ; modifiers of a combination such as LCtrl+XButton1
+    parts := StrSplit(Trim(m["hotkey"]), "+")
+    loop parts.Length - 1
+        if (Trim(parts[A_Index]) != "")
+            mods .= (mods = "[" ? "" : ", ") '"' Trim(parts[A_Index]) '"'
+    code := StrReplace(code, "@MODS@", mods "]")
+    code := StrReplace(code, "@UP@", IsWheel(m["hotkey"]) ? "" : TrigHot(m["hotkey"]) " up:: {`n    global inj := false`n}")
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
     app := StrReplace(m["app"], '"', "")
@@ -1237,14 +1245,78 @@ exact := @EXACT@        ; true = delays kept to about a millisecond, false = pla
 if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
 
+; a press from another program (mouse software, Steam Input, remote desktop) is not "physical" for Windows:
+; for such a press the script follows the key's own down / up events instead of the physical key state
+mods := @MODS@          ; modifiers of a key combination (they must stay down too)
+inj := false, busy := false, waiting := false, dblHit := false
+
+Held() {
+    global inj
+    if GetKeyState(trig, "P")
+        return true
+    if !inj
+        return false
+    for k in mods
+        if !GetKeyState(k) {
+            inj := false
+            return false
+        }
+    return true
+}
+
+; waits until the key is released (true) or ms have passed (false)
+WaitUp(ms) {
+    if !inj
+        return ms ? KeyWait(trig, "P T" ms / 1000) : KeyWait(trig, "P")
+    t := A_TickCount
+    while Held() {
+        if (ms && A_TickCount - t >= ms)
+            return false
+        Sleep 5
+    }
+    return true
+}
+
 ; is this the press the macro waits for? (long press: still held after a moment; double tap: pressed again in time)
 PressOk() {
-    if (press = "hold")
-        return !KeyWait(trig, "P T@HOLD@")
+    global inj, waiting, dblHit
+    inj := !GetKeyState(trig, "P")
+    fromApp := inj                                    ; (inj goes back to false when the key is released)
     if (press = "")
         return true
-    KeyWait(trig, "P")
-    return press = "tap" || KeyWait(trig, "D P T@DBL@")
+    if (press = "hold")
+        return !WaitUp(@HOLDMS@)
+    WaitUp(0)
+    if (press = "tap")
+        return true
+    dblHit := false, waiting := true
+    if fromApp {
+        t := A_TickCount
+        while (!dblHit && A_TickCount - t < @DBLMS@)
+            Sleep 5
+        hit := dblHit
+    } else
+        hit := KeyWait(trig, "D P T@DBL@")
+    waiting := false
+    return hit
+}
+
+; the trigger key: a 2nd press while the macro is busy only counts as the 2nd press of a double tap
+OnTrigger(play) {
+    global busy, inj, dblHit
+    if busy {
+        if waiting {
+            inj := !GetKeyState(trig, "P")
+            dblHit := true
+        }
+        return
+    }
+    busy := true
+    try {
+        if PressOk()
+            play()
+    } finally
+        busy := false
 }
 
 ; exact pause: most of it a normal Sleep, the rest measured in 1 ms steps (Sleep alone can be ~15 ms longer)
@@ -1288,7 +1360,7 @@ Up(t) {
     return s
 }
 
-Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
+Active() => Held() && (app = "" || WinActive("ahk_exe " app))
 
 @HOTIF@
 )"
@@ -1297,9 +1369,12 @@ Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
 TplMove() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
@@ -1334,16 +1409,18 @@ TplMove() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
 
 TplSeq() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -1372,7 +1449,6 @@ TplSeq() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
 
@@ -3725,8 +3801,11 @@ Sha256(f) {
     return res
 }
 
-; silent background check: keeps the banner arrow up to date while the app keeps running
-AutoCheck(minAge := 120000) {
+; silent background check: keeps the banner arrow up to date while the app keeps running.
+; At most every 15 minutes: GitHub allows 60 questions an hour per internet address - several copies of the app
+; (or several people behind one address) would use that up, and then a new version shows up only minutes later.
+; A click on the arrow always asks right away.
+AutoCheck(minAge := 900000) {
     static last := -10000000
     if (!AutoUpd || Rec.ih || MacroBusy > 0 || A_TickCount - last < minAge)
         return                       ; recording, or a macro is playing: try again at the next tick
@@ -3738,10 +3817,15 @@ AutoCheck(minAge := 120000) {
 QueryUpdate() {
     global UpdAvail, UpdInfo
     global UpdEtag, UpdBody
+    static apiPause := 0                          ; GitHub said "too many questions": skip its API for a while
     hdr := Map("Accept", "application/vnd.github.raw+json")
     if (UpdEtag != "")
         hdr["If-None-Match"] := UpdEtag
-    info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    st := 0, info := ""
+    if (A_TickCount >= apiPause)
+        info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    if (st = 403 || st = 429)
+        apiPause := A_TickCount + 1800000          ; 30 minutes (the limit resets within the hour)
     if (st = 304)
         info := UpdBody
     else if (st = 200 && info != "")

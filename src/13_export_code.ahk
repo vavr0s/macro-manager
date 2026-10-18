@@ -44,8 +44,16 @@ ExportCode(m) {
     code := StrReplace(code, "@DATA@", data)
     code := StrReplace(code, "@PRESS@", press)
     code := StrReplace(code, "@EXACT@", m["exact"] ? "true" : "false")
-    code := StrReplace(code, "@HOLD@", Round(HoldMs / 1000, 3))
+    code := StrReplace(code, "@HOLDMS@", HoldMs)
+    code := StrReplace(code, "@DBLMS@", DblMs)
     code := StrReplace(code, "@DBL@", Round(DblMs / 1000, 3))
+    mods := "["                                       ; modifiers of a combination such as LCtrl+XButton1
+    parts := StrSplit(Trim(m["hotkey"]), "+")
+    loop parts.Length - 1
+        if (Trim(parts[A_Index]) != "")
+            mods .= (mods = "[" ? "" : ", ") '"' Trim(parts[A_Index]) '"'
+    code := StrReplace(code, "@MODS@", mods "]")
+    code := StrReplace(code, "@UP@", IsWheel(m["hotkey"]) ? "" : TrigHot(m["hotkey"]) " up:: {`n    global inj := false`n}")
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
     app := StrReplace(m["app"], '"', "")
@@ -86,14 +94,78 @@ exact := @EXACT@        ; true = delays kept to about a millisecond, false = pla
 if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
 
+; a press from another program (mouse software, Steam Input, remote desktop) is not "physical" for Windows:
+; for such a press the script follows the key's own down / up events instead of the physical key state
+mods := @MODS@          ; modifiers of a key combination (they must stay down too)
+inj := false, busy := false, waiting := false, dblHit := false
+
+Held() {
+    global inj
+    if GetKeyState(trig, "P")
+        return true
+    if !inj
+        return false
+    for k in mods
+        if !GetKeyState(k) {
+            inj := false
+            return false
+        }
+    return true
+}
+
+; waits until the key is released (true) or ms have passed (false)
+WaitUp(ms) {
+    if !inj
+        return ms ? KeyWait(trig, "P T" ms / 1000) : KeyWait(trig, "P")
+    t := A_TickCount
+    while Held() {
+        if (ms && A_TickCount - t >= ms)
+            return false
+        Sleep 5
+    }
+    return true
+}
+
 ; is this the press the macro waits for? (long press: still held after a moment; double tap: pressed again in time)
 PressOk() {
-    if (press = "hold")
-        return !KeyWait(trig, "P T@HOLD@")
+    global inj, waiting, dblHit
+    inj := !GetKeyState(trig, "P")
+    fromApp := inj                                    ; (inj goes back to false when the key is released)
     if (press = "")
         return true
-    KeyWait(trig, "P")
-    return press = "tap" || KeyWait(trig, "D P T@DBL@")
+    if (press = "hold")
+        return !WaitUp(@HOLDMS@)
+    WaitUp(0)
+    if (press = "tap")
+        return true
+    dblHit := false, waiting := true
+    if fromApp {
+        t := A_TickCount
+        while (!dblHit && A_TickCount - t < @DBLMS@)
+            Sleep 5
+        hit := dblHit
+    } else
+        hit := KeyWait(trig, "D P T@DBL@")
+    waiting := false
+    return hit
+}
+
+; the trigger key: a 2nd press while the macro is busy only counts as the 2nd press of a double tap
+OnTrigger(play) {
+    global busy, inj, dblHit
+    if busy {
+        if waiting {
+            inj := !GetKeyState(trig, "P")
+            dblHit := true
+        }
+        return
+    }
+    busy := true
+    try {
+        if PressOk()
+            play()
+    } finally
+        busy := false
 }
 
 ; exact pause: most of it a normal Sleep, the rest measured in 1 ms steps (Sleep alone can be ~15 ms longer)
@@ -137,7 +209,7 @@ Up(t) {
     return s
 }
 
-Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
+Active() => Held() && (app = "" || WinActive("ahk_exe " app))
 
 @HOTIF@
 )"
@@ -146,9 +218,12 @@ Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
 TplMove() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
@@ -183,16 +258,18 @@ TplMove() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
 
 TplSeq() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -221,6 +298,5 @@ TplSeq() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
