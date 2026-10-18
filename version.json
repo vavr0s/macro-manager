@@ -1,6 +1,6 @@
 {
-  "version": "1.20.1",
+  "version": "1.20.2",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "5c79522072cf3e552f09f5f82bb7b98f41e9f98ad1efeb191617b12ec448bb42",
-  "notes": "BETA build - for testing.\n- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.\n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.\n- Windows 11 no longer slows down macro timing while the app sits in the tray.\n- A key can't be both a toggle key and a trigger key any more - the app warns you.\n- Uninstall offers to save a backup of all macros and settings first.\n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.\n- Faster start with many macros and several small fixes."
+  "sha256": "c8a51f9467a1edd5e798d3a790daaeecf75f20c1b60068987c6b7056147b6637",
+  "notes": "BETA build - for testing.\n- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).\n- After the app starts, macros that are on are shown ticked again (they were sometimes shown unticked).\n- Script macros show a dash instead of 'undefined' in the Key column.\n- Code pasted into a script or sequence keeps its line breaks.\n- New macro: the name field starts empty with New macro as a grey hint - just type the name.\n- Help: the support link lights up when you point at it."
 }

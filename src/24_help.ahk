@@ -71,8 +71,9 @@ OpenHelp(*) {
         dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
         Roles[dc.Hwnd] := "skip"
         dc.OnEvent("Click", OpenDiscord)
-        hov := false, wasDown := false
+        hov := false
         SetTimer(DcHover, 40)
+        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the link (else Windows resets it)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -109,6 +110,7 @@ OpenHelp(*) {
             SetTimer(DcHover, 0)
             return
         }
+        CoordMode("Mouse", "Screen")             ; (the default is relative to the active window - then never "on")
         MouseGetPos(&mx, &my)
         on := false
         if true {
@@ -121,19 +123,22 @@ OpenHelp(*) {
         }
         if on
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
-        down := GetKeyState("LButton", "P")
-        if (on && down && !wasDown)               ; own click detection (works even if the control sends no click event)
-            SetTimer(OpenDiscord, -1)
-        wasDown := down
         if (on = hov)
             return
         hov := on
         sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
         dc.Value := on ? DiscordHovFile : DiscordFile
     }
+    HelpCur(wp, *) {
+        if hov {
+            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
+            return 1
+        }
+    }
     HelpClose(*) {
         global HelpGui
         SetTimer(DcHover, 0)
+        OnMessage(0x20, HelpCur, 0)
         HelpGui := 0
         g.Destroy()
     }

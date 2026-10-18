@@ -119,6 +119,10 @@ Populating := false
 HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
+InjDown := Map()        ; trigger key -> a press from another program (mouse software, ...) is held
+PressBusy := Map()      ; trigger key -> its press modes are being told apart / played
+DblWait := Map()        ; trigger key -> waiting for the 2nd press of a double tap
+DblHit := Map()         ; trigger key -> the 2nd press came
 DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
@@ -267,7 +271,9 @@ ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
+OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 Main.Show()
+SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return

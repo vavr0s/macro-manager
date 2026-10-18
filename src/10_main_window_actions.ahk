@@ -254,6 +254,18 @@ ClearSearch() {
     Refresh()
 }
 
+; the list is repainted whenever the main window appears: after some starts its rows kept a look from before
+; their check boxes were set - every macro was shown unticked although it was on (seen on Windows 11)
+OnMainShown(wp, lp, msg, hwnd) {
+    if (wp && hwnd = Main.Hwnd)
+        SetTimer(RedrawList, -100)
+}
+
+RedrawList() => DllCall("RedrawWindow", "Ptr", LV.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)    ; invalidate + erase + frame + children, now
+
+; the key as shown in the list: a script has no trigger key (stored as "undefined") - shown as a dash
+KeyShown(m) => (Trim(m["hotkey"]) = "" || Trim(m["hotkey"]) = "undefined") ? Chr(0x2014) : m["hotkey"]
+
 Refresh() {
     global Populating
     Populating := true
@@ -262,10 +274,10 @@ Refresh() {
     View := []
     q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
     for m in Macros
-        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
+        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(KeyShown(m), q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }

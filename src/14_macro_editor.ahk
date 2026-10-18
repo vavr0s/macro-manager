@@ -25,12 +25,14 @@ EditMacro(idx) {
     }
 
     g.AddText("x10 y100 w136 +0x200 h26", _T("Name"))
-    eName := g.AddEdit("x150 y100 w250 h26", m["name"])
+    eName := g.AddEdit("x150 y100 w250 h26", isNew ? "" : m["name"])
+    if isNew                                          ; new macro: the default name is only a grey hint, typing replaces it
+        DllCall("SendMessageW", "Ptr", eName.Hwnd, "UInt", 0x1501, "Ptr", 1, "WStr", m["name"])   ; EM_SETCUEBANNER
     g.AddText("x405 y100 w85 +0x200 h26", _T("Profiles"))
     bProfs := AddBtn(g, "x495 y100 w155 h26", ProfLabel(pv["v"]), (*) => (pv["v"] := PickProfiles(g, pv["v"]), bProfs.Text := ProfLabel(pv["v"])))
     g.AddText("x10 y136 w136 +0x200 h26", _T("Trigger key"))
-    st := Map("key", m["hotkey"], "tkey", m["tkey"])
-    bKey := AddBtn(g, "x150 y136 w250 h26", st["key"], (*) => CaptureKey(bKey, st, "key", false))
+    st := Map("key", Trim(m["hotkey"]) = "undefined" ? "" : m["hotkey"], "tkey", m["tkey"])   ; (a script without a key: "undefined")
+    bKey := AddBtn(g, "x150 y136 w250 h26", KeyLabel("", st["key"]), (*) => CaptureKey(bKey, st, "key", false))
     g.AddText("x405 y136 w85 +0x200 h26", _T("Toggle"))
     bTog := AddBtn(g, "x495 y136 w155 h26", KeyLabel("", st["tkey"]), (*) => CaptureKey(bTog, st, "tkey", true))
     g.AddText("x10 y172 w136 +0x200 h26", _T("Only in app (exe)"))
@@ -82,6 +84,7 @@ EditMacro(idx) {
 
     ; --- group: sequence ---
     eSeq := g.AddEdit("x10 y328 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
+    eSeq.OnEvent("Change", FixLineEnds)
     sq := [eSeq, AddHint(g, "x10 y454 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
 
     ; --- group: script ---
@@ -90,6 +93,7 @@ EditMacro(idx) {
         code := FileRead(ScriptPath(m), "UTF-8")
     eCode := g.AddEdit("x10 y328 w640 h150 Multi WantReturn -Wrap HScroll", code)
     eCode.SetFont("s9", "Consolas")
+    eCode.OnEvent("Change", FixLineEnds)
     Roles[eCode.Hwnd] := "code"
     sc := [eCode, AddHint(g, "x10 y484 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
 
@@ -163,6 +167,8 @@ EditMacro(idx) {
         FinishRec()
         t := tsel
         nm := Trim(eName.Value)
+        if (nm = "" && isNew)
+            nm := m["name"]                             ; nothing typed: the default name (the grey hint)
         if (st["tkey"] != "" && (who := KeyTaken(KeyId(st["tkey"]), m, pv["v"], true))) {   ; toggle = another key in use
             ThemedNote(_T("The toggle key {1} is already used as {2}.", st["tkey"], who), , true)
             return
@@ -255,3 +261,21 @@ EditMacro(idx) {
 }
 
 Num(v) => IsInteger(v) ? Integer(v) : 0
+
+; text pasted with Unix line ends (only LF - e.g. code copied from a web page) shows as one long line in a Windows
+; edit box: turn every lone LF into CR LF and keep the caret where it was
+FixLineEnds(ed, *) {
+    h := ed.Hwnd
+    n := DllCall("GetWindowTextLengthW", "Ptr", h)
+    buf := Buffer((n + 1) * 2, 0)
+    DllCall("GetWindowTextW", "Ptr", h, "Ptr", buf, "Int", n + 1)
+    raw := StrGet(buf, n, "UTF-16")
+    if !RegExMatch(raw, "(?<!`r)`n")
+        return
+    s := 0, e := 0
+    DllCall("SendMessageW", "Ptr", h, "UInt", 0xB0, "UInt*", &s, "UInt*", &e)      ; EM_GETSEL
+    RegExReplace(SubStr(raw, 1, e), "(?<!`r)`n", "", &add)
+    DllCall("SetWindowTextW", "Ptr", h, "Str", RegExReplace(raw, "(?<!`r)`n", "`r`n"))
+    SendMessage(0xB1, e + add, e + add, h)                                        ; EM_SETSEL
+    SendMessage(0xB7, 0, 0, h)                                                    ; EM_SCROLLCARET
+}
