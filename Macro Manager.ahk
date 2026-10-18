@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.1"   ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.20"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,7 +110,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes.`n- The support link in Help now opens the new Macro Manager Discord server."
+ReleaseNotes := "- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop) - in the app and in exported .ahk macros.`n- After the app starts, macros that are on are always shown ticked.`n- The app checks for updates in the background every 15 minutes, so new versions no longer show up late.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with a grey hint.`n- Script macros show a dash instead of 'undefined' as their key.`n- Help: the support link lights up when you point at it."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -120,6 +120,10 @@ Populating := false
 HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
+InjDown := Map()        ; trigger key -> a press from another program (mouse software, ...) is held
+PressBusy := Map()      ; trigger key -> its press modes are being told apart / played
+DblWait := Map()        ; trigger key -> waiting for the 2nd press of a double tap
+DblHit := Map()         ; trigger key -> the 2nd press came
 DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
@@ -268,7 +272,9 @@ ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
+OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 Main.Show()
+SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
@@ -551,6 +557,18 @@ ClearSearch() {
     Refresh()
 }
 
+; the list is repainted whenever the main window appears: after some starts its rows kept a look from before
+; their check boxes were set - every macro was shown unticked although it was on (seen on Windows 11)
+OnMainShown(wp, lp, msg, hwnd) {
+    if (wp && hwnd = Main.Hwnd)
+        SetTimer(RedrawList, -100)
+}
+
+RedrawList() => DllCall("RedrawWindow", "Ptr", LV.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)    ; invalidate + erase + frame + children, now
+
+; the key as shown in the list: a script has no trigger key (stored as "undefined") - shown as a dash
+KeyShown(m) => (Trim(m["hotkey"]) = "" || Trim(m["hotkey"]) = "undefined") ? Chr(0x2014) : m["hotkey"]
+
 Refresh() {
     global Populating
     Populating := true
@@ -559,10 +577,10 @@ Refresh() {
     View := []
     q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
     for m in Macros
-        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(m["hotkey"], q) || InStr(m["app"], q)))
+        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(KeyShown(m), q) || InStr(m["app"], q)))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], m["hotkey"] (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
     LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
     Populating := false
 }
@@ -1174,8 +1192,16 @@ ExportCode(m) {
     code := StrReplace(code, "@DATA@", data)
     code := StrReplace(code, "@PRESS@", press)
     code := StrReplace(code, "@EXACT@", m["exact"] ? "true" : "false")
-    code := StrReplace(code, "@HOLD@", Round(HoldMs / 1000, 3))
+    code := StrReplace(code, "@HOLDMS@", HoldMs)
+    code := StrReplace(code, "@DBLMS@", DblMs)
     code := StrReplace(code, "@DBL@", Round(DblMs / 1000, 3))
+    mods := "["                                       ; modifiers of a combination such as LCtrl+XButton1
+    parts := StrSplit(Trim(m["hotkey"]), "+")
+    loop parts.Length - 1
+        if (Trim(parts[A_Index]) != "")
+            mods .= (mods = "[" ? "" : ", ") '"' Trim(parts[A_Index]) '"'
+    code := StrReplace(code, "@MODS@", mods "]")
+    code := StrReplace(code, "@UP@", IsWheel(m["hotkey"]) ? "" : TrigHot(m["hotkey"]) " up:: {`n    global inj := false`n}")
     code := StrReplace(code, "@HOT@", TrigHot(m["hotkey"]))
     code := StrReplace(code, "@TRIG@", TrigMain(m["hotkey"]))
     app := StrReplace(m["app"], '"', "")
@@ -1216,14 +1242,78 @@ exact := @EXACT@        ; true = delays kept to about a millisecond, false = pla
 if InStr(trig, "Wheel") = 1
     rep := false        ; a wheel can't be held
 
+; a press from another program (mouse software, Steam Input, remote desktop) is not "physical" for Windows:
+; for such a press the script follows the key's own down / up events instead of the physical key state
+mods := @MODS@          ; modifiers of a key combination (they must stay down too)
+inj := false, busy := false, waiting := false, dblHit := false
+
+Held() {
+    global inj
+    if GetKeyState(trig, "P")
+        return true
+    if !inj
+        return false
+    for k in mods
+        if !GetKeyState(k) {
+            inj := false
+            return false
+        }
+    return true
+}
+
+; waits until the key is released (true) or ms have passed (false)
+WaitUp(ms) {
+    if !inj
+        return ms ? KeyWait(trig, "P T" ms / 1000) : KeyWait(trig, "P")
+    t := A_TickCount
+    while Held() {
+        if (ms && A_TickCount - t >= ms)
+            return false
+        Sleep 5
+    }
+    return true
+}
+
 ; is this the press the macro waits for? (long press: still held after a moment; double tap: pressed again in time)
 PressOk() {
-    if (press = "hold")
-        return !KeyWait(trig, "P T@HOLD@")
+    global inj, waiting, dblHit
+    inj := !GetKeyState(trig, "P")
+    fromApp := inj                                    ; (inj goes back to false when the key is released)
     if (press = "")
         return true
-    KeyWait(trig, "P")
-    return press = "tap" || KeyWait(trig, "D P T@DBL@")
+    if (press = "hold")
+        return !WaitUp(@HOLDMS@)
+    WaitUp(0)
+    if (press = "tap")
+        return true
+    dblHit := false, waiting := true
+    if fromApp {
+        t := A_TickCount
+        while (!dblHit && A_TickCount - t < @DBLMS@)
+            Sleep 5
+        hit := dblHit
+    } else
+        hit := KeyWait(trig, "D P T@DBL@")
+    waiting := false
+    return hit
+}
+
+; the trigger key: a 2nd press while the macro is busy only counts as the 2nd press of a double tap
+OnTrigger(play) {
+    global busy, inj, dblHit
+    if busy {
+        if waiting {
+            inj := !GetKeyState(trig, "P")
+            dblHit := true
+        }
+        return
+    }
+    busy := true
+    try {
+        if PressOk()
+            play()
+    } finally
+        busy := false
 }
 
 ; exact pause: most of it a normal Sleep, the rest measured in 1 ms steps (Sleep alone can be ~15 ms longer)
@@ -1267,7 +1357,7 @@ Up(t) {
     return s
 }
 
-Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
+Active() => Held() && (app = "" || WinActive("ahk_exe " app))
 
 @HOTIF@
 )"
@@ -1276,9 +1366,12 @@ Active() => GetKeyState(trig, "P") && (app = "" || WinActive("ahk_exe " app))
 TplMove() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     di := 1, ai := 1, n := 0
     while (rep ? Active() : n < acts.Length) {
@@ -1313,16 +1406,18 @@ TplMove() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
 
 TplSeq() {
     return "
 (
-@HOT@:: {
-    if !PressOk()
-        return
+#MaxThreadsPerHotkey 2
+@HOT@::OnTrigger(Play)
+@UP@
+#HotIf
+
+Play() {
     DllCall("winmm\timeBeginPeriod", "UInt", 1)
     stop := false
     while !stop {
@@ -1351,7 +1446,6 @@ TplSeq() {
     if (!rep && InStr(trig, "Wheel") != 1)
         try KeyWait(trig)
 }
-#HotIf
 )"
 }
 
@@ -1382,12 +1476,14 @@ EditMacro(idx) {
     }
 
     g.AddText("x10 y100 w136 +0x200 h26", _T("Name"))
-    eName := g.AddEdit("x150 y100 w250 h26", m["name"])
+    eName := g.AddEdit("x150 y100 w250 h26", isNew ? "" : m["name"])
+    if isNew                                          ; new macro: the default name is only a grey hint, typing replaces it
+        DllCall("SendMessageW", "Ptr", eName.Hwnd, "UInt", 0x1501, "Ptr", 1, "WStr", m["name"])   ; EM_SETCUEBANNER
     g.AddText("x405 y100 w85 +0x200 h26", _T("Profiles"))
     bProfs := AddBtn(g, "x495 y100 w155 h26", ProfLabel(pv["v"]), (*) => (pv["v"] := PickProfiles(g, pv["v"]), bProfs.Text := ProfLabel(pv["v"])))
     g.AddText("x10 y136 w136 +0x200 h26", _T("Trigger key"))
-    st := Map("key", m["hotkey"], "tkey", m["tkey"])
-    bKey := AddBtn(g, "x150 y136 w250 h26", st["key"], (*) => CaptureKey(bKey, st, "key", false))
+    st := Map("key", Trim(m["hotkey"]) = "undefined" ? "" : m["hotkey"], "tkey", m["tkey"])   ; (a script without a key: "undefined")
+    bKey := AddBtn(g, "x150 y136 w250 h26", KeyLabel("", st["key"]), (*) => CaptureKey(bKey, st, "key", false))
     g.AddText("x405 y136 w85 +0x200 h26", _T("Toggle"))
     bTog := AddBtn(g, "x495 y136 w155 h26", KeyLabel("", st["tkey"]), (*) => CaptureKey(bTog, st, "tkey", true))
     g.AddText("x10 y172 w136 +0x200 h26", _T("Only in app (exe)"))
@@ -1439,6 +1535,7 @@ EditMacro(idx) {
 
     ; --- group: sequence ---
     eSeq := g.AddEdit("x10 y328 w640 h120 Multi WantReturn", StrReplace(m["seq"], "|", "`n"))
+    eSeq.OnEvent("Change", FixLineEnds)
     sq := [eSeq, AddHint(g, "x10 y454 w640", _T("One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)"))]
 
     ; --- group: script ---
@@ -1447,6 +1544,7 @@ EditMacro(idx) {
         code := FileRead(ScriptPath(m), "UTF-8")
     eCode := g.AddEdit("x10 y328 w640 h150 Multi WantReturn -Wrap HScroll", code)
     eCode.SetFont("s9", "Consolas")
+    eCode.OnEvent("Change", FixLineEnds)
     Roles[eCode.Hwnd] := "code"
     sc := [eCode, AddHint(g, "x10 y484 w640", _T("Runs as its own process while this macro is checked (AutoHotkey v2)."))]
 
@@ -1520,6 +1618,8 @@ EditMacro(idx) {
         FinishRec()
         t := tsel
         nm := Trim(eName.Value)
+        if (nm = "" && isNew)
+            nm := m["name"]                             ; nothing typed: the default name (the grey hint)
         if (st["tkey"] != "" && (who := KeyTaken(KeyId(st["tkey"]), m, pv["v"], true))) {   ; toggle = another key in use
             ThemedNote(_T("The toggle key {1} is already used as {2}.", st["tkey"], who), , true)
             return
@@ -1612,6 +1712,24 @@ EditMacro(idx) {
 }
 
 Num(v) => IsInteger(v) ? Integer(v) : 0
+
+; text pasted with Unix line ends (only LF - e.g. code copied from a web page) shows as one long line in a Windows
+; edit box: turn every lone LF into CR LF and keep the caret where it was
+FixLineEnds(ed, *) {
+    h := ed.Hwnd
+    n := DllCall("GetWindowTextLengthW", "Ptr", h)
+    buf := Buffer((n + 1) * 2, 0)
+    DllCall("GetWindowTextW", "Ptr", h, "Ptr", buf, "Int", n + 1)
+    raw := StrGet(buf, n, "UTF-16")
+    if !RegExMatch(raw, "(?<!`r)`n")
+        return
+    s := 0, e := 0
+    DllCall("SendMessageW", "Ptr", h, "UInt", 0xB0, "UInt*", &s, "UInt*", &e)      ; EM_GETSEL
+    RegExReplace(SubStr(raw, 1, e), "(?<!`r)`n", "", &add)
+    DllCall("SetWindowTextW", "Ptr", h, "Str", RegExReplace(raw, "(?<!`r)`n", "`r`n"))
+    SendMessage(0xB1, e + add, e + add, h)                                        ; EM_SETSEL
+    SendMessage(0xB7, 0, 0, h)                                                    ; EM_SCROLLCARET
+}
 
 ; ============ saving / loading ============
 Defaults() {
@@ -1798,8 +1916,12 @@ Apply() {
         fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
             SetCrit(gr.app)
-            Hotkey(TrigHot(gr.trig), fn, "On")
+            Hotkey(TrigHot(gr.trig), fn, gr.set.Has("") ? "On T1" : "On T2")   ; press modes: a 2nd thread notes the 2nd press
             Registered.Push([TrigHot(gr.trig), gr.app])
+            if !IsWheel(gr.trig) {
+                Hotkey(TrigHot(gr.trig) " up", NoteUp.Bind(gr.trig), "On")     ; release of a press from another program
+                Registered.Push([TrigHot(gr.trig) " up", gr.app])
+            }
         } catch as e {
             HotIf()
             ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", gr.name, gr.trig, e.Message), , true)
@@ -2038,7 +2160,7 @@ SetCrit(app) {
     else
         HotIfWinActive("ahk_exe " app)
 }
-MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : RunPick(m, trig))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (NoteDown(trig), RunPick(m, trig)))
 MakePress(set, trig) => (*) => RunPress(set, trig)
 RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) : RunSeq(m, trig, once)
 
@@ -2048,19 +2170,94 @@ RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) :
 RunPress(set, trig) {
     if AltGrFake(trig)
         return
-    k := TrigMain(trig)
+    k := TrigMain(trig), kk := StrLower(k)
+    if PressBusy.Get(kk, false) {                       ; 2nd thread (hotkey option T2): the key was pressed again
+        if DblWait.Get(kk, false) {
+            NoteDown(trig)
+            DblHit[kk] := true
+        }
+        return                                          ; otherwise ignored, as before (one macro run at a time)
+    }
+    NoteDown(trig)
+    PressBusy[kk] := true
+    try RunPress2(set, trig, k, kk)
+    finally {
+        PressBusy[kk] := false
+        DblWait[kk] := false
+    }
+}
+
+RunPress2(set, trig, k, kk) {
+    inj := InjDown[kk]
     if set.Has("hold") {
-        if !KeyWait(k, "P T" HoldMs / 1000)             ; not released in time = long press (repeat runs while held)
-            return RunPick(set["hold"], trig)
-    } else
+        if !(inj ? WaitUp(trig, HoldMs) : KeyWait(k, "P T" HoldMs / 1000))   ; not released in time = long press
+            return RunPick(set["hold"], trig)                                ; (repeat runs while held)
+    } else if inj
+        WaitUp(trig)
+    else
         KeyWait(k, "P")
-    if (set.Has("double") && KeyWait(k, "D P T" DblMs / 1000))
-        return RunPick(set["double"], trig)             ; held on the 2nd press: "repeat while held" works here too
+    if set.Has("double") {
+        DblHit[kk] := false
+        DblWait[kk] := true
+        if inj {
+            t := A_TickCount
+            while (!DblHit[kk] && A_TickCount - t < DblMs)
+                Sleep 5
+            hit := DblHit[kk]
+        } else
+            hit := KeyWait(k, "D P T" DblMs / 1000)
+        DblWait[kk] := false
+        if hit
+            return RunPick(set["double"], trig)         ; held on the 2nd press: "repeat while held" works here too
+    }
     if set.Has("tap")
         RunPick(set["tap"], trig, true)                 ; the key is already up: plays one pass
 }
 
-Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+; ---- trigger keys pressed by another program (mouse software, Steam Input, remote desktop, ...) ----
+; Windows marks such presses as "injected" and AutoHotkey doesn't count them as physically held, so long press,
+; double tap and "repeat while held" never saw the key held. For those presses the app follows the key's own
+; down / up events instead. A real keyboard or mouse keeps using the physical key state, exactly as before.
+NoteDown(trig) {
+    k := TrigMain(trig)
+    InjDown[StrLower(k)] := !GetKeyState(k, "P")
+}
+
+NoteUp(trig, *) {
+    InjDown[StrLower(TrigMain(trig))] := false
+}
+
+; the trigger key is held (physically, or as a press from another program that hasn't been released yet)
+Held(trig) {
+    k := TrigMain(trig)
+    if GetKeyState(k, "P")
+        return true
+    kk := StrLower(k)
+    if !InjDown.Get(kk, false)
+        return false
+    parts := StrSplit(Trim(trig), "+")                  ; a combination: its modifiers must still be down too
+    loop parts.Length - 1 {
+        p := Trim(parts[A_Index])
+        if (p != "" && !GetKeyState(p)) {
+            InjDown[kk] := false
+            return false
+        }
+    }
+    return true
+}
+
+; waits until the trigger key is released (true) or ms have passed (false)
+WaitUp(trig, ms := 0) {
+    t := A_TickCount
+    while Held(trig) {
+        if (ms && A_TickCount - t >= ms)
+            return false
+        Sleep 5
+    }
+    return true
+}
+
+Active(m, trig) => Held(trig) && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
 
 ; Keyboards with an AltGr key (Czech, Polish, German, ...) send AltGr as a fake Left Ctrl + Right Alt.
 ; A macro on Left Ctrl must not react to that fake Left Ctrl.
@@ -3601,8 +3798,11 @@ Sha256(f) {
     return res
 }
 
-; silent background check: keeps the banner arrow up to date while the app keeps running
-AutoCheck(minAge := 120000) {
+; silent background check: keeps the banner arrow up to date while the app keeps running.
+; At most every 15 minutes: GitHub allows 60 questions an hour per internet address - several copies of the app
+; (or several people behind one address) would use that up, and then a new version shows up only minutes later.
+; A click on the arrow always asks right away.
+AutoCheck(minAge := 900000) {
     static last := -10000000
     if (!AutoUpd || Rec.ih || MacroBusy > 0 || A_TickCount - last < minAge)
         return                       ; recording, or a macro is playing: try again at the next tick
@@ -3614,10 +3814,15 @@ AutoCheck(minAge := 120000) {
 QueryUpdate() {
     global UpdAvail, UpdInfo
     global UpdEtag, UpdBody
+    static apiPause := 0                          ; GitHub said "too many questions": skip its API for a while
     hdr := Map("Accept", "application/vnd.github.raw+json")
     if (UpdEtag != "")
         hdr["If-None-Match"] := UpdEtag
-    info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    st := 0, info := ""
+    if (A_TickCount >= apiPause)
+        info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    if (st = 403 || st = 429)
+        apiPause := A_TickCount + 1800000          ; 30 minutes (the limit resets within the hour)
     if (st = 304)
         info := UpdBody
     else if (st = 200 && info != "")
@@ -3902,8 +4107,9 @@ OpenHelp(*) {
         dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
         Roles[dc.Hwnd] := "skip"
         dc.OnEvent("Click", OpenDiscord)
-        hov := false, wasDown := false
+        hov := false
         SetTimer(DcHover, 40)
+        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the link (else Windows resets it)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -3940,6 +4146,7 @@ OpenHelp(*) {
             SetTimer(DcHover, 0)
             return
         }
+        CoordMode("Mouse", "Screen")             ; (the default is relative to the active window - then never "on")
         MouseGetPos(&mx, &my)
         on := false
         if true {
@@ -3952,19 +4159,22 @@ OpenHelp(*) {
         }
         if on
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
-        down := GetKeyState("LButton", "P")
-        if (on && down && !wasDown)               ; own click detection (works even if the control sends no click event)
-            SetTimer(OpenDiscord, -1)
-        wasDown := down
         if (on = hov)
             return
         hov := on
         sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
         dc.Value := on ? DiscordHovFile : DiscordFile
     }
+    HelpCur(wp, *) {
+        if hov {
+            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
+            return 1
+        }
+    }
     HelpClose(*) {
         global HelpGui
         SetTimer(DcHover, 0)
+        OnMessage(0x20, HelpCur, 0)
         HelpGui := 0
         g.Destroy()
     }

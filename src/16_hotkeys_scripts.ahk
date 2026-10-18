@@ -58,8 +58,12 @@ Apply() {
         fn := gr.set.Has("") ? MakeRun(gr.set[""], gr.trig) : MakePress(gr.set, gr.trig)
         try {
             SetCrit(gr.app)
-            Hotkey(TrigHot(gr.trig), fn, "On")
+            Hotkey(TrigHot(gr.trig), fn, gr.set.Has("") ? "On T1" : "On T2")   ; press modes: a 2nd thread notes the 2nd press
             Registered.Push([TrigHot(gr.trig), gr.app])
+            if !IsWheel(gr.trig) {
+                Hotkey(TrigHot(gr.trig) " up", NoteUp.Bind(gr.trig), "On")     ; release of a press from another program
+                Registered.Push([TrigHot(gr.trig) " up", gr.app])
+            }
         } catch as e {
             HotIf()
             ThemedNote(_T("Macro `"{1}`" can't be enabled (key `"{2}`"):`n{3}", gr.name, gr.trig, e.Message), , true)
@@ -298,7 +302,7 @@ SetCrit(app) {
     else
         HotIfWinActive("ahk_exe " app)
 }
-MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : RunPick(m, trig))
+MakeRun(m, trig) => (*) => (AltGrFake(trig) ? 0 : (NoteDown(trig), RunPick(m, trig)))
 MakePress(set, trig) => (*) => RunPress(set, trig)
 RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) : RunSeq(m, trig, once)
 
@@ -308,19 +312,94 @@ RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) :
 RunPress(set, trig) {
     if AltGrFake(trig)
         return
-    k := TrigMain(trig)
+    k := TrigMain(trig), kk := StrLower(k)
+    if PressBusy.Get(kk, false) {                       ; 2nd thread (hotkey option T2): the key was pressed again
+        if DblWait.Get(kk, false) {
+            NoteDown(trig)
+            DblHit[kk] := true
+        }
+        return                                          ; otherwise ignored, as before (one macro run at a time)
+    }
+    NoteDown(trig)
+    PressBusy[kk] := true
+    try RunPress2(set, trig, k, kk)
+    finally {
+        PressBusy[kk] := false
+        DblWait[kk] := false
+    }
+}
+
+RunPress2(set, trig, k, kk) {
+    inj := InjDown[kk]
     if set.Has("hold") {
-        if !KeyWait(k, "P T" HoldMs / 1000)             ; not released in time = long press (repeat runs while held)
-            return RunPick(set["hold"], trig)
-    } else
+        if !(inj ? WaitUp(trig, HoldMs) : KeyWait(k, "P T" HoldMs / 1000))   ; not released in time = long press
+            return RunPick(set["hold"], trig)                                ; (repeat runs while held)
+    } else if inj
+        WaitUp(trig)
+    else
         KeyWait(k, "P")
-    if (set.Has("double") && KeyWait(k, "D P T" DblMs / 1000))
-        return RunPick(set["double"], trig)             ; held on the 2nd press: "repeat while held" works here too
+    if set.Has("double") {
+        DblHit[kk] := false
+        DblWait[kk] := true
+        if inj {
+            t := A_TickCount
+            while (!DblHit[kk] && A_TickCount - t < DblMs)
+                Sleep 5
+            hit := DblHit[kk]
+        } else
+            hit := KeyWait(k, "D P T" DblMs / 1000)
+        DblWait[kk] := false
+        if hit
+            return RunPick(set["double"], trig)         ; held on the 2nd press: "repeat while held" works here too
+    }
     if set.Has("tap")
         RunPick(set["tap"], trig, true)                 ; the key is already up: plays one pass
 }
 
-Active(m, trig) => GetKeyState(TrigMain(trig), "P") && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
+; ---- trigger keys pressed by another program (mouse software, Steam Input, remote desktop, ...) ----
+; Windows marks such presses as "injected" and AutoHotkey doesn't count them as physically held, so long press,
+; double tap and "repeat while held" never saw the key held. For those presses the app follows the key's own
+; down / up events instead. A real keyboard or mouse keeps using the physical key state, exactly as before.
+NoteDown(trig) {
+    k := TrigMain(trig)
+    InjDown[StrLower(k)] := !GetKeyState(k, "P")
+}
+
+NoteUp(trig, *) {
+    InjDown[StrLower(TrigMain(trig))] := false
+}
+
+; the trigger key is held (physically, or as a press from another program that hasn't been released yet)
+Held(trig) {
+    k := TrigMain(trig)
+    if GetKeyState(k, "P")
+        return true
+    kk := StrLower(k)
+    if !InjDown.Get(kk, false)
+        return false
+    parts := StrSplit(Trim(trig), "+")                  ; a combination: its modifiers must still be down too
+    loop parts.Length - 1 {
+        p := Trim(parts[A_Index])
+        if (p != "" && !GetKeyState(p)) {
+            InjDown[kk] := false
+            return false
+        }
+    }
+    return true
+}
+
+; waits until the trigger key is released (true) or ms have passed (false)
+WaitUp(trig, ms := 0) {
+    t := A_TickCount
+    while Held(trig) {
+        if (ms && A_TickCount - t >= ms)
+            return false
+        Sleep 5
+    }
+    return true
+}
+
+Active(m, trig) => Held(trig) && !AltGrFake(trig, true) && (m["app"] = "" || WinActive("ahk_exe " m["app"]))
 
 ; Keyboards with an AltGr key (Czech, Polish, German, ...) send AltGr as a fake Left Ctrl + Right Alt.
 ; A macro on Left Ctrl must not react to that fake Left Ctrl.

@@ -128,8 +128,11 @@ Sha256(f) {
     return res
 }
 
-; silent background check: keeps the banner arrow up to date while the app keeps running
-AutoCheck(minAge := 120000) {
+; silent background check: keeps the banner arrow up to date while the app keeps running.
+; At most every 15 minutes: GitHub allows 60 questions an hour per internet address - several copies of the app
+; (or several people behind one address) would use that up, and then a new version shows up only minutes later.
+; A click on the arrow always asks right away.
+AutoCheck(minAge := 900000) {
     static last := -10000000
     if (!AutoUpd || Rec.ih || MacroBusy > 0 || A_TickCount - last < minAge)
         return                       ; recording, or a macro is playing: try again at the next tick
@@ -141,10 +144,15 @@ AutoCheck(minAge := 120000) {
 QueryUpdate() {
     global UpdAvail, UpdInfo
     global UpdEtag, UpdBody
+    static apiPause := 0                          ; GitHub said "too many questions": skip its API for a while
     hdr := Map("Accept", "application/vnd.github.raw+json")
     if (UpdEtag != "")
         hdr["If-None-Match"] := UpdEtag
-    info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    st := 0, info := ""
+    if (A_TickCount >= apiPause)
+        info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
+    if (st = 403 || st = 429)
+        apiPause := A_TickCount + 1800000          ; 30 minutes (the limit resets within the hour)
     if (st = 304)
         info := UpdBody
     else if (st = 200 && info != "")

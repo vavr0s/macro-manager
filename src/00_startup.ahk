@@ -100,7 +100,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.19.1"   ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.20"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -109,7 +109,7 @@ UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/versio
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
 ; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Press modes: a macro can start on a short tap, a double tap or a long press of its key. One key can carry up to three macros this way.`n- Exact delays: macro delays are kept to about a millisecond. On for new macros - older macros keep their timing until you switch it on in the editor.`n- Windows 11 no longer slows down macro timing while the app sits in the tray.`n- A key can't be both a toggle key and a trigger key any more - the app warns you.`n- Uninstall offers to save a backup of all macros and settings first.`n- New look: rounded buttons, clearer light mode, pulsing update arrow, sharper icons.`n- Faster start with many macros and several small fixes.`n- The support link in Help now opens the new Macro Manager Discord server."
+ReleaseNotes := "- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop) - in the app and in exported .ahk macros.`n- After the app starts, macros that are on are always shown ticked.`n- The app checks for updates in the background every 15 minutes, so new versions no longer show up late.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with a grey hint.`n- Script macros show a dash instead of 'undefined' as their key.`n- Help: the support link lights up when you point at it."
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -119,6 +119,10 @@ Populating := false
 HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
+InjDown := Map()        ; trigger key -> a press from another program (mouse software, ...) is held
+PressBusy := Map()      ; trigger key -> its press modes are being told apart / played
+DblWait := Map()        ; trigger key -> waiting for the 2nd press of a double tap
+DblHit := Map()         ; trigger key -> the 2nd press came
 DragOut := false
 DragEnd := 0
 DragStart := Map("row", 0, "x", 0, "y", 0, "last", "", "lock", false)
@@ -267,7 +271,9 @@ ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
+OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 Main.Show()
+SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
