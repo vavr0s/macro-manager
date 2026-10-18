@@ -1,7 +1,9 @@
+import os as _os
+I18N=_os.path.dirname(_os.path.abspath(__file__)); ROOT=_os.path.dirname(I18N)
 import json,re,sys
 lang=sys.argv[1]
-k=json.load(open('/home/claude/i18n/keys.json',encoding='utf-8'))
-try: t=json.load(open(f'/home/claude/i18n/{lang}.json',encoding='utf-8'))
+k=json.load(open(_os.path.join(I18N,'keys.json'),encoding='utf-8'))
+try: t=json.load(open(_os.path.join(I18N,f'{lang}.json'),encoding='utf-8'))
 except Exception as e: print('JSON ERROR',e); sys.exit(1)
 bad=0
 for key,v in k.items():

@@ -82,6 +82,11 @@ PaintBtn(hwnd, hover) {
         if BtnLook.Has(hwnd)
             BtnLook[hwnd].hover := hover
         DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", 0)     ; repaint without erasing first: no flicker
+        for pic, btn in BtnAlias                                       ; a picture lying on the button (a flag):
+            if (btn = hwnd) {                                          ; button first, then the picture on top again
+                DllCall("UpdateWindow", "Ptr", hwnd)
+                DllCall("RedrawWindow", "Ptr", pic, "Ptr", 0, "Ptr", 0, "UInt", 0x105)   ; invalidate + erase + now
+            }
     }
 }
 
@@ -313,7 +318,10 @@ ApplyTheme(g) {
                         c.SetFont("c" (role = "hint" ? hint : txt))
                 case "Edit":
                     c.Opt("Background" box)
-                    SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Edit" : "")
+                    if (ControlGetStyle(hwnd) & 0x4)               ; multi-line (help text, script, sequence): dark scroll bars too
+                        SetTheme(hwnd, dark ? "DarkMode_Explorer" : "")
+                    else
+                        SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Edit" : "")
                     if (role = "code")
                         c.SetFont("c" txt, "Consolas")
                     else

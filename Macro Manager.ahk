@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.20"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.21"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -109,8 +109,11 @@ UpdBranch := "main"      ; the test (beta) build uses "beta"
 UpdateUrl := "https://raw.githubusercontent.com/" UpdRepo "/" UpdBranch "/version.json"      ; fallback (cached by GitHub for ~5 min)
 UpdEtag := ""            ; GitHub API answers "not modified" for free when nothing changed
 UpdBody := ""
-; release notes of THIS version (shown in Help; also used as the text of the update prompt). No double quotes here.
-ReleaseNotes := "- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop) - in the app and in exported .ahk macros.`n- After the app starts, macros that are on are always shown ticked.`n- The app checks for updates in the background every 15 minutes, so new versions no longer show up late.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with a grey hint.`n- Script macros show a dash instead of 'undefined' as their key.`n- Help: the support link lights up when you point at it."
+; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
+; tools/notes.json). No double quotes here.
+ReleaseNotes := "- Release notes are now shown in the language of the app – in Help and in the update window.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: dark scroll bars in the help text and in the script and sequence boxes.`n- Translation fixes: Czech Exit is now Ukončit, Polish Zamknij is now Zakończ, and the Polish release notes heading is translated."
+; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
+ReleaseNotesL := Map("cs", "- Poznámky k verzi se teď zobrazují v jazyce aplikace – v Nápovědě i v okně aktualizace.`n- Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.`n- Tmavý režim: tmavé posuvníky v textu nápovědy a v polích skriptu a sekvence.`n- Opravy překladů: v češtině je Exit teď Ukončit, v polštině je Zamknij teď Zakończ a přeložený je i nadpis poznámek k verzi.", "pl", "- Informacje o wersji są teraz wyświetlane w języku aplikacji – w Pomocy i w oknie aktualizacji.`n- Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.`n- Tryb ciemny: ciemne paski przewijania w tekście pomocy oraz w polach skryptu i sekwencji.`n- Poprawki tłumaczeń: czeskie Exit to teraz Ukončit, polskie Zamknij to teraz Zakończ, a nagłówek Informacje o wersji jest przetłumaczony.", "de", "- Versionshinweise werden jetzt in der Sprache der App angezeigt – in der Hilfe und im Update-Fenster.`n- Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.`n- Dunkelmodus: dunkle Bildlaufleisten im Hilfetext und in den Skript- und Sequenzfeldern.`n- Übersetzungskorrekturen: Tschechisch Exit heißt jetzt Ukončit, Polnisch Zamknij heißt jetzt Zakończ, und die polnische Überschrift der Versionshinweise ist übersetzt.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -2724,6 +2727,11 @@ PaintBtn(hwnd, hover) {
         if BtnLook.Has(hwnd)
             BtnLook[hwnd].hover := hover
         DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", 0)     ; repaint without erasing first: no flicker
+        for pic, btn in BtnAlias                                       ; a picture lying on the button (a flag):
+            if (btn = hwnd) {                                          ; button first, then the picture on top again
+                DllCall("UpdateWindow", "Ptr", hwnd)
+                DllCall("RedrawWindow", "Ptr", pic, "Ptr", 0, "Ptr", 0, "UInt", 0x105)   ; invalidate + erase + now
+            }
     }
 }
 
@@ -2955,7 +2963,10 @@ ApplyTheme(g) {
                         c.SetFont("c" (role = "hint" ? hint : txt))
                 case "Edit":
                     c.Opt("Background" box)
-                    SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Edit" : "")
+                    if (ControlGetStyle(hwnd) & 0x4)               ; multi-line (help text, script, sequence): dark scroll bars too
+                        SetTheme(hwnd, dark ? "DarkMode_Explorer" : "")
+                    else
+                        SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Edit" : "")
                     if (role = "code")
                         c.SetFont("c" txt, "Consolas")
                     else
@@ -3588,6 +3599,9 @@ PickProfiles(owner, cur) {
 
 ProfMark(pn, on) => (on ? "  ✓   " : "       ") pn
 
+; release notes of this version in a language (English when there is no translation)
+NotesFor(lang) => (lang != "en" && ReleaseNotesL.Has(lang) && ReleaseNotesL[lang] != "") ? ReleaseNotesL[lang] : ReleaseNotes
+
 ; ============ application picker ============
 ; returns the chosen exe name (or `cur` when cancelled)
 PickApp(owner, cur) {
@@ -3833,11 +3847,34 @@ QueryUpdate() {
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
         || !RegExMatch(info, '"sha256"\s*:\s*"([0-9a-fA-F]{64})"', &ms))
         return "error"
-    notes := RegExMatch(info, '"notes"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn) ? StrReplace(mn[1], "\n", "`n") : ""
+    notes := ""                                   ; release notes in the app language, English if not translated
+    for key in (Lang = "en" ? ["notes"] : ["notes_" Lang, "notes"])
+        if (notes = "" && RegExMatch(info, '"' key '"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn))
+            notes := JsonUnesc(mn[1])
     UpdInfo := Map("ver", mv[1], "url", mu[1], "sha", StrLower(ms[1]), "notes", notes)
     UpdAvail := VerNewer(mv[1], AppVersion) && RegExMatch(mu[1], "^https://raw\.githubusercontent\.com/vavr0s/")
     SetUpdIcon()
     return UpdAvail ? "new" : "latest"
+}
+
+; a JSON string value as text: \n \" \\ \/ \t and \uXXXX (version.json keeps accented letters as \uXXXX, so the
+; text arrives right whatever character set the answer is read with)
+JsonUnesc(s) {
+    out := "", i := 1, n := StrLen(s)
+    while (i <= n) {
+        c := SubStr(s, i, 1)
+        if (c != "\" || i = n) {
+            out .= c, i++
+            continue
+        }
+        e := SubStr(s, i + 1, 1)
+        if (e = "u" && RegExMatch(SubStr(s, i + 2, 4), "^[0-9a-fA-F]{4}$")) {
+            out .= Chr(Integer("0x" SubStr(s, i + 2, 4))), i += 6
+            continue
+        }
+        out .= e = "n" ? "`n" : e = "t" ? "`t" : e = "r" ? "" : e, i += 2
+    }
+    return out
 }
 
 SetUpdIcon() {
@@ -4039,7 +4076,7 @@ HelpTopics() {
     t := Map()
     order := []
     order.Push("Release notes")
-    t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" ReleaseNotes
+    t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" NotesFor(Lang)
     order.Push("Getting started")
     t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
@@ -5934,14 +5971,14 @@ TrCs() {
     m["Move down"] := "Dolů"
     m["Export all..."] := "Exportovat vše..."
     m["All macros toggle key:"] := "Přepínač všech maker:"
-    m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaškrtnutím makra ho zapneš. Dvojklikem na řádek ho upravíš. Tažením myší přes řádky (nebo Ctrl / Shift+klik) vybereš více maker. Kliknutím na záhlaví sloupce seřadíš seznam. Soubory .ahk přetažené do okna se naimportují; vybraná makra přetažená ze seznamu ven (na plochu, do složky, do chatu) se exportují. Zavřením okna aplikace zůstane běžet v oznamovací oblasti (pravým tlačítkem na ikonu → Exit)."
+    m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaškrtnutím makra ho zapneš. Dvojklikem na řádek ho upravíš. Tažením myší přes řádky (nebo Ctrl / Shift+klik) vybereš více maker. Kliknutím na záhlaví sloupce seřadíš seznam. Soubory .ahk přetažené do okna se naimportují; vybraná makra přetažená ze seznamu ven (na plochu, do složky, do chatu) se exportují. Zavřením okna aplikace zůstane běžet v oznamovací oblasti (pravým tlačítkem na ikonu → Ukončit)."
     m["Backup..."] := "Záloha..."
     m["Uninstall"] := "Odinstalovat"
     m["Open window"] := "Otevřít okno"
     m["Check for updates..."] := "Zkontrolovat aktualizace..."
     m["Check for updates at start"] := "Kontrolovat aktualizace při spuštění"
     m["Uninstall..."] := "Odinstalovat..."
-    m["Exit"] := "Exit"
+    m["Exit"] := "Ukončit"
     m["Delete macro `"{1}`"?"] := "Smazat makro `"{1}`"?"
     m["Delete {1} selected macros?"] := "Smazat vybraná makra ({1})?"
     m["Cancel"] := "Zrušit"
@@ -6083,7 +6120,7 @@ TrCs() {
     m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Stažený soubor není platný skript Macro Manageru. Nic se nezměnilo."
     m["Could not replace the app file: {1}"] := "Nepodařilo se nahradit soubor aplikace: {1}"
     m["Version {1}"] := "Verze {1}"
-    m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Exit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
+    m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Ukončit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
     m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nStisk - jak se má spouštěcí klávesa stisknout. Normální: makro začne, jakmile klávesu stiskneš. Krátký stisk: rychle stiskni a pusť - makro se přehraje jednou po puštění. Dvojitý stisk: stiskni klávesu dvakrát rychle za sebou. Dlouhý stisk: chvíli klávesu podrž (s Opakováním hraje, dokud ji držíš). Jedna klávesa tak může mít až tři makra: krátký, dvojitý a dlouhý stisk. Normální makro na stejné klávese si vezme celou klávesu. Makra na kolečku myši se spouští vždy hned.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě). U Krátkého stisku se nenabízí - přehraje se vždy jednou.`nPřesné prodlevy (vlevo dole) - prodlevy se dodrží zhruba na milisekundu. U nových maker zapnuté. Vypnuté = dřívější časování, kdy krátké prodlevy často trvají o 10-15 ms déle, než je zapsáno.`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
@@ -6161,14 +6198,14 @@ TrPl() {
     m["Move down"] := "W dół"
     m["Export all..."] := "Eksportuj całość..."
     m["All macros toggle key:"] := "Klawisz przełączania wszystkich makr:"
-    m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaznacz makro, aby je włączyć. Kliknij dwukrotnie wiersz, aby edytować. Przeciągnij myszą po wierszach (lub Ctrl / Shift+kliknięcie), aby zaznaczyć kilka. Kliknij nagłówek kolumny, aby posortować. Upuść pliki .ahk na okno, aby je zaimportować; przeciągnij zaznaczone makra z listy (na pulpit, do folderu, na czat), aby je wyeksportować. Zamknięcie okna zostawia aplikację w zasobniku systemowym (kliknij ikonę prawym przyciskiem → Zamknij)."
+    m["Tick a macro to turn it on. Double-click a row to edit. Drag over rows (or Ctrl / Shift+click) to select several. Click a column header to sort. Drop .ahk files onto the window to import them; drag selected macros out of the list (desktop, folder, chat) to export them. Closing the window keeps it running in the tray (right-click the icon → Exit)."] := "Zaznacz makro, aby je włączyć. Kliknij dwukrotnie wiersz, aby edytować. Przeciągnij myszą po wierszach (lub Ctrl / Shift+kliknięcie), aby zaznaczyć kilka. Kliknij nagłówek kolumny, aby posortować. Upuść pliki .ahk na okno, aby je zaimportować; przeciągnij zaznaczone makra z listy (na pulpit, do folderu, na czat), aby je wyeksportować. Zamknięcie okna zostawia aplikację w zasobniku systemowym (kliknij ikonę prawym przyciskiem → Zakończ)."
     m["Backup..."] := "Kopia..."
     m["Uninstall"] := "Odinstaluj"
     m["Open window"] := "Otwórz okno"
     m["Check for updates..."] := "Sprawdź aktualizacje..."
     m["Check for updates at start"] := "Sprawdzaj aktualizacje przy starcie"
     m["Uninstall..."] := "Odinstaluj..."
-    m["Exit"] := "Zamknij"
+    m["Exit"] := "Zakończ"
     m["Delete macro `"{1}`"?"] := "Usunąć makro `"{1}`"?"
     m["Delete {1} selected macros?"] := "Usunąć zaznaczone makra ({1})?"
     m["Cancel"] := "Anuluj"
@@ -6310,7 +6347,7 @@ TrPl() {
     m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Pobrany plik nie jest prawidłowym skryptem Macro Manager. Nic nie zostało zmienione."
     m["Could not replace the app file: {1}"] := "Nie udało się zastąpić pliku aplikacji: {1}"
     m["Version {1}"] := "Wersja {1}"
-    m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zamknij.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
+    m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zakończ.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
     m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nNaciśnięcie - jak trzeba nacisnąć klawisz wyzwalający. Zwykłe: makro startuje, gdy tylko klawisz zostanie wciśnięty. Krótkie: szybko naciśnij i puść - makro odtwarza się raz po puszczeniu. Podwójne: naciśnij klawisz dwa razy szybko. Przytrzymanie: przytrzymaj klawisz przez chwilę (z Powtarzaniem gra, dopóki go trzymasz). Jeden klawisz może w ten sposób mieć do trzech makr: krótkie, podwójne i przytrzymanie. Zwykłe makro na tym samym klawiszu zajmuje cały klawisz. Makra na kółku myszy zawsze startują od razu.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast). Niedostępne dla Krótkiego - zawsze odtwarza się raz.`nDokładne opóźnienia (na dole po lewej) - opóźnienia są dotrzymywane co do około milisekundy. Włączone dla nowych makr. Wyłączone = dawny sposób, w którym krótkie opóźnienia często trwają o 10-15 ms dłużej, niż wpisano.`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
@@ -6342,7 +6379,7 @@ TrPl() {
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Wszystkie obecne makra, profile i ustawienia zostaną zastąpione kopią z {1} ({2} makr). Aplikacja uruchomi się ponownie.`n`nObecny stan zostanie najpierw zapisany jako:`n{3}"
     m["Restore"] := "Przywróć"
     m["The backup could not be restored:`n{1}"] := "Nie udało się przywrócić kopii:`n{1}"
-    m["Release notes"] := "Release notes"
+    m["Release notes"] := "Informacje o wersji"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
     m["Keys and recording"] := "Klawisze i nagrywanie"

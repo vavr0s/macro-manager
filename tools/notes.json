@@ -1,0 +1,27 @@
+{
+  "_about": "Release notes of the version being built: one line per change, every language. tools/set_notes.py writes them into the app (Help) and into version.json (update window). Do not use double quotes or backticks.",
+  "en": [
+    "Release notes are now shown in the language of the app – in Help and in the update window.",
+    "The flag on the language button no longer disappears when you point at it or open the menu.",
+    "Dark mode: dark scroll bars in the help text and in the script and sequence boxes.",
+    "Translation fixes: Czech Exit is now Ukončit, Polish Zamknij is now Zakończ, and the Polish release notes heading is translated."
+  ],
+  "cs": [
+    "Poznámky k verzi se teď zobrazují v jazyce aplikace – v Nápovědě i v okně aktualizace.",
+    "Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.",
+    "Tmavý režim: tmavé posuvníky v textu nápovědy a v polích skriptu a sekvence.",
+    "Opravy překladů: v češtině je Exit teď Ukončit, v polštině je Zamknij teď Zakończ a přeložený je i nadpis poznámek k verzi."
+  ],
+  "pl": [
+    "Informacje o wersji są teraz wyświetlane w języku aplikacji – w Pomocy i w oknie aktualizacji.",
+    "Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.",
+    "Tryb ciemny: ciemne paski przewijania w tekście pomocy oraz w polach skryptu i sekwencji.",
+    "Poprawki tłumaczeń: czeskie Exit to teraz Ukončit, polskie Zamknij to teraz Zakończ, a nagłówek Informacje o wersji jest przetłumaczony."
+  ],
+  "de": [
+    "Versionshinweise werden jetzt in der Sprache der App angezeigt – in der Hilfe und im Update-Fenster.",
+    "Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.",
+    "Dunkelmodus: dunkle Bildlaufleisten im Hilfetext und in den Skript- und Sequenzfeldern.",
+    "Übersetzungskorrekturen: Tschechisch Exit heißt jetzt Ukončit, Polnisch Zamknij heißt jetzt Zakończ, und die polnische Überschrift der Versionshinweise ist übersetzt."
+  ]
+}

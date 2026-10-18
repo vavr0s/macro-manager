@@ -163,11 +163,34 @@ QueryUpdate() {
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
         || !RegExMatch(info, '"sha256"\s*:\s*"([0-9a-fA-F]{64})"', &ms))
         return "error"
-    notes := RegExMatch(info, '"notes"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn) ? StrReplace(mn[1], "\n", "`n") : ""
+    notes := ""                                   ; release notes in the app language, English if not translated
+    for key in (Lang = "en" ? ["notes"] : ["notes_" Lang, "notes"])
+        if (notes = "" && RegExMatch(info, '"' key '"\s*:\s*"((?:[^"\\]|\\.)*)"', &mn))
+            notes := JsonUnesc(mn[1])
     UpdInfo := Map("ver", mv[1], "url", mu[1], "sha", StrLower(ms[1]), "notes", notes)
     UpdAvail := VerNewer(mv[1], AppVersion) && RegExMatch(mu[1], "^https://raw\.githubusercontent\.com/vavr0s/")
     SetUpdIcon()
     return UpdAvail ? "new" : "latest"
+}
+
+; a JSON string value as text: \n \" \\ \/ \t and \uXXXX (version.json keeps accented letters as \uXXXX, so the
+; text arrives right whatever character set the answer is read with)
+JsonUnesc(s) {
+    out := "", i := 1, n := StrLen(s)
+    while (i <= n) {
+        c := SubStr(s, i, 1)
+        if (c != "\" || i = n) {
+            out .= c, i++
+            continue
+        }
+        e := SubStr(s, i + 1, 1)
+        if (e = "u" && RegExMatch(SubStr(s, i + 2, 4), "^[0-9a-fA-F]{4}$")) {
+            out .= Chr(Integer("0x" SubStr(s, i + 2, 4))), i += 6
+            continue
+        }
+        out .= e = "n" ? "`n" : e = "t" ? "`t" : e = "r" ? "" : e, i += 2
+    }
+    return out
 }
 
 SetUpdIcon() {
