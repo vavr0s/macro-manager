@@ -1,6 +1,6 @@
 {
-  "version": "1.20.3",
+  "version": "1.20.4",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "c29feaf784d702b7bf103282635b006366cc03592b4585f38e189529aa2a84f4",
-  "notes": "BETA build - for testing.\n- Macros exported to .ahk: long press, double tap and Repeat while key is held also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).\n- The app checks for a new version in the background every 15 minutes instead of every 2. GitHub allows only 60 checks an hour per internet address, so several copies of the app could use them up and a new version showed up only minutes later. A click on the arrow still checks right away.\n- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop).\n- After the app starts, macros that are on are shown ticked again (they were sometimes shown unticked).\n- Script macros show a dash instead of 'undefined' in the Key column.\n- Code pasted into a script or sequence keeps its line breaks.\n- New macro: the name field starts empty with New macro as a grey hint - just type the name.\n- Help: the support link lights up when you point at it."
+  "sha256": "1379a2cdc1c9d4484ae4b1ce0dcf20ea28eb99271bed26bfe9543976bc8f61ad",
+  "notes": "BETA build - for testing.\n- Czech: the tray menu item Exit is now Ukončit; Polish: Zamknij is now Zakończ.\n- The flag on the language button no longer disappears when you point at it or open the menu.\n- Dark mode: the help text and the script / sequence boxes have dark scroll bars."
 }
