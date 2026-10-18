@@ -100,7 +100,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.20"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.21"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,9 +110,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "- Long press, double tap and Repeat while key is held now also work when the key is pressed by another program (mouse software, Steam Input, remote desktop) - in the app and in exported .ahk macros.`n- After the app starts, macros that are on are always shown ticked.`n- The app checks for updates in the background every 15 minutes, so new versions no longer show up late.`n- Code pasted into a script or sequence keeps its line breaks.`n- New macro: the name field starts empty with a grey hint.`n- Script macros show a dash instead of 'undefined' as their key.`n- Help: the support link lights up when you point at it."
+ReleaseNotes := "- Release notes are now shown in the language of the app – in Help and in the update window.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: dark scroll bars in the help text and in the script and sequence boxes.`n- Translation fixes: Czech Exit is now Ukončit, Polish Zamknij is now Zakończ, and the Polish release notes heading is translated."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map()
+ReleaseNotesL := Map("cs", "- Poznámky k verzi se teď zobrazují v jazyce aplikace – v Nápovědě i v okně aktualizace.`n- Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.`n- Tmavý režim: tmavé posuvníky v textu nápovědy a v polích skriptu a sekvence.`n- Opravy překladů: v češtině je Exit teď Ukončit, v polštině je Zamknij teď Zakończ a přeložený je i nadpis poznámek k verzi.", "pl", "- Informacje o wersji są teraz wyświetlane w języku aplikacji – w Pomocy i w oknie aktualizacji.`n- Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.`n- Tryb ciemny: ciemne paski przewijania w tekście pomocy oraz w polach skryptu i sekwencji.`n- Poprawki tłumaczeń: czeskie Exit to teraz Ukončit, polskie Zamknij to teraz Zakończ, a nagłówek Informacje o wersji jest przetłumaczony.", "de", "- Versionshinweise werden jetzt in der Sprache der App angezeigt – in der Hilfe und im Update-Fenster.`n- Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.`n- Dunkelmodus: dunkle Bildlaufleisten im Hilfetext und in den Skript- und Sequenzfeldern.`n- Übersetzungskorrekturen: Tschechisch Exit heißt jetzt Ukončit, Polnisch Zamknij heißt jetzt Zakończ, und die polnische Überschrift der Versionshinweise ist übersetzt.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
