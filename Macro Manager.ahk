@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.20.5"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.20.6"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Release notes are now shown in the language of the app (English, Czech, Polish, German) - in Help and in the update window.`n- Czech: the tray menu item Exit is now Ukončit. Polish: Zamknij is now Zakończ, and Release notes is translated.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: the help text and the script / sequence boxes have dark scroll bars."
+ReleaseNotes := "BETA build - for testing.`n- Test version: checks that the update window shows the release notes in the app language. No changes in the app."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Poznámky k verzi se teď zobrazují v jazyce aplikace (angličtina, čeština, polština, němčina) – v Nápovědě i v okně aktualizace.`n- Čeština: položka Exit v menu u ikony se teď jmenuje Ukončit. Polština: Zamknij je teď Zakończ a přeložené jsou i poznámky k verzi.`n- Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.`n- Tmavý režim: text nápovědy a pole skriptu a sekvence mají tmavé posuvníky.", "pl", "Wersja BETA – do testów.`n- Informacje o wersji są teraz wyświetlane w języku aplikacji (angielski, czeski, polski, niemiecki) – w Pomocy i w oknie aktualizacji.`n- Czeski: pozycja Exit w menu ikony to teraz Ukončit. Polski: Zamknij to teraz Zakończ, a Informacje o wersji są przetłumaczone.`n- Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.`n- Tryb ciemny: tekst pomocy oraz pola skryptu i sekwencji mają ciemne paski przewijania.", "de", "BETA-Version – zum Testen.`n- Versionshinweise werden jetzt in der Sprache der App angezeigt (Englisch, Tschechisch, Polnisch, Deutsch) – in der Hilfe und im Update-Fenster.`n- Tschechisch: Der Menüpunkt Exit am Symbol heißt jetzt Ukončit. Polnisch: Zamknij heißt jetzt Zakończ, und Release notes ist übersetzt.`n- Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.`n- Dunkelmodus: Der Hilfetext und die Skript- und Sequenzfelder haben dunkle Bildlaufleisten.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Testovací verze: ověřuje, že okno aktualizace ukazuje poznámky k verzi v jazyce aplikace. V aplikaci se nic nemění.", "pl", "Wersja BETA – do testów.`n- Wersja testowa: sprawdza, czy okno aktualizacji pokazuje informacje o wersji w języku aplikacji. Bez zmian w aplikacji.", "de", "BETA-Version – zum Testen.`n- Testversion: prüft, ob das Update-Fenster die Versionshinweise in der Sprache der App zeigt. Keine Änderungen an der App.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
