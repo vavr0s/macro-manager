@@ -64,7 +64,9 @@ try:
         epath = os.path.abspath(os.path.join(out, name + '.exe'))
         if os.path.exists(epath):
             os.remove(epath)
-        base = os.path.join(stage, 'pkg', 'runtime64', 'Macro Manager Setup.exe')
+        # Ahk2Exe warns (a dialog, also with /silent) when the base file does not carry its AutoHotkey name
+        base = os.path.join(stage, 'AutoHotkey64.exe')
+        shutil.copyfile(os.path.join(stage, 'pkg', 'runtime64', 'Macro Manager Setup.exe'), base)
         subprocess.run([ahk2exe, '/in', os.path.join(stage, 'setup.ahk'), '/out', epath, '/base', base, '/silent', 'verbose'],
                        check=True)
         assert os.path.isfile(epath), 'Ahk2Exe made no .exe'
