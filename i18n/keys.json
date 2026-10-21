@@ -19,13 +19,13 @@
    "SendMessage(0x1501, 1, StrPtr(_T(\"Search (name, key or application)\")), eSearch)     ; EM_SETCUEBANNER: grey hint text"
   ]
  },
- "Macro library": {
-  "en": "Macro library",
+ "Macro Hub": {
+  "en": "Macro Hub",
   "ctx": [
-   "bLib := AddBtn(Main, \"x660 y92 w170 h26\", _T(\"Macro library\") \"  \" Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)",
-   "g := Gui(\"-Caption +Border +Owner\" Main.Hwnd, _T(\"Macro library\"))",
-   "AddBtn(g, \"x8 y8 w\" (W - 16) \" h48 Left\", \"   \" _T(\"Macro library\"), (*) => 0, \"libhead\")",
-   "if (ThemedAsk(_T(\"Macro library\"), _T(\"Delete from the library?\"), _T(\"`\"{1}`\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [",
+   "bLib := AddBtn(Main, \"x660 y92 w170 h26\", _T(\"Macro Hub\") \"  \" Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)",
+   "g := Gui(\"-Caption +Border +Owner\" Main.Hwnd, _T(\"Macro Hub\"))",
+   "hd := g.AddText(\"x8 y8 w\" (W - 16) \" h48 +0xD\", \"   \" _T(\"Macro Hub\"))",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
    "Help window topic title (navigation button, ~25 characters max)"
   ]
  },
@@ -100,7 +100,7 @@
    "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
    "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
    "LibBtn[\"del\"] := AddBtn(g, \"x+8 yp w\" (W - 370) \" h32\", _T(\"Delete\"), (*) => LibDelete(), \"btndanger\")",
-   "if (ThemedAsk(_T(\"Macro library\"), _T(\"Delete from the library?\"), _T(\"`\"{1}`\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], ["
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
   ],
   "max_chars": 16
  },
@@ -231,8 +231,8 @@
    "AddBtn(g, \"x284 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)",
    ", [[_T(\"Restore\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
-   "if (ThemedAsk(_T(\"Macro library\"), _T(\"Delete from the library?\"), _T(\"`\"{1}`\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [",
-   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macro",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
+   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.\", m[\"",
    "AddBtn(g, \"x304 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)"
   ],
   "max_chars": 13
@@ -1352,8 +1352,8 @@
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
  },
- "hlp_libshare": {
-  "en": "Macro library (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.\n\n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.\n- Search with words from the name or the game: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.\n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.\n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded.\n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.\n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.\n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.\n- Delete (My macros) removes a macro you shared from the library; your own copy in the list stays.\n\nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.\n\nThe library needs internet access. Nobody can see who rated or reported a macro.",
+ "hlp_hub": {
+  "en": "Macro Hub (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.\n\n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.\n- Search with words from the name or the game: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.\n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.\n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded.\n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.\n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.\n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.\n- Delete (My macros) removes a macro you shared from Macro Hub; your own copy in the list stays.\n\nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Macros downloaded from Macro Hub show a download arrow instead and can be shared only after you change them. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.\n\nMacro Hub needs internet access. Nobody can see who rated or reported a macro.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1462,10 +1462,10 @@
    "ThemedNote(_T(\"The backup could not be restored:`n{1}\", e.Message), , true)"
   ]
  },
- "Can't reach the macro library. Check your internet connection and try again.": {
-  "en": "Can't reach the macro library. Check your internet connection and try again.",
+ "Can't reach Macro Hub. Check your internet connection and try again.": {
+  "en": "Can't reach Macro Hub. Check your internet connection and try again.",
   "ctx": [
-   "case \"network\": return _T(\"Can't reach the macro library. Check your internet connection and try again.\")"
+   "case \"network\": return _T(\"Can't reach Macro Hub. Check your internet connection and try again.\")"
   ]
  },
  "You have shared a lot of macros today. Please try again tomorrow.": {
@@ -1480,10 +1480,10 @@
    "case \"own_macro\": return _T(\"You can't rate your own macro.\")"
   ]
  },
- "This macro is no longer in the library.": {
-  "en": "This macro is no longer in the library.",
+ "This macro is no longer in Macro Hub.": {
+  "en": "This macro is no longer in Macro Hub.",
   "ctx": [
-   "case \"not_found\": return _T(\"This macro is no longer in the library.\")"
+   "case \"not_found\": return _T(\"This macro is no longer in Macro Hub.\")"
   ]
  },
  "Only the author can delete this macro.": {
@@ -1498,10 +1498,10 @@
    "case \"bad_text\": return _T(\"Please check the name, game, description and nickname.\")"
   ]
  },
- "The library could not do this ({1}).": {
-  "en": "The library could not do this ({1}).",
+ "Macro Hub could not do this ({1}).": {
+  "en": "Macro Hub could not do this ({1}).",
   "ctx": [
-   "return _T(\"The library could not do this ({1}).\", code)"
+   "return _T(\"Macro Hub could not do this ({1}).\", code)"
   ]
  },
  "Players' macros": {
@@ -1593,16 +1593,16 @@
    "LibInfo.Text := LibWho = \"mine\" ? _T(\"You have not shared any macro yet - use the share icon in your list.\")"
   ]
  },
- "The library is empty so far - share the first macro!": {
-  "en": "The library is empty so far - share the first macro!",
+ "Macro Hub is empty so far - share the first macro!": {
+  "en": "Macro Hub is empty so far - share the first macro!",
   "ctx": [
-   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"The library is empty so far - share the first macro!\") : _T(\"No macros found.\")"
+   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"Macro Hub is empty so far - share the first macro!\") : _T(\"No macros found.\")"
   ]
  },
  "No macros found.": {
   "en": "No macros found.",
   "ctx": [
-   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"The library is empty so far - share the first macro!\") : _T(\"No macros found.\")"
+   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"Macro Hub is empty so far - share the first macro!\") : _T(\"No macros found.\")"
   ]
  },
  "Pick a macro to see its description.": {
@@ -1665,13 +1665,13 @@
  "Report macro": {
   "en": "Report macro",
   "ctx": [
-   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from the library? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
+   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
   ]
  },
- "Why should \"{1}\" be removed from the library? For example: a farm / AFK macro (not allowed), it does not work, or spam.": {
-  "en": "Why should \"{1}\" be removed from the library? For example: a farm / AFK macro (not allowed), it does not work, or spam.",
+ "Why should \"{1}\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.": {
+  "en": "Why should \"{1}\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.",
   "ctx": [
-   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from the library? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
+   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
   ]
  },
  "Thank you. The macro will be checked.": {
@@ -1680,16 +1680,16 @@
    "ThemedNote(_T(\"Thank you. The macro will be checked.\"))"
   ]
  },
- "Delete from the library?": {
-  "en": "Delete from the library?",
+ "Delete from Macro Hub?": {
+  "en": "Delete from Macro Hub?",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro library\"), _T(\"Delete from the library?\"), _T(\"`\"{1}`\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], ["
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
   ]
  },
- "\"{1}\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.": {
-  "en": "\"{1}\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.",
+ "\"{1}\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.": {
+  "en": "\"{1}\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro library\"), _T(\"Delete from the library?\"), _T(\"`\"{1}`\" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], ["
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
   ]
  },
  "Script macros can't be shared - only Move + actions and Sequence macros.": {
@@ -1698,41 +1698,62 @@
    "return ThemedNote(_T(\"Script macros can't be shared - only Move + actions and Sequence macros.\"), , true)"
   ]
  },
+ "\"{1}\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.": {
+  "en": "\"{1}\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.",
+  "ctx": [
+   "return ThemedNote(_T(\"`\"{1}`\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.\", m[\"name\"], m[\"libsrcby\"]), _T(\"Share macro"
+  ]
+ },
  "Share macro": {
   "en": "Share macro",
   "ctx": [
-   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macro",
+   "return ThemedNote(_T(\"`\"{1}`\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.\", m[\"name\"], m[\"libsrcby\"]), _T(\"Share macro",
+   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.\", m[\"",
+   "return ThemedNote(_T(\"You have already shared this macro as `\"{1}`\". Change it to share a new version.\", j[\"name\"]), _T(\"Share macro\"))",
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Share macro\"), true)",
    "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Share macro\"))"
   ]
  },
  "Already shared": {
   "en": "Already shared",
   "ctx": [
-   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macro"
+   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.\", m[\""
   ]
  },
- "\"{1}\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.": {
-  "en": "\"{1}\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.",
+ "\"{1}\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.": {
+  "en": "\"{1}\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.",
   "ctx": [
-   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macro"
+   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.\", m[\""
   ]
  },
  "Share again": {
   "en": "Share again",
   "ctx": [
-   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macro"
+   "if (m[\"libshare\"] != \"\" && ThemedAsk(_T(\"Share macro\"), _T(\"Already shared\"), _T(\"`\"{1}`\" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.\", m[\""
   ]
  },
- "Thank you for sharing! \"{1}\" is now in the library.": {
-  "en": "Thank you for sharing! \"{1}\" is now in the library.",
+ "You have already shared this macro as \"{1}\". Change it to share a new version.": {
+  "en": "You have already shared this macro as \"{1}\". Change it to share a new version.",
   "ctx": [
-   "ThemedNote(_T(\"Thank you for sharing! `\"{1}`\" is now in the library.\", f[\"name\"]))"
+   "return ThemedNote(_T(\"You have already shared this macro as `\"{1}`\". Change it to share a new version.\", j[\"name\"]), _T(\"Share macro\"))"
   ]
  },
- "Share \"{1}\" in the macro library": {
-  "en": "Share \"{1}\" in the macro library",
+ "This macro is already in Macro Hub as \"{1}\" by {2}. Change it first - for example a delay or a key - and then share your own version.": {
+  "en": "This macro is already in Macro Hub as \"{1}\" by {2}. Change it first - for example a delay or a key - and then share your own version.",
   "ctx": [
-   "DlgText(g, \"x16 y14 w388\", _T(\"Share `\"{1}`\" in the macro library\", m[\"name\"]))"
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Share macro\"), true)"
+  ]
+ },
+ "Thank you for sharing! \"{1}\" is now in Macro Hub.": {
+  "en": "Thank you for sharing! \"{1}\" is now in Macro Hub.",
+  "ctx": [
+   "ThemedNote(_T(\"Thank you for sharing! `\"{1}`\" is now in Macro Hub.\", f[\"name\"]))"
+  ]
+ },
+ "Share \"{1}\" in Macro Hub": {
+  "en": "Share \"{1}\" in Macro Hub",
+  "ctx": [
+   "DlgText(g, \"x16 y14 w388\", _T(\"Share `\"{1}`\" in Macro Hub\", m[\"name\"]))"
   ]
  },
  "Game (people filter and search by it, for example 4Story)": {

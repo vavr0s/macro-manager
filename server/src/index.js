@@ -120,6 +120,10 @@ export default {
         data[k] = d[k];
       }
       if (data.type === 'seq' ? !data.seq.trim() : !data.actions.trim()) return fail('bad_macro:empty');
+      // the same macro (same keys, delays and settings - the name does not count) is in the library already:
+      // downloaded macros are not shared again unchanged, and nobody shares the same macro twice
+      const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 LIMIT 1').bind(JSON.stringify(data)).first();
+      if (dup) return json({ error: 'duplicate', id: dup.id, name: dup.name, author: dup.author, mine: dup.owner === voter ? 1 : 0 }, 409);
       const ip = await sha('ip:' + (req.headers.get('CF-Connecting-IP') || ''));
       const day = now() - 86400;
       const c = await db.prepare('SELECT SUM(owner = ?1) AS o, SUM(ip = ?2) AS i FROM uploads WHERE created > ?3')

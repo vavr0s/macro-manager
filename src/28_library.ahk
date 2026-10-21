@@ -35,14 +35,14 @@ LibCall(method, path, body := "", url := "") {
 
 LibErr(code) {
     switch code {
-        case "network": return _T("Can't reach the macro library. Check your internet connection and try again.")
+        case "network": return _T("Can't reach Macro Hub. Check your internet connection and try again.")
         case "too_many": return _T("You have shared a lot of macros today. Please try again tomorrow.")
         case "own_macro": return _T("You can't rate your own macro.")
-        case "not_found": return _T("This macro is no longer in the library.")
+        case "not_found": return _T("This macro is no longer in Macro Hub.")
         case "not_owner": return _T("Only the author can delete this macro.")
         case "bad_text": return _T("Please check the name, game, description and nickname.")
     }
-    return _T("The library could not do this ({1}).", code)
+    return _T("Macro Hub could not do this ({1}).", code)
 }
 
 ; game tags used in the library, the most used first (for the game filter and the share form)
@@ -164,11 +164,11 @@ BuildLibrary() {
     MainFrame(&L, &T, &R, &B)
     LibH := B - T                                           ; the height the layout is made for (LibFit)
     W := LibW, H := Round((B - T - 2) * 96 / A_ScreenDPI)
-    g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro library"))
+    g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro Hub"))
     LibGui := g
     ; title strip: drawn like a button (DrawBtn) but without click events, so clicks reach the close button on it
     g.SetFont("s14 bold", "Segoe UI")
-    hd := g.AddText("x8 y8 w" (W - 16) " h48 +0xD", "   " _T("Macro library"))
+    hd := g.AddText("x8 y8 w" (W - 16) " h48 +0xD", "   " _T("Macro Hub"))
     Roles[hd.Hwnd] := "libhead"
     BtnLook[hd.Hwnd] := {left: true, round: true, hover: false, badge: false, pad: [0, 0, 0, 0]}
     g.SetFont("s15 norm", "Segoe UI")
@@ -311,7 +311,7 @@ LibLoad(append := false) {
     LibShowSel()
     if !LibItems.Length
         LibInfo.Text := LibWho = "mine" ? _T("You have not shared any macro yet - use the share icon in your list.")
-            : (Trim(LibSearch.Value) = "" && LibGameF = "") ? _T("The library is empty so far - share the first macro!") : _T("No macros found.")
+            : (Trim(LibSearch.Value) = "" && LibGameF = "") ? _T("Macro Hub is empty so far - share the first macro!") : _T("No macros found.")
 }
 
 LibSel() {
@@ -466,6 +466,10 @@ LibDownload() {
     if (Trim(m["hotkey"]) = "")
         m["hotkey"] := "undefined"
     m["name"] := LibFreeName(j["name"])
+    if it["mine"]                                               ; my own macro back from the library: shared (gold icon)
+        m["libshare"] := it["id"]
+    else                                                        ; someone else's: not shared again unchanged
+        m["libsrc"] := it["id"], m["libsrcby"] := it["author"], m["libsrchash"] := LibHash(m)
     m["profiles"] := CurProfile
     m["enabled"] := 0
     m["tkey"] := "", m["file"] := "", m["trusted"] := 1
@@ -529,7 +533,7 @@ LibReport() {
     it := LibSel()
     if !it
         return
-    why := ThemedInput(_T("Report macro"), _T("Why should `"{1}`" be removed from the library? For example: a farm / AFK macro (not allowed), it does not work, or spam.", it["name"]))
+    why := ThemedInput(_T("Report macro"), _T("Why should `"{1}`" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.", it["name"]))
     if (why = false || Trim(why) = "")
         return
     j := LibCall("POST", "/" it["id"] "/report", Map("reason", SubStr(Trim(why), 1, 200)))
@@ -542,7 +546,7 @@ LibDelete() {
     it := LibSel()
     if (!it || !it["mine"])
         return
-    if (ThemedAsk(_T("Macro library"), _T("Delete from the library?"), _T("`"{1}`" will be removed from the library for everyone, with its ratings. Your own copy in the list stays.", it["name"]), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+    if (ThemedAsk(_T("Macro Hub"), _T("Delete from Macro Hub?"), _T("`"{1}`" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.", it["name"]), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     j := LibCall("DELETE", "/" it["id"])
     if j.Has("error")
@@ -555,6 +559,17 @@ LibDelete() {
     LibLoad()
 }
 
+; fingerprint of what a macro shares (CRC32 of its library data)
+LibHash(m) {
+    s := JsonStr(LibData(m))
+    buf := Buffer(StrPut(s, "UTF-8"))
+    n := StrPut(s, buf, "UTF-8") - 1
+    return Format("{:08x}", DllCall("ntdll\RtlComputeCrc32", "UInt", 0, "Ptr", buf, "UInt", n, "UInt"))
+}
+
+; downloaded from the library and not changed since: it can't be shared (it is someone else's macro)
+LibFromLib(m) => (m["libsrc"] != "" && m["libsrchash"] = LibHash(m))
+
 ; ---- sharing: the share icon at the end of a row in the main list ----
 LibShareMacro(m) {
     global LibAuthor, LibGame, LibSort, LibWho
@@ -562,12 +577,23 @@ LibShareMacro(m) {
         return
     if (m["type"] = "script")
         return ThemedNote(_T("Script macros can't be shared - only Move + actions and Sequence macros."), , true)
-    if (m["libshare"] != "" && ThemedAsk(_T("Share macro"), _T("Already shared"), _T("`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.", m["name"]), [[_T("Share again"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]], false) != "yes")
+    if LibFromLib(m)
+        return ThemedNote(_T("`"{1}`" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.", m["name"], m["libsrcby"]), _T("Share macro"))
+    if (m["libshare"] != "" && ThemedAsk(_T("Share macro"), _T("Already shared"), _T("`"{1}`" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.", m["name"]), [[_T("Share again"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]], false) != "yes")
         return
     f := LibShareForm(m)
     if !f
         return
     j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "game", f["game"], "data", LibData(m)))
+    if (j.Has("error") && j["error"] = "duplicate") {          ; exactly this macro is in the library already
+        if j["mine"] {
+            m["libshare"] := j["id"]
+            Save()
+            RedrawList()
+            return ThemedNote(_T("You have already shared this macro as `"{1}`". Change it to share a new version.", j["name"]), _T("Share macro"))
+        }
+        return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Share macro"), true)
+    }
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
     m["libshare"] := j["id"]
@@ -582,7 +608,7 @@ LibShareMacro(m) {
         LibSearch.Value := ""
         LibLoad()
     }
-    ThemedNote(_T("Thank you for sharing! `"{1}`" is now in the library.", f["name"]))
+    ThemedNote(_T("Thank you for sharing! `"{1}`" is now in Macro Hub.", f["name"]))
 }
 
 ; what is shared of a macro (not its toggle key, profiles or on / off state)
@@ -614,7 +640,7 @@ LibShareForm(m) {
     oh := DlgOwner()
     g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Share macro"))
     g.SetFont("s10 bold", "Segoe UI")
-    DlgText(g, "x16 y14 w388", _T("Share `"{1}`" in the macro library", m["name"]))
+    DlgText(g, "x16 y14 w388", _T("Share `"{1}`" in Macro Hub", m["name"]))
     g.SetFont("s9 norm", "Segoe UI")
     g.AddText("x16 y48 w388", _T("Name"))
     eN := g.AddEdit("x16 y66 w388 h26 Limit40", m["name"])

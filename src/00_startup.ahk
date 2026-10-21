@@ -220,7 +220,7 @@ eSearch := Main.AddEdit("x10 y92 w300 h26")
 eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
-bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro library") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
+bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro Hub") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")]
 hdrW := [270, 150, 190, 130, 80]
 hdrCtl := []

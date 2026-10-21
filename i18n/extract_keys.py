@@ -23,7 +23,7 @@ for i, l in enumerate(L, 1):
         m = re.search(r'_TL\("([a-z_]+)", $', pre)
         if m: add(m.group(1), decode(body), 'HELP TOPIC TEXT (shown in the Help window, read as a manual)')
 for t in ["Release notes", "Getting started", "Add / edit a macro", "Move + actions", "Sequence", "Script (.ahk)", "Keys and recording",
-          "Profiles", "Toggle keys", "Order, export, backup", "Updates", "Macro library", "Tips and problems"]:
+          "Profiles", "Toggle keys", "Order, export, backup", "Updates", "Macro Hub", "Tips and problems"]:
     add(t, t, 'Help window topic title (navigation button, ~25 characters max)')
 for k, v in keys.items():
     if k in old and 'max_chars' in old[k]:
