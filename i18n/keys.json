@@ -48,8 +48,7 @@
   "en": "Key",
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
-   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
-   "t := TypeLabel(it[\"type\"]) \"  ·  \" _T(\"Key\") \": \" (it[\"hotkey\"] = \"\" ? Chr(0x2014) : it[\"hotkey\"])"
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])"
   ]
  },
  "Application": {
@@ -304,6 +303,7 @@
   "ctx": [
    "TypeLabel(t) => t = \"move\" ? _T(\"Move + actions\") : (t = \"seq\" ? _T(\"Sequence\") : _T(\"Script (.ahk)\"))",
    "for i, nm in [_T(\"Move + actions\"), _T(\"Sequence\"), _T(\"Script (.ahk)\")]",
+   "t .= \"`n\" _T(\"Sequence\") \":\"",
    "out .= _T(\"Sequence\") \":`n\"",
    "Help window topic title (navigation button, ~25 characters max)"
   ]
@@ -611,6 +611,7 @@
   "en": "Trigger key",
   "ctx": [
    "g.AddText(\"x10 y136 w136 +0x200 h26\", _T(\"Trigger key\"))",
+   "t := TypeLabel(d[\"type\"]) \"`n\" _T(\"Trigger key\") \": \" (d[\"hotkey\"] = \"\" ? Chr(0x2014) : d[\"hotkey\"]) \"  ·  \" _T(\"Press\") \": \" pr",
    "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
@@ -626,6 +627,7 @@
   "en": "Only in app (exe)",
   "ctx": [
    "g.AddText(\"x10 y172 w136 +0x200 h26\", _T(\"Only in app (exe)\"))",
+   "t .= \"`n\" _T(\"Only in app (exe)\") \": \" d[\"app\"]",
    "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
@@ -642,6 +644,7 @@
   "en": "Press",
   "ctx": [
    "pl := g.AddText(\"x10 y244 w136 +0x200 h26\", _T(\"Press\"))",
+   "t := TypeLabel(d[\"type\"]) \"`n\" _T(\"Trigger key\") \": \" (d[\"hotkey\"] = \"\" ? Chr(0x2014) : d[\"hotkey\"]) \"  ·  \" _T(\"Press\") \": \" pr",
    "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 15
@@ -650,6 +653,7 @@
   "en": "Normal",
   "ctx": [
    "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
    "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
   ],
   "max_chars": 14
@@ -658,6 +662,7 @@
   "en": "Short tap",
   "ctx": [
    "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
    "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
   ],
   "max_chars": 14
@@ -666,6 +671,7 @@
   "en": "Double tap",
   "ctx": [
    "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
    "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
   ],
   "max_chars": 14
@@ -674,6 +680,7 @@
   "en": "Long press",
   "ctx": [
    "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
    "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
   ],
   "max_chars": 14
@@ -682,6 +689,7 @@
   "en": "Run",
   "ctx": [
    "rl := g.AddText(\"x10 y280 w136 +0x200 h26\", _T(\"Run\"))",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
    "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
@@ -690,6 +698,7 @@
   "en": "Once per key press",
   "ctx": [
    "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
    "case \"repeat\": return v ? _T(\"Repeat while key is held\") : _T(\"Once per key press\")"
   ]
  },
@@ -697,6 +706,7 @@
   "en": "Repeat while key is held",
   "ctx": [
    "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
    "case \"repeat\": return v ? _T(\"Repeat while key is held\") : _T(\"Once per key press\")"
   ]
  },
@@ -704,6 +714,7 @@
   "en": "Directions (optional)",
   "ctx": [
    "mv.Push(g.AddText(\"x10 y328 w136 +0x200 h26\", _T(\"Directions (optional)\")))",
+   "t .= \"`n\" _T(\"Directions (optional)\") \": \" (d[\"dirs\"] = \"\" ? Chr(0x2014) : d[\"dirs\"])",
    ", \"dirs\", _T(\"Directions (optional)\"), \"actions\", _T(\"Actions in order\"), \"exact\", _T(\"Exact delays\"))"
   ],
   "max_chars": 21
@@ -721,6 +732,7 @@
   "en": "Actions in order",
   "ctx": [
    "mv.Push(g.AddText(\"x10 y364 w136 +0x200 h26\", _T(\"Actions in order\")))",
+   ". \"`n\" _T(\"Actions in order\") \": \" d[\"actions\"]",
    ", \"dirs\", _T(\"Directions (optional)\"), \"actions\", _T(\"Actions in order\"), \"exact\", _T(\"Exact delays\"))"
   ],
   "max_chars": 21
@@ -729,6 +741,7 @@
   "en": "Delays (ms)",
   "ctx": [
    "mv.Push(g.AddText(\"x10 y400 w136 +0x200 h26\", _T(\"Delays (ms)\")))",
+   ". \"`n\" _T(\"Delays (ms)\") \": \" d[\"g1\"] \" / \" d[\"g2\"] \" / \" d[\"g3\"] \" / \" d[\"ge\"]",
    "out .= _T(\"Delays (ms)\") \" \" i \":  \" a[k] \"  →  \" b[k] \"`n\""
   ],
   "max_chars": 21
@@ -1376,7 +1389,7 @@
   ]
  },
  "hlp_hub": {
-  "en": "Macro Hub (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.\n\n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.\n- Search with words from the name, the game or the author: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.\n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.\n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded.\n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.\n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.\n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.\n- Delete (My macros) removes a macro you shared from Macro Hub; your own copy in the list stays.\n\nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Macros downloaded from Macro Hub show a download arrow instead and can be shared only after you change them.\n\nUpdates: when you change a macro you shared, the app asks whether to update it in Macro Hub - its ratings and downloads stay (until then its icon has a dot; click it to update). When the author updates a macro you downloaded, a notice appears and its arrow in the list turns green: click it to see what changed and take the new version or keep yours. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.\n\nMacro Hub needs internet access. Nobody can see who rated or reported a macro.",
+  "en": "Macro Hub (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.\n\n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.\n- Search with words from the name, the game or the author: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.\n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.\n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded. A gold tick marks macros checked by the moderator - they come first.\n- The box under the list shows the description and what the macro does (keys, delays, sequence) - before you download it.\n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.\n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.\n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.\n- Delete (My macros) removes a macro you shared from Macro Hub; your own copy in the list stays.\n\nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Macros downloaded from Macro Hub show a download arrow instead and can be shared only after you change them.\n\nUpdates: when you change a macro you shared, the app asks whether to update it in Macro Hub - its ratings and downloads stay (until then its icon has a dot; click it to update). When the author updates a macro you downloaded, a notice appears and its arrow in the list turns green: click it to see what changed and take the new version or keep yours. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.\n\nMacro Hub needs internet access. Nobody can see who rated or reported a macro.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1655,20 +1668,26 @@
  "(no description)": {
   "en": "(no description)",
   "ctx": [
-   "LibDesc.Value := it[\"descr\"] = \"\" ? _T(\"(no description)\") : StrReplace(it[\"descr\"], \"`n\", \"`r`n\")"
+   "LibDesc.Value := StrReplace((it[\"descr\"] = \"\" ? _T(\"(no description)\") : it[\"descr\"])"
+  ]
+ },
+ "What it does:": {
+  "en": "What it does:",
+  "ctx": [
+   ". (d ? \"`n`n\" _T(\"What it does:\") \"`n\" LibDescribe(d) : \"\"), \"`n\", \"`r`n\")"
   ]
  },
  "your macro": {
   "en": "your macro",
   "ctx": [
-   "t .= \"  ·  \" (it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"]))",
+   "t := it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"])         ; (type and key are in the preview)",
    "who := it[\"mine\"] ? (it[\"hidden\"] ? _T(\"hidden after reports\") : _T(\"your macro\")) : _T(\"by {1}\", it[\"author\"])"
   ]
  },
  "by {1}": {
   "en": "by {1}",
   "ctx": [
-   "t .= \"  ·  \" (it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"]))",
+   "t := it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"])         ; (type and key are in the preview)",
    "who := it[\"mine\"] ? (it[\"hidden\"] ? _T(\"hidden after reports\") : _T(\"your macro\")) : _T(\"by {1}\", it[\"author\"])"
   ]
  },
@@ -1676,6 +1695,12 @@
   "en": "updated {1}",
   "ctx": [
    "t .= \"  ·  \" _T(\"updated {1}\", LibDate(it[\"updated\"]))"
+  ]
+ },
+ "verified": {
+  "en": "verified",
+  "ctx": [
+   "t := Chr(0x2714) \" \" _T(\"verified\") \"  ·  \" t"
   ]
  },
  "hidden after reports": {

@@ -18,7 +18,13 @@ Changes of an existing database are in `migrations/` (run each once with `--file
 
 ## Moderation
 
-A macro is hidden automatically after 3 reports (`hidden = 1`). Check reported macros:
+Discord does it: the Worker posts to `#mod-log` (secret `MOD_WEBHOOK`) when a macro is shared, updated, reported or
+hidden after 3 reports, with what the macro does and two links - **Verify** (gold tick, listed first, never hidden by
+reports; an update removes it again) and **Remove**. A link opens a page that asks first. The links are signed with
+the secret `ADMIN_KEY` (a new key = all old links stop working). New macros are also announced to players
+(secret `HUB_WEBHOOK`). Secrets are set with `npx wrangler secret put NAME` (it asks for the value).
+
+By hand - check reported macros:
 
 ```
 npx wrangler d1 execute macro-manager-library --remote --command "SELECT id, name, author, reports, hidden FROM macros WHERE reports > 0 OR hidden <> 0"
@@ -45,3 +51,7 @@ npx wrangler d1 execute macro-manager-library --remote --command "UPDATE macros 
 | `POST /v1/macros/:id/rate` `{stars: 1-5}` | one rating per install (can be changed), not for your own macro |
 | `POST /v1/macros/:id/report` `{reason}` | one report per install |
 | `DELETE /v1/macros/:id` | only by the install that shared it |
+| `PUT /v1/macros/:id` `{data}` | the author updates what the macro does (ratings / downloads stay) |
+| `GET /v1/versions?ids=` | current version + data of macros (update notices in the app) |
+| `POST /v1/match` `{items: [data]}` | which hub macro (and version) a macro of the app is (nothing stored) |
+| `GET/POST /v1/admin?a=verify\|remove&id=&s=` | moderation links from `#mod-log` (signed) |

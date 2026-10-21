@@ -262,7 +262,7 @@ BuildLibrary() {
     g.SetFont("s9 norm", "Segoe UI")
     LibBtn["game"] := AddBtn(g, "x8 y134 w" (W - 180) " h26", LibGameText(), LibGameMenu)
     LibBtn["sort"] := AddBtn(g, "x" (W - 164) " y134 w156 h26", LibSortText(), LibSortMenu)
-    yBtn := H - 40, yInfo := yBtn - 26, yDesc := yInfo - 70
+    yBtn := H - 40, yInfo := yBtn - 26, yDesc := yInfo - 128
     LibLV := g.AddListView("x8 y168 w" (W - 16) " h" (yDesc - 176) " -Hdr -E0x200 -Multi", [""])
     LibLV.SetFont("s10")
     LibLV.Opt("+LV0x10020")                                     ; double buffer, full-row select
@@ -282,7 +282,7 @@ BuildLibrary() {
     b := AddBtn(g, "vbtn x0 y0 w130 h30 Hidden", _T("Try again"), (*) => LibLoad(), "btnprimary")
     for c in [p, t1, t2, b]
         LibOff[c.Hwnd] := c
-    LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h64 Multi ReadOnly", "")
+    LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h122 Multi ReadOnly", "")     ; description + what the macro does
     LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 126) " h20", "")
     LibBtn["more"] := AddBtn(g, "x" (W - 112) " y" (yInfo - 3) " w104 h24", _T("Load more"), (*) => LibLoad(true), "btnghost")
     LibBtn["dl"] := AddBtn(g, "x8 y" yBtn " w130 h32", _T("Download"), (*) => LibDownload(), "btnprimary")
@@ -426,17 +426,53 @@ LibShowSel() {
         LibInfo.Text := LibItems.Length ? _T("Pick a macro to see its description.") : ""
         return
     }
-    LibDesc.Value := it["descr"] = "" ? _T("(no description)") : StrReplace(it["descr"], "`n", "`r`n")
-    t := TypeLabel(it["type"]) "  ·  " _T("Key") ": " (it["hotkey"] = "" ? Chr(0x2014) : it["hotkey"])
-    t .= "  ·  " (it["mine"] ? _T("your macro") : _T("by {1}", it["author"]))
+    ; the description, then what the macro does (asked for once per macro and version)
+    d := LibDetail(it)
+    LibDesc.Value := StrReplace((it["descr"] = "" ? _T("(no description)") : it["descr"])
+        . (d ? "`n`n" _T("What it does:") "`n" LibDescribe(d) : ""), "`n", "`r`n")
+    t := it["mine"] ? _T("your macro") : _T("by {1}", it["author"])         ; (type and key are in the preview)
     t := (it["game"] = "" ? "" : it["game"] "  ·  ") t
     if (it.Has("updated") && it["updated"])
         t .= "  ·  " _T("updated {1}", LibDate(it["updated"]))
+    if (it.Has("verified") && it["verified"])
+        t := Chr(0x2714) " " _T("verified") "  ·  " t
     if it["hidden"]
         t .= "  ·  " _T("hidden after reports")
     else if (!it["mine"] && it["my"])
         t .= "  ·  " _T("your rating: {1}", it["my"]) Chr(0x2605)
     LibInfo.Text := t
+}
+
+; the shared data of a hub macro (for the preview); remembered per id and version
+LibDetail(it) {
+    static cache := Map()
+    k := it["id"] "/" (it.Has("version") ? it["version"] : 1)
+    if cache.Has(k)
+        return cache[k]
+    if it.Has("data")                                           ; (my own macros come with it)
+        return cache[k] := it["data"]
+    j := LibCall("GET", "/" it["id"])
+    if (j.Has("error") || !j.Has("data"))
+        return 0
+    return cache[k] := j["data"]
+}
+
+; what a macro does, in plain lines (the preview before a download)
+LibDescribe(d) {
+    pr := d["press"] = "tap" ? _T("Short tap") : d["press"] = "double" ? _T("Double tap") : d["press"] = "hold" ? _T("Long press") : _T("Normal")
+    t := TypeLabel(d["type"]) "`n" _T("Trigger key") ": " (d["hotkey"] = "" ? Chr(0x2014) : d["hotkey"]) "  ·  " _T("Press") ": " pr
+        . "`n" _T("Run") ": " (d["repeat"] ? _T("Repeat while key is held") : _T("Once per key press"))
+    if (d["app"] != "")
+        t .= "`n" _T("Only in app (exe)") ": " d["app"]
+    if (d["type"] = "seq") {
+        t .= "`n" _T("Sequence") ":"
+        for l in StrSplit(d["seq"], "|")
+            t .= "`n    " l
+    } else
+        t .= "`n" _T("Directions (optional)") ": " (d["dirs"] = "" ? Chr(0x2014) : d["dirs"])
+            . "`n" _T("Actions in order") ": " d["actions"]
+            . "`n" _T("Delays (ms)") ": " d["g1"] " / " d["g2"] " / " d["g3"] " / " d["ge"]
+    return t
 }
 
 ; ---- one row: name (bold), stars + (number of ratings) + author below; key and downloads on the right ----
@@ -483,8 +519,17 @@ LibDraw(ctrl, lp) {
     rw := Round(96 * s)                                         ; right column
     ; name
     old := DllCall("SelectObject", "Ptr", hdc, "Ptr", SendMessage(0x31, 0, 0, LibBtn["fontB"]), "Ptr")
+    nx := Round(10 * s)
+    if (it.Has("verified") && it["verified"]) {                 ; verified by the moderator: a gold tick before the name
+        DllCall("SetTextColor", "Ptr", hdc, "UInt", Bgr("D0AE6B"))
+        NumPut("Int", nx, "Int", top + Round(5 * s), "Int", cw - rw, "Int", top + Round(27 * s), r)
+        DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(0x2714), "Int", 1, "Ptr", r, "UInt", 0x824)
+        tw := Buffer(8, 0)
+        DllCall("GetTextExtentPoint32W", "Ptr", hdc, "WStr", Chr(0x2714) "  ", "Int", 3, "Ptr", tw)
+        nx += NumGet(tw, 0, "Int")
+    }
     DllCall("SetTextColor", "Ptr", hdc, "UInt", Bgr(fg))
-    NumPut("Int", Round(10 * s), "Int", top + Round(5 * s), "Int", cw - rw - Round(8 * s), "Int", top + Round(27 * s), r)
+    NumPut("Int", nx, "Int", top + Round(5 * s), "Int", cw - rw - Round(8 * s), "Int", top + Round(27 * s), r)
     DllCall("DrawTextW", "Ptr", hdc, "WStr", it["name"], "Int", -1, "Ptr", r, "UInt", 0x8824)
     ; key (right, top)
     DllCall("SelectObject", "Ptr", hdc, "Ptr", SendMessage(0x31, 0, 0, LibBtn["fontS"]), "Ptr")

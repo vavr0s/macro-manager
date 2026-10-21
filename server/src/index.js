@@ -35,6 +35,56 @@ async function sha(s) {
   return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 const now = () => Math.floor(Date.now() / 1000);
+
+// ---- Discord: moderation (#mod-log, secret MOD_WEBHOOK) and new macros for players (secret HUB_WEBHOOK) ----
+// Moderation messages carry signed links (secret ADMIN_KEY): Verify = shown with a badge, never hidden by reports;
+// Remove = gone from the hub. A link opens a page that asks first (a link preview can't do anything).
+
+// what a macro does, in plain lines (for the messages)
+function describe(d) {
+  const press = { tap: 'short tap', double: 'double tap', hold: 'long press' }[d.press] || 'normal';
+  const lines = [`${d.type === 'seq' ? 'Sequence' : 'Move + actions'} | key ${d.hotkey || '-'} (${press}) | ${d.repeat ? 'repeat while held' : 'once per press'}`];
+  if (d.app) lines.push(`only in ${d.app}`);
+  if (d.type === 'seq') lines.push(...d.seq.split('|').map(s => '  ' + s));
+  else lines.push(`directions: ${d.dirs || '-'}`, `actions: ${d.actions}`, `delays: ${d.g1} / ${d.g2} / ${d.g3} / ${d.ge} ms`);
+  const t = lines.join('\n');
+  return t.length > 900 ? t.slice(0, 900) + '\n...' : t;
+}
+
+async function sign(env, action, id) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.ADMIN_KEY.trim()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const s = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(action + ':' + id));
+  return [...new Uint8Array(s)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hook(url, body) {
+  if (!url) return;
+  try {
+    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'Macro Hub', allowed_mentions: { parse: [] }, ...body }) });
+  } catch {}
+}
+
+// one message to #mod-log about a macro (m = row of macros, data = its data)
+async function modLog(env, origin, m, data, title, color, extra = []) {
+  if (!env.MOD_WEBHOOK) return;
+  let links = '';
+  if (env.ADMIN_KEY) {
+    const a = async act => `${origin}/v1/admin?a=${act}&id=${m.id}&s=${await sign(env, act, m.id)}`;
+    links = `\n[✅ Verify](${await a('verify')})   ·   [🗑️ Remove](${await a('remove')})`;
+  }
+  await hook(env.MOD_WEBHOOK, { embeds: [{ title: `${title}: ${m.name}`, color,
+    description: '```\n' + describe(data).replace(/`/g, "'") + '\n```' + links,
+    fields: [{ name: 'Author', value: m.author, inline: true }, { name: 'Game', value: m.game || '-', inline: true },
+             { name: 'ID', value: String(m.id), inline: true }, ...extra] }] });
+}
+
+function page(text) {
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return new Response(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Macro Hub</title><body style="font:16px system-ui;background:#15161a;color:#ececef;padding:24px">${text(esc)}</body>`,
+    { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
 // one-line, trimmed text; descr may keep line breaks
 function clean(v, max, lines = false) {
   if (typeof v !== 'string') return '';
@@ -48,6 +98,7 @@ function listItem(r) {
     id: r.id, name: r.name, descr: r.descr, author: r.author, game: r.game, type: r.type, hotkey: r.hotkey, hidden: r.hidden > 0 ? 1 : 0,
     rating: r.rating_cnt ? Math.round(r.rating_sum / r.rating_cnt * 100) / 100 : 0, count: r.rating_cnt,
     downloads: r.downloads, created: r.created, updated: r.updated, version: r.version, mine: r.mine ? 1 : 0, my: r.my || 0,
+    verified: r.hidden === -1 ? 1 : 0,
   };
 }
 
@@ -64,9 +115,30 @@ function macroData(d) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     const parts = url.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    const later = p => ctx.waitUntil(p);                          // Discord messages: after the answer
+
+    // ---- moderation links from #mod-log: GET = the question, POST (its button) = done ----
+    if (parts[0] === 'v1' && parts[1] === 'admin' && !parts[2]) {
+      const p = req.method === 'POST' ? new URLSearchParams(await req.text()) : url.searchParams;
+      const act = p.get('a'), mid = Number(p.get('id')), sig = p.get('s') || '';
+      if (!env.ADMIN_KEY || !['verify', 'remove'].includes(act) || !(mid > 0) || sig !== await sign(env, act, mid))
+        return page(() => 'This link is not valid.');
+      const m = await env.DB.prepare('SELECT * FROM macros WHERE id = ?1').bind(mid).first();
+      if (!m) return page(() => 'This macro is no longer in Macro Hub.');
+      const what = act === 'verify' ? 'Verify' : 'Remove';
+      if (req.method !== 'POST')
+        return page(e => `<h2>${what}: ${e(m.name)}</h2><p>by ${e(m.author)} · ${e(m.game)} · ${m.reports} report(s)</p>
+<pre style="background:#1f2127;padding:12px;border-radius:8px">${e(describe(JSON.parse(m.data)))}</pre>
+<form method="post"><input type="hidden" name="a" value="${act}"><input type="hidden" name="id" value="${mid}">
+<input type="hidden" name="s" value="${sig}"><button style="font:16px system-ui;padding:10px 22px;border:0;border-radius:8px;
+background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</button></form>`);
+      await env.DB.prepare('UPDATE macros SET hidden = ?1 WHERE id = ?2').bind(act === 'verify' ? -1 : 2, mid).run();
+      return page(e => `<h2>${act === 'verify' ? '✅ Verified' : '🗑️ Removed'}: ${e(m.name)}</h2>
+<p>${act === 'verify' ? 'It is shown with the verified badge and is no longer hidden by reports.' : 'It is gone from Macro Hub.'}</p>`);
+    }
     // games (tags) in use, the most used first - for the game filter and the share form
     if (parts[0] === 'v1' && parts[1] === 'games' && !parts[2] && req.method === 'GET') {
       const { results } = await env.DB.prepare(
@@ -120,7 +192,7 @@ export default {
       const p = url.searchParams;
       const offset = Math.max(0, Math.min(10000, parseInt(p.get('offset') || '0', 10) || 0));
       const order = { new: 'm.id DESC', dl: 'm.downloads DESC, m.id DESC' }[p.get('sort')]
-        || '(m.rating_sum + 6.0) / (m.rating_cnt + 2) DESC, m.rating_cnt DESC, m.id DESC';     // top: 2 average votes of 3 to start with
+        || '(m.hidden = -1) DESC, (m.rating_sum + 6.0) / (m.rating_cnt + 2) DESC, m.rating_cnt DESC, m.id DESC';     // top: verified first, then 2 average votes of 3 to start with
       const who = p.get('who') || 'all';
       const where = [who === 'mine' ? 'm.hidden <= 1' : 'm.hidden <= 0'], args = [voter];
       if (who === 'mine') where.push('m.owner = ?1');
@@ -171,6 +243,11 @@ export default {
         db.prepare('INSERT INTO uploads (owner, ip, created) VALUES (?1, ?2, ?3)').bind(voter, ip, now()),
         db.prepare('DELETE FROM uploads WHERE created < ?1').bind(day),
       ]);
+      const row = { id: r.id, name, author, game };
+      later(modLog(env, url.origin, row, data, '🆕 New macro', 0x2FD26D, descr ? [{ name: 'Description', value: descr.slice(0, 300) }] : []));
+      later(hook(env.HUB_WEBHOOK, { embeds: [{ title: `🆕 ${name}`, color: 0xD0AE6B,
+        description: (descr ? descr.slice(0, 300) + '\n\n' : '') + `by **${author}** · ${game} · key ${data.hotkey || '-'}`,
+        footer: { text: 'Get it in Macro Manager → Macro Hub' } }] }));
       return json({ id: r.id });
     }
 
@@ -203,11 +280,14 @@ export default {
       const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 AND id <> ?2 LIMIT 1').bind(s, id).first();
       if (dup) return json({ error: 'duplicate', id: dup.id, name: dup.name, author: dup.author, mine: dup.owner === voter ? 1 : 0 }, 409);
       const t = now();
+      // a verified macro that changes is not verified any more (until checked again)
       await db.batch([
-        db.prepare('UPDATE macros SET data = ?1, type = ?2, hotkey = ?3, updated = ?4, version = version + 1 WHERE id = ?5')
+        db.prepare('UPDATE macros SET data = ?1, type = ?2, hotkey = ?3, updated = ?4, version = version + 1, hidden = CASE WHEN hidden = -1 THEN 0 ELSE hidden END WHERE id = ?5')
           .bind(s, data.type, data.hotkey, t, id),
         db.prepare('INSERT OR REPLACE INTO macro_versions (macro_id, version, data) VALUES (?1, ?2, ?3)').bind(id, m.version + 1, s),
       ]);
+      later(modLog(env, url.origin, m, data, m.hidden === -1 ? '✏️ Updated (no longer verified)' : '✏️ Updated', 0x5B8DEF,
+        [{ name: 'Version', value: String(m.version + 1), inline: true }]));
       return json({ id, version: m.version + 1, updated: t });
     }
 
@@ -234,10 +314,14 @@ export default {
       if (reason === null) return fail('bad_text');
       const r = await db.prepare('INSERT OR IGNORE INTO reports (macro_id, voter, reason, created) VALUES (?1, ?2, ?3, ?4)')
         .bind(id, voter, reason, now()).run();
-      if (r.meta.changes)
+      if (r.meta.changes) {
         await db.prepare(`UPDATE macros SET reports = reports + 1,
                           hidden = CASE WHEN hidden = 0 AND reports + 1 >= ?2 THEN 1 ELSE hidden END WHERE id = ?1`)
           .bind(id, REPORTS_TO_HIDE).run();
+        const n = await db.prepare('SELECT * FROM macros WHERE id = ?1').bind(id).first();
+        later(modLog(env, url.origin, n, JSON.parse(n.data), n.hidden === 1 && m.hidden !== 1 ? '🚫 Hidden after reports' : '⚠️ Reported',
+          n.hidden === 1 ? 0xC0392B : 0xF2C94C, [{ name: 'Reports', value: String(n.reports), inline: true }, { name: 'Reason', value: reason || '-' }]));
+      }
       return json({ ok: 1 });
     }
 
