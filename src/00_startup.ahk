@@ -294,7 +294,7 @@ Main.Show()
 FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
-SetTimer(() => LibCheckUpdates(), -8000)    ; new versions of macros downloaded from Macro Hub
-SetTimer(LibCheckUpdates, 1800000)
+SetTimer(() => LibCheckUpdates(true), -8000)   ; new versions of macros downloaded from Macro Hub (also when the
+SetTimer(() => LibCheckUpdates(true), 300000)   ; window is opened and when Macro Hub is opened)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return

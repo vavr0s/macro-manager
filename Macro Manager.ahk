@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.7"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.8"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
+ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 5 minutes, when its window opens and when Macro Hub opens.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 5 minut, při otevření okna a při otevření Macro Hubu.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 5 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 5 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -298,8 +298,8 @@ Main.Show()
 FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
-SetTimer(() => LibCheckUpdates(), -8000)    ; new versions of macros downloaded from Macro Hub
-SetTimer(LibCheckUpdates, 1800000)
+SetTimer(() => LibCheckUpdates(true), -8000)   ; new versions of macros downloaded from Macro Hub (also when the
+SetTimer(() => LibCheckUpdates(true), 300000)   ; window is opened and when Macro Hub is opened)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return
 
@@ -591,6 +591,7 @@ OnMainShown(wp, lp, msg, hwnd) {
         SetTimer(RedrawList, -100)
         if LibOpen
             SetTimer(OpenLibrary, -50)
+        SetTimer(() => LibCheckUpdates(), -1500)                ; new versions of downloaded Macro Hub macros
     }
 }
 
@@ -1831,7 +1832,8 @@ Defaults() {
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
         "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "",     ; libshare = its id in the macro library once shared
         "libsharehash", "",                                 ; fingerprint of what was shared (changed since: offer an update)
-        "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "")   ; downloaded from the library: id, author, fingerprint, version
+        "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "",   ; downloaded from the library: id, author, fingerprint, version
+        "libchk", "")                                       ; 1 = already asked Macro Hub whether it is one of its macros
 }
 
 ; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),
@@ -4948,6 +4950,7 @@ OpenLibrary() {
     LibOpen := true
     LibGui.Show("NA")                       ; (the first Show centres the window on the screen - placed right after)
     LibPlace()
+    SetTimer(() => LibCheckUpdates(), -1000)
     if !LibItems.Length {
         LibLoad()
         if (LibWho != "mine") {             ; once: which macros of the list are shared (share icons)
@@ -5532,8 +5535,13 @@ LibUpdateShared(m) {
 }
 
 ; ---- macros downloaded from Macro Hub: did their authors update them? ----
-LibCheckUpdates() {
+LibCheckUpdates(force := false) {
     static told := Map()                                        ; versions already announced in this session
+    static last := -1000000
+    if (!force && A_TickCount - last < 60000)                   ; (window shown again and again: once a minute is enough)
+        return
+    last := A_TickCount
+    LibLinkOld()
     ids := ""
     for m in Macros
         if (m["libsrc"] != "" && m["type"] != "script")
@@ -5562,6 +5570,31 @@ LibCheckUpdates() {
     if fresh.Length
         TrayTip(fresh.Length = 1 ? _T("`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes.", fresh[1]["name"])
             : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "Macro Manager", 0x24)
+}
+
+; macros downloaded before the app remembered where they came from (or shared from another install): asked once,
+; Macro Hub finds them by what they do - also an older version - so they get update notices / the gold icon
+LibLinkOld() {
+    ask := [], body := []
+    for m in Macros
+        if (m["type"] != "script" && m["libsrc"] = "" && m["libshare"] = "" && m["libchk"] = "" && body.Length < 100)
+            ask.Push(m), body.Push(LibData(m))
+    if !ask.Length
+        return
+    j := LibCall("POST", "", Map("items", body), RegExReplace(LibApi, "macros$", "match"))
+    if (j.Has("error") || !j.Has("items"))
+        return                                                  ; offline: asked again next time
+    for it in j["items"] {
+        m := ask[it["index"] + 1]
+        if it["mine"] {
+            if (it["version"] = it["latest"])
+                m["libshare"] := it["id"], m["libsharehash"] := LibHash(m)
+        } else
+            m["libsrc"] := it["id"], m["libsrcby"] := it["author"], m["libsrcver"] := it["version"], m["libsrchash"] := LibHash(m)
+    }
+    for m in ask
+        m["libchk"] := 1
+    Save()
 }
 
 ; the new version of a downloaded macro: what changed, take it or keep mine

@@ -82,6 +82,26 @@ export default {
         `SELECT id, name, author, version, updated, data FROM macros WHERE hidden <= 0 AND id IN (${ids.map(() => '?').join(',')})`).bind(...ids).all();
       return json({ items: results.map(r => ({ id: r.id, name: r.name, author: r.author, version: r.version, updated: r.updated, data: JSON.parse(r.data) })) });
     }
+    // which hub macro (and which of its versions) a macro of the app is - for copies downloaded before the app
+    // remembered where they came from. Nothing of what is sent is stored.
+    if (parts[0] === 'v1' && parts[1] === 'match' && !parts[2] && req.method === 'POST') {
+      const inst2 = req.headers.get('X-MM-Install') || '';
+      const me = /^[0-9a-f]{32}$/.test(inst2) ? await sha(inst2) : '';
+      let b;
+      try { b = await req.json(); } catch { return fail('bad_json'); }
+      const list = Array.isArray(b.items) ? b.items.slice(0, 100) : [];
+      const found = [];
+      for (let i = 0; i < list.length; i++) {
+        const [data] = macroData(list[i]);
+        if (!data) continue;
+        const r = await env.DB.prepare(
+          `SELECT v.macro_id AS id, v.version AS version, m.version AS latest, m.author AS author, m.owner = ?2 AS mine
+           FROM macro_versions v JOIN macros m ON m.id = v.macro_id WHERE v.data = ?1 AND m.hidden <= 0
+           ORDER BY v.version DESC, m.id LIMIT 1`).bind(JSON.stringify(data), me).first();
+        if (r) found.push({ index: i, id: r.id, version: r.version, latest: r.latest, author: r.author, mine: r.mine ? 1 : 0 });
+      }
+      return json({ items: found });
+    }
     if (parts[0] !== 'v1' || parts[1] !== 'macros')
       return fail('not_found', 404);
     const id = parts[2] ? Number(parts[2]) : 0;
@@ -147,6 +167,7 @@ export default {
         'INSERT INTO macros (name, descr, author, owner, type, hotkey, data, created, game) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) RETURNING id')
         .bind(name, descr, author, voter, data.type, data.hotkey, JSON.stringify(data), now(), game).first();
       await db.batch([
+        db.prepare('INSERT INTO macro_versions (macro_id, version, data) VALUES (?1, 1, ?2)').bind(r.id, JSON.stringify(data)),
         db.prepare('INSERT INTO uploads (owner, ip, created) VALUES (?1, ?2, ?3)').bind(voter, ip, now()),
         db.prepare('DELETE FROM uploads WHERE created < ?1').bind(day),
       ]);
@@ -182,8 +203,11 @@ export default {
       const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 AND id <> ?2 LIMIT 1').bind(s, id).first();
       if (dup) return json({ error: 'duplicate', id: dup.id, name: dup.name, author: dup.author, mine: dup.owner === voter ? 1 : 0 }, 409);
       const t = now();
-      await db.prepare('UPDATE macros SET data = ?1, type = ?2, hotkey = ?3, updated = ?4, version = version + 1 WHERE id = ?5')
-        .bind(s, data.type, data.hotkey, t, id).run();
+      await db.batch([
+        db.prepare('UPDATE macros SET data = ?1, type = ?2, hotkey = ?3, updated = ?4, version = version + 1 WHERE id = ?5')
+          .bind(s, data.type, data.hotkey, t, id),
+        db.prepare('INSERT OR REPLACE INTO macro_versions (macro_id, version, data) VALUES (?1, ?2, ?3)').bind(id, m.version + 1, s),
+      ]);
       return json({ id, version: m.version + 1, updated: t });
     }
 
@@ -220,7 +244,7 @@ export default {
     // ---- the uploader deletes their macro ----
     if (req.method === 'DELETE' && !action) {
       if (m.owner !== voter) return fail('not_owner', 403);
-      await db.batch(['macros WHERE id', 'ratings WHERE macro_id', 'reports WHERE macro_id', 'downloads WHERE macro_id']
+      await db.batch(['macros WHERE id', 'ratings WHERE macro_id', 'reports WHERE macro_id', 'downloads WHERE macro_id', 'macro_versions WHERE macro_id']
         .map(t => db.prepare(`DELETE FROM ${t} = ?1`).bind(id)));
       return json({ ok: 1 });
     }

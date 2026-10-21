@@ -25,3 +25,5 @@ CREATE TABLE IF NOT EXISTS ratings   (macro_id INTEGER NOT NULL, voter TEXT NOT 
 CREATE TABLE IF NOT EXISTS reports   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, reason TEXT NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS downloads (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS uploads   (owner TEXT NOT NULL, ip TEXT NOT NULL, created INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS macro_versions (macro_id INTEGER NOT NULL, version INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY (macro_id, version));
+CREATE INDEX IF NOT EXISTS macro_versions_data ON macro_versions(data);

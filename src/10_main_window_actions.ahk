@@ -264,6 +264,7 @@ OnMainShown(wp, lp, msg, hwnd) {
         SetTimer(RedrawList, -100)
         if LibOpen
             SetTimer(OpenLibrary, -50)
+        SetTimer(() => LibCheckUpdates(), -1500)                ; new versions of downloaded Macro Hub macros
     }
 }
 

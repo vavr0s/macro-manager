@@ -71,6 +71,7 @@ OpenLibrary() {
     LibOpen := true
     LibGui.Show("NA")                       ; (the first Show centres the window on the screen - placed right after)
     LibPlace()
+    SetTimer(() => LibCheckUpdates(), -1000)
     if !LibItems.Length {
         LibLoad()
         if (LibWho != "mine") {             ; once: which macros of the list are shared (share icons)
@@ -655,8 +656,13 @@ LibUpdateShared(m) {
 }
 
 ; ---- macros downloaded from Macro Hub: did their authors update them? ----
-LibCheckUpdates() {
+LibCheckUpdates(force := false) {
     static told := Map()                                        ; versions already announced in this session
+    static last := -1000000
+    if (!force && A_TickCount - last < 60000)                   ; (window shown again and again: once a minute is enough)
+        return
+    last := A_TickCount
+    LibLinkOld()
     ids := ""
     for m in Macros
         if (m["libsrc"] != "" && m["type"] != "script")
@@ -685,6 +691,31 @@ LibCheckUpdates() {
     if fresh.Length
         TrayTip(fresh.Length = 1 ? _T("`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes.", fresh[1]["name"])
             : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "Macro Manager", 0x24)
+}
+
+; macros downloaded before the app remembered where they came from (or shared from another install): asked once,
+; Macro Hub finds them by what they do - also an older version - so they get update notices / the gold icon
+LibLinkOld() {
+    ask := [], body := []
+    for m in Macros
+        if (m["type"] != "script" && m["libsrc"] = "" && m["libshare"] = "" && m["libchk"] = "" && body.Length < 100)
+            ask.Push(m), body.Push(LibData(m))
+    if !ask.Length
+        return
+    j := LibCall("POST", "", Map("items", body), RegExReplace(LibApi, "macros$", "match"))
+    if (j.Has("error") || !j.Has("items"))
+        return                                                  ; offline: asked again next time
+    for it in j["items"] {
+        m := ask[it["index"] + 1]
+        if it["mine"] {
+            if (it["version"] = it["latest"])
+                m["libshare"] := it["id"], m["libsharehash"] := LibHash(m)
+        } else
+            m["libsrc"] := it["id"], m["libsrcby"] := it["author"], m["libsrcver"] := it["version"], m["libsrchash"] := LibHash(m)
+    }
+    for m in ask
+        m["libchk"] := 1
+    Save()
 }
 
 ; the new version of a downloaded macro: what changed, take it or keep mine
