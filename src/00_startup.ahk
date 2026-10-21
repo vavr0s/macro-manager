@@ -4,7 +4,7 @@
 ;@Ahk2Exe-SetProductName Macro Manager
 ;@Ahk2Exe-SetInternalName Macro Manager
 ;@Ahk2Exe-SetOrigFilename Macro Manager.exe
-;@Ahk2Exe-SetCompanyName VAVROS
+;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion 1.0.0
 ;@Ahk2Exe-UpdateManifest 1
 #SingleInstance Force

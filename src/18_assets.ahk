@@ -54,11 +54,12 @@ MakeShortcut(lnk, target, icon) {
 ; Windows shows a notification with the name and icon of the app's AppUserModelID. Without an own one it makes one
 ; from the exe - a renamed AutoHotkey, so the notice said "AutoHotkey" with its green icon. The shortcuts get the
 ; same id, so the taskbar still groups the running app with a pinned shortcut.
-AppId() => UpdBranch = "beta" ? "VAVROS.MacroManager.Beta" : "VAVROS.MacroManager"
+AppId() => UpdBranch = "beta" ? "vavr0s.MacroManager.Beta" : "vavr0s.MacroManager"
 
 SetAppIdentity() {
     id := AppId()
     try DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "WStr", id)
+    try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\VAVROS.MacroManager" (UpdBranch = "beta" ? ".Beta" : ""))   ; (old name, beta 1.22.9)
     png := AssetsDir "\notify_" AssetVersion ".png"
     if !FileExist(png)
         try IcoToPng(IconFile, png)

@@ -5,7 +5,7 @@
 ;@Ahk2Exe-SetName {NAME}
 ;@Ahk2Exe-SetDescription {NAME}
 ;@Ahk2Exe-SetProductName {NAME}
-;@Ahk2Exe-SetCompanyName VAVROS
+;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion {VERSION}
 ;@Ahk2Exe-SetOrigFilename {EXE}
 ;@Ahk2Exe-SetMainIcon app.ico

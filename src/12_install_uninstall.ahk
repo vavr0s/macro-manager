@@ -248,7 +248,7 @@ BuildVersionInfo() {
     fixed := Buffer(52, 0)
     NumPut("UInt", 0xFEEF04BD, "UInt", 0x10000, "UInt", 0x10000, "UInt", 0, "UInt", 0x10000, "UInt", 0, "UInt", 0x3F
          , "UInt", 0, "UInt", 0x40004, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 0, fixed)
-    strs := BufCat(VerString("CompanyName", "VAVROS"), VerString("FileDescription", "Macro Manager")
+    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "Macro Manager")
         , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "Macro Manager")
         , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "Macro Manager")
         , VerString("ProductVersion", "1.0.0.0"))
