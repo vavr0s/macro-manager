@@ -1,19 +1,15 @@
 {
   "_about": "Release notes of the version being built: one line per change, every language. tools/set_notes.py writes them into the app (Help) and into version.json (update window). Do not use double quotes or backticks.",
   "en": [
-    "A script macro whose script finishes by itself is now turned off (unticked) and no longer starts again whenever something in the list changes.",
-    "Ctrl, Alt, Shift and Win held by another program (mouse software, Steam Input, remote desktop) are no longer released by the app after a second – for example Shift on a mouse button for running."
+    "New: Macro library – browse macros shared by other players, rate them with 1 to 5 stars, download them into your current profile and share your own. Open it with the Macro library button next to the search box; it sticks to the side of the window."
   ],
   "cs": [
-    "Script makro, jehož skript sám skončí, se teď vypne (odškrtne) a už se znovu nespouští při každé změně v seznamu.",
-    "Ctrl, Alt, Shift a Win, které drží jiný program (software myši, Steam Input, vzdálená plocha), už aplikace po vteřině nepouští – třeba Shift na tlačítku myši pro běh."
+    "Novinka: Knihovna maker – prohlížej makra, která sdílejí ostatní hráči, hodnoť je 1 až 5 hvězdičkami, stahuj je do aktuálního profilu a sdílej svoje. Otevřeš ji tlačítkem Knihovna maker vedle hledání, drží se u boku okna."
   ],
   "pl": [
-    "Makro skryptu, którego skrypt sam się zakończy, jest teraz wyłączane (odznaczane) i nie uruchamia się ponownie przy każdej zmianie na liście.",
-    "Ctrl, Alt, Shift i Win przytrzymywane przez inny program (oprogramowanie myszy, Steam Input, pulpit zdalny) nie są już puszczane przez aplikację po sekundzie – na przykład Shift na przycisku myszy do biegania."
+    "Nowość: Biblioteka makr – przeglądaj makra udostępnione przez innych graczy, oceniaj je od 1 do 5 gwiazdek, pobieraj je do bieżącego profilu i udostępniaj własne. Otwórz ją przyciskiem Biblioteka makr obok wyszukiwania; trzyma się boku okna."
   ],
   "de": [
-    "Ein Skript-Makro, dessen Skript von selbst endet, wird jetzt ausgeschaltet (Haken entfernt) und startet nicht mehr bei jeder Änderung in der Liste neu.",
-    "Strg, Alt, Umschalt und Win, die ein anderes Programm gedrückt hält (Maussoftware, Steam Input, Remotedesktop), lässt die App nicht mehr nach einer Sekunde los – zum Beispiel Umschalt auf einer Maustaste zum Rennen."
+    "Neu: Makro-Bibliothek – stöbere in Makros, die andere Spieler teilen, bewerte sie mit 1 bis 5 Sternen, lade sie in dein aktuelles Profil und teile deine eigenen. Öffne sie mit der Schaltfläche Makro-Bibliothek neben der Suche; sie haftet an der Seite des Fensters."
   ]
 }

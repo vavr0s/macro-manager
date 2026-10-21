@@ -6,24 +6,27 @@ ToggleAutoUpd(*) {
     Save()
 }
 
-; HTTP GET that waits with Sleep instead of blocking: hotkeys and running macros keep working meanwhile.
-; returns Map(status, text, etag[, body]) or 0 (error / timeout)
-HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false) {
+; HTTP request that waits with Sleep instead of blocking: hotkeys and running macros keep working meanwhile.
+; returns Map(status, text, etag[, body]) or 0 (error / timeout).  body: text to send (POST), plain ASCII
+HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false, method := "GET", body := "") {
     r := 0
     try {
         r := ComObject("Msxml2.ServerXMLHTTP.6.0")          ; WinHTTP based, asynchronous, no browser cache
         r.setTimeouts(3000, 3000, 8000, 15000)
-        r.open("GET", url, true)
+        r.open(method, url, true)
     } catch {
         r := 0
     }
     if !r
-        return HttpSendSync(url, hdrs, wantBody)
+        return HttpSendSync(url, hdrs, wantBody, method, body)
     try {
         r.setRequestHeader("User-Agent", "MacroManager")
         for k, v in hdrs
             r.setRequestHeader(k, v)
-        r.send()
+        if (body = "")
+            r.send()
+        else
+            r.send(body)
         t0 := A_TickCount
         while (r.readyState != 4) {
             if (A_TickCount - t0 > timeoutMs) {
@@ -44,15 +47,18 @@ HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false) {
 }
 
 ; fallback when MSXML is missing: the old blocking WinHttp request
-HttpSendSync(url, hdrs, wantBody) {
+HttpSendSync(url, hdrs, wantBody, method := "GET", body := "") {
     try {
         r := ComObject("WinHttp.WinHttpRequest.5.1")
         r.SetTimeouts(3000, 3000, 8000, 15000)
-        r.Open("GET", url, false)
+        r.Open(method, url, false)
         r.SetRequestHeader("User-Agent", "MacroManager")
         for k, v in hdrs
             r.SetRequestHeader(k, v)
-        r.Send()
+        if (body = "")
+            r.Send()
+        else
+            r.Send(body)
         res := Map("status", r.Status, "text", "", "etag", "")
         try res["etag"] := r.GetResponseHeader("ETag")
         if wantBody

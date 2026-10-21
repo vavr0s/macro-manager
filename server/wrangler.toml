@@ -1,0 +1,8 @@
+name = "macro-manager-library"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "macro-manager-library"
+database_id = "593d34e5-45b9-40d3-ad05-9c88ab8c32b7"

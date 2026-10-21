@@ -1,6 +1,7 @@
 ; ============ window handlers ============
 OnMainClose(*) {
     Main.Hide()
+    try LibGui.Hide()                              ; the library panel goes with it (LibOpen stays: back on Open window)
     return 1
 }
 
@@ -257,8 +258,11 @@ ClearSearch() {
 ; the list is repainted whenever the main window appears: after some starts its rows kept a look from before
 ; their check boxes were set - every macro was shown unticked although it was on (seen on Windows 11)
 OnMainShown(wp, lp, msg, hwnd) {
-    if (wp && hwnd = Main.Hwnd)
+    if (wp && hwnd = Main.Hwnd) {
         SetTimer(RedrawList, -100)
+        if LibOpen
+            SetTimer(OpenLibrary, -50)
+    }
 }
 
 RedrawList() => DllCall("RedrawWindow", "Ptr", LV.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)    ; invalidate + erase + frame + children, now

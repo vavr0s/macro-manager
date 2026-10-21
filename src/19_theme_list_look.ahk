@@ -12,6 +12,8 @@ OnDarkToggle(*) {
     Save()
     DarkMenus(DarkOn)
     ApplyTheme(Main)
+    if LibGui
+        ApplyTheme(LibGui)
 }
 
 ; tray menu in the app's look: dark or light, whatever Windows uses
@@ -59,6 +61,8 @@ RoleColors(role, hover := false) {
             return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar halo (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
+        case "libhead":                                                    ; title strip of the library panel
+            return ["000000", "D0AE6B"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
@@ -122,8 +126,8 @@ DrawBtn(wParam, lParam, *) {
             DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
         }
     } else {
-        col := RoleColors(role, lk.hover)
         disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
+        col := RoleColors(disabled && role = "btnprimary" ? "btn" : role, lk.hover)     ; a disabled gold button looks plain
         under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
         ; the button itself may be smaller than the control (room for the "!" badge of the help button)
         fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)

@@ -15,7 +15,7 @@ PressOf(m) {
 PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
 
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -30,6 +30,8 @@ Load() {
     SeenVer := Get("main", "seenver", "")
     DarkOn := Get("main", "dark", "0") = "1"
     MasterKey := Get("main", "masterkey", "")
+    LibId := Get("main", "libid", "")
+    LibAuthor := Get("main", "libauthor", "")
     HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
     DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
     pl := StrSplit(Get("main", "proflist", "Default"), "|")
@@ -98,6 +100,8 @@ Save() {
     t .= "holdms=" HoldMs "`r`n"
     t .= "doublems=" DblMs "`r`n"
     t .= "language=" Lang "`r`n"
+    t .= "libid=" LibId "`r`n"
+    t .= "libauthor=" IniVal(LibAuthor) "`r`n"
     t .= "proflist=" JoinProfs(Profiles) "`r`n"
     t .= "profile=" CurProfile "`r`n"
     t .= "count=" Macros.Length "`r`n"

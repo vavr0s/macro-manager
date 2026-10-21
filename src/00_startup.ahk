@@ -147,6 +147,12 @@ SortAsc := true
 Rec := {ih: 0, mode: "", cb: 0, down: [], chord: [], toks: [], mpend: [], btn: 0, undo: 0}
 MouseToks := ["RButton", "MButton", "XButton1", "XButton2", "WheelUp", "WheelDown", "WheelLeft", "WheelRight"]
 Procs := Map()          ; macro -> PID of running imported script
+LibApi := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/macros"     ; macro library (server/)
+LibId := ""             ; random id of this install for the library (macros.ini [main] libid)
+LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
+LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440
+LibItems := [], LibSort := "top", LibMore := false
+LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
@@ -210,6 +216,7 @@ eSearch := Main.AddEdit("x10 y92 w300 h26")
 eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
+bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro library") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
 hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
 hdrW := [300, 150, 220, 150]
 hdrCtl := []
@@ -278,6 +285,7 @@ ModHookStart()                       ; ... except those another program holds on
 SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
+OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
 Main.Show()
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
