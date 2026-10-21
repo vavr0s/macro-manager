@@ -166,8 +166,11 @@ BuildLibrary() {
     W := LibW, H := Round((B - T - 2) * 96 / A_ScreenDPI)
     g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro library"))
     LibGui := g
+    ; title strip: drawn like a button (DrawBtn) but without click events, so clicks reach the close button on it
     g.SetFont("s14 bold", "Segoe UI")
-    AddBtn(g, "x8 y8 w" (W - 16) " h48 Left", "   " _T("Macro library"), (*) => 0, "libhead")
+    hd := g.AddText("x8 y8 w" (W - 16) " h48 +0xD", "   " _T("Macro library"))
+    Roles[hd.Hwnd] := "libhead"
+    BtnLook[hd.Hwnd] := {left: true, round: true, hover: false, badge: false, pad: [0, 0, 0, 0]}
     g.SetFont("s15 norm", "Segoe UI")
     AddBtn(g, "x" (W - 48) " y16 w32 h32", Chr(0xD7), CloseLibrary, "btnbanner")
     g.SetFont("s9 norm", "Segoe UI")

@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.3"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.4"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The library panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup."
+ReleaseNotes := "BETA build - for testing.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The library panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the library panel works."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel knihovny se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.", "pl", "Wersja BETA – do testów.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel biblioteki rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.", "de", "BETA-Version – zum Testen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Bibliotheksleiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel knihovny se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu knihovny ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel biblioteki rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu biblioteki działa.", "de", "BETA-Version – zum Testen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Bibliotheksleiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Bibliotheksleiste funktioniert.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -5026,8 +5026,11 @@ BuildLibrary() {
     W := LibW, H := Round((B - T - 2) * 96 / A_ScreenDPI)
     g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro library"))
     LibGui := g
+    ; title strip: drawn like a button (DrawBtn) but without click events, so clicks reach the close button on it
     g.SetFont("s14 bold", "Segoe UI")
-    AddBtn(g, "x8 y8 w" (W - 16) " h48 Left", "   " _T("Macro library"), (*) => 0, "libhead")
+    hd := g.AddText("x8 y8 w" (W - 16) " h48 +0xD", "   " _T("Macro library"))
+    Roles[hd.Hwnd] := "libhead"
+    BtnLook[hd.Hwnd] := {left: true, round: true, hover: false, badge: false, pad: [0, 0, 0, 0]}
     g.SetFont("s15 norm", "Segoe UI")
     AddBtn(g, "x" (W - 48) " y16 w32 h32", Chr(0xD7), CloseLibrary, "btnbanner")
     g.SetFont("s9 norm", "Segoe UI")

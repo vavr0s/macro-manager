@@ -3,21 +3,25 @@
   "en": [
     "The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The library panel grows with it.",
     "No more line across the check boxes when the list is scrolled.",
-    "The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup."
+    "The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.",
+    "The close button (×) of the library panel works."
   ],
   "cs": [
     "Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel knihovny se zvětšuje s ním.",
     "Při posouvání seznamu už se přes zaškrtávátka nedělá čára.",
-    "Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou."
+    "Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.",
+    "Křížek (×) panelu knihovny ho teď zavře."
   ],
   "pl": [
     "Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel biblioteki rośnie razem z nią.",
     "Przy przewijaniu listy nie pojawia się już linia na polach wyboru.",
-    "Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową."
+    "Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.",
+    "Przycisk zamykania (×) panelu biblioteki działa."
   ],
   "de": [
     "Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Bibliotheksleiste wächst mit.",
     "Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.",
-    "Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden."
+    "Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.",
+    "Die Schließen-Schaltfläche (×) der Bibliotheksleiste funktioniert."
   ]
 }
