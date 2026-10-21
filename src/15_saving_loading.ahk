@@ -4,6 +4,7 @@ Defaults() {
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
         "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "",     ; libshare = its id in the macro library once shared
         "libsharehash", "",                                 ; fingerprint of what was shared (changed since: offer an update)
+        "libpend", "",                                      ; 1 = its update could not be sent (offline) - sent later by itself
         "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "",   ; downloaded from the library: id, author, fingerprint, version
         "libchk", "")                                       ; 1 = already asked Macro Hub whether it is one of its macros
 }

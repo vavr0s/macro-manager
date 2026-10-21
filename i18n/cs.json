@@ -289,5 +289,10 @@
  "Changes (yours → new):": "Změny (tvoje → nové):",
  "Keep mine": "Nechat moje",
  "\"{1}\" is updated to the new version.": "\"{1}\" je aktualizované na novou verzi.",
- "(no difference)": "(žádný rozdíl)"
+ "(no difference)": "(žádný rozdíl)",
+ "No connection": "Bez připojení",
+ "Macro Hub needs the internet. It tries again by itself every few seconds.": "Macro Hub potřebuje internet. Každých pár sekund to zkouší znovu sám.",
+ "Try again": "Zkusit znovu",
+ "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": "Macro Hub není dostupný. Sdílení potřebuje internet - zkus to znovu, až budeš online.",
+ "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": "Macro Hub není dostupný. Tvoje změna zůstává uložená - aplikace aktualizaci odešle sama, jakmile budeš zase online."
 }

@@ -289,5 +289,10 @@
  "Changes (yours → new):": "Änderungen (deine → neu):",
  "Keep mine": "Meine behalten",
  "\"{1}\" is updated to the new version.": "\"{1}\" ist auf die neue Version aktualisiert.",
- "(no difference)": "(kein Unterschied)"
+ "(no difference)": "(kein Unterschied)",
+ "No connection": "Keine Verbindung",
+ "Macro Hub needs the internet. It tries again by itself every few seconds.": "Der Macro Hub braucht das Internet. Er versucht es alle paar Sekunden von selbst erneut.",
+ "Try again": "Erneut versuchen",
+ "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": "Keine Verbindung zum Macro Hub. Teilen braucht das Internet - versuche es erneut, wenn du online bist.",
+ "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": "Keine Verbindung zum Macro Hub. Deine Änderung bleibt erhalten - die App sendet die Aktualisierung von selbst, sobald du wieder online bist."
 }

@@ -157,6 +157,7 @@ LibGameF := ""          ; library filter: one game ("" = all)
 LibGames := []          ; games used in the library (game filter, share form)
 LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
+LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)

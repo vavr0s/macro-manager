@@ -21,7 +21,7 @@ LibCall(method, path, body := "", url := "") {
     hdr := Map("X-MM-Install", LibInstall(), "Accept", "application/json")
     if IsObject(body)
         hdr["Content-Type"] := "application/json"
-    r := HttpSend(url != "" ? url : LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
+    r := HttpSend(url != "" ? url : LibApi path, hdr, 10000, false, method, IsObject(body) ? JsonStr(body) : "")
     if !r
         return Map("error", "network")
     j := 0
@@ -46,9 +46,10 @@ LibErr(code) {
 }
 
 ; game tags used in the library, the most used first (for the game filter and the share form)
-LibGamesLoad() {
+LibGamesLoad(j := 0) {
     global LibGames
-    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if !j
+        j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
     if (!j.Has("error") && j.Has("games")) {
         LibGames := []
         for g in j["games"]
@@ -156,10 +157,82 @@ LibFit(h) {
     ControlGetPos(, &ly, , &lh, LibLV)
     for hwnd, c in LibGui {
         ControlGetPos(&cx, &cy, , , c)
-        if (cy > ly + 4 && cy > -500)                       ; (the hidden font controls stay where they are)
+        if (cy > ly + 4 && cy > -500 && !LibOff.Has(hwnd))  ; (hidden font controls and the "no connection" parts stay)
             ControlMove(, cy + d, , , c)
     }
     ControlMove(, , , lh + d, LibLV)
+    if LibIsOff
+        LibOffline(true)                                    ; centred again in the new list area
+}
+
+; ---- no internet: instead of the list, a "No connection" sign in the middle; tried again every 15 seconds ----
+LibOffline(on) {
+    global LibIsOff
+    if !LibGui
+        return
+    LibIsOff := on
+    LibLV.Visible := !on
+    if on {
+        ControlGetPos(&lx, &ly, &lw, &lh, LibLV)
+        s := A_ScreenDPI / 96
+        top := ly + Max(0, (lh - Round(190 * s)) // 2)
+        for hwnd, c in LibOff {
+            k := c.Name
+            ControlGetPos(, , &cw, &ch, c)
+            y := top + Round((k = "pic" ? 0 : k = "ttl" ? 86 : k = "sub" ? 120 : 158) * s)
+            ControlMove(lx + (lw - cw) // 2, y, , , c)
+        }
+        SetTimer(LibRetry, 15000)
+    } else
+        SetTimer(LibRetry, 0)
+    for hwnd, c in LibOff
+        c.Visible := on
+    if on
+        LibInfo.Text := ""
+}
+
+LibRetry(*) {
+    if (!LibGui || !DllCall("IsWindowVisible", "Ptr", LibGui.Hwnd))
+        return SetTimer(LibRetry, 0)
+    LibLoad()
+}
+
+; an action failed: no internet = the panel shows it too
+LibFail(j) {
+    if (j["error"] = "network")
+        LibOffline(true)
+    ThemedNote(LibErr(j["error"]), , true)
+}
+
+; the "!" in a circle (gold, transparent) for the "No connection" sign - drawn once into the assets folder
+LibOfflinePng() {
+    f := AssetsDir "\offline.png"
+    if (FileExist(f) || !GdipOn())
+        return f
+    sz := 96
+    DllCall("gdiplus\GdipCreateBitmapFromScan0", "Int", sz, "Int", sz, "Int", 0, "Int", 0x26200A, "Ptr", 0, "Ptr*", &bmp := 0)
+    DllCall("gdiplus\GdipGetImageGraphicsContext", "Ptr", bmp, "Ptr*", &gr := 0)
+    DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)
+    DllCall("gdiplus\GdipCreatePen1", "UInt", 0xFFD0AE6B, "Float", 7, "Int", 2, "Ptr*", &pen := 0)
+    DllCall("gdiplus\GdipDrawEllipse", "Ptr", gr, "Ptr", pen, "Float", 5, "Float", 5, "Float", sz - 10, "Float", sz - 10)
+    FillRound(gr, sz / 2 - 5, 22, 10, 36, 10, "D0AE6B")         ; the bar of the "!"
+    FillRound(gr, sz / 2 - 6, 64, 12, 12, 12, "D0AE6B")         ; its dot
+    clsid := Buffer(16)
+    DllCall("ole32\CLSIDFromString", "WStr", "{557CF406-1A04-11D3-9A73-0000F81EF32E}", "Ptr", clsid)    ; PNG encoder
+    DllCall("gdiplus\GdipSaveImageToFile", "Ptr", bmp, "WStr", f, "Ptr", clsid, "Ptr", 0)
+    DllCall("gdiplus\GdipDeletePen", "Ptr", pen)
+    DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+    DllCall("gdiplus\GdipDisposeImage", "Ptr", bmp)
+    return f
+}
+
+; Macro Hub can be reached (also loads the games for the share form)
+LibOnline() {
+    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if (j.Has("error") && j["error"] = "network")
+        return false
+    LibGamesLoad(j)
+    return true
 }
 
 BuildLibrary() {
@@ -200,6 +273,15 @@ BuildLibrary() {
     LibLV.OnEvent("ItemSelect", (*) => LibShowSel())
     LibLV.OnEvent("DoubleClick", (*) => LibDownload())
     SendMessage(0x127, 0x10001, 0, LibLV.Hwnd)
+    ; "No connection" sign, shown instead of the list (LibOffline places it in the middle)
+    p := g.AddPicture("vpic x0 y0 w64 h64 Hidden BackgroundTrans", LibOfflinePng())
+    g.SetFont("s14 bold", "Segoe UI")
+    t1 := g.AddText("vttl x0 y0 w" (W - 40) " Center Hidden", _T("No connection"))
+    g.SetFont("s9 norm", "Segoe UI")
+    t2 := AddHint(g, "vsub x0 y0 w" (W - 40) " h34 Center Hidden", _T("Macro Hub needs the internet. It tries again by itself every few seconds."))
+    b := AddBtn(g, "vbtn x0 y0 w130 h30 Hidden", _T("Try again"), (*) => LibLoad(), "btnprimary")
+    for c in [p, t1, t2, b]
+        LibOff[c.Hwnd] := c
     LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h64 Multi ReadOnly", "")
     LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 126) " h20", "")
     LibBtn["more"] := AddBtn(g, "x" (W - 112) " y" (yInfo - 3) " w104 h24", _T("Load more"), (*) => LibLoad(true), "btnghost")
@@ -291,14 +373,19 @@ LibLoad(append := false) {
     if (!LibGui || LibBusy)
         return
     LibBusy := true
-    LibInfo.Text := _T("Loading...")
+    if !LibIsOff                                            ; (while "No connection" shows, it just tries again quietly)
+        LibInfo.Text := _T("Loading...")
     off := append ? LibItems.Length : 0
     j := LibCall("GET", "?who=" LibWho "&sort=" LibSort "&offset=" off "&game=" UriEnc(LibGameF) "&q=" UriEnc(Trim(LibSearch.Value)))
     LibBusy := false
     if j.Has("error") {
+        if (j["error"] = "network")
+            return LibOffline(true)
         LibInfo.Text := LibErr(j["error"])
         return
     }
+    if LibIsOff
+        LibOffline(false)                                   ; back online
     if !append
         LibItems := []
     for it in j["items"]
@@ -460,7 +547,7 @@ LibDownload() {
     j := LibCall("POST", "/" it["id"] "/download", Map())
     LibBusy := false
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     d := j.Has("data") ? j["data"] : 0
     if !(d is Map && d.Has("type") && (d["type"] = "move" || d["type"] = "seq"))      ; never a script from the library
         return ThemedNote(LibErr("bad_macro"), , true)
@@ -528,7 +615,7 @@ LibRate(n, *) {
         return
     j := LibCall("POST", "/" it["id"] "/rate", Map("stars", n))
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     it["rating"] := j["rating"], it["count"] := j["count"], it["my"] := j["my"]
     LibLV.Modify(LibLV.GetNext(0), , it["name"])                ; repaint the row
     LibShowSel()
@@ -544,7 +631,7 @@ LibReport() {
         return
     j := LibCall("POST", "/" it["id"] "/report", Map("reason", SubStr(Trim(why), 1, 200)))
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     ThemedNote(_T("Thank you. The macro will be checked."))
 }
 
@@ -556,7 +643,7 @@ LibDelete() {
         return
     j := LibCall("DELETE", "/" it["id"])
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     for m in Macros                                             ; the share icon of the own copy turns grey again
         if (m["libshare"] = it["id"])
             m["libshare"] := ""
@@ -595,6 +682,8 @@ LibShareMacro(m) {
         return LibOfferUpdate(m)
     if (m["libshare"] != "")
         return ThemedNote(_T("`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there.", m["name"]), _T("Share macro"))
+    if !LibOnline()                                             ; know it before the form is filled in
+        return ThemedNote(_T("No connection to Macro Hub. Sharing needs the internet - try again when you are online."), _T("Share macro"), true)
     f := LibShareForm(m)
     if !f
         return
@@ -609,7 +698,7 @@ LibShareMacro(m) {
         return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Share macro"), true)
     }
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     m["libshare"] := j["id"], m["libsharehash"] := LibHash(m)
     LibAuthor := f["author"], LibGame := f["game"]
     Save()
@@ -635,8 +724,19 @@ LibOfferUpdate(m) {
         RedrawList()                                            ; the share icon keeps its dot: it can be updated later
 }
 
-LibUpdateShared(m) {
+; quiet = sent by itself later (it was asked for while offline): no messages, only a short notice when done
+LibUpdateShared(m, quiet := false) {
     j := LibCall("PUT", "/" m["libshare"], Map("data", LibData(m)))
+    if (j.Has("error") && j["error"] = "network") {             ; no internet: kept, sent when online again
+        m["libpend"] := 1
+        Save()
+        if !quiet
+            ThemedNote(_T("No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again."), _T("Macro Hub"), true)
+        return
+    }
+    m["libpend"] := ""
+    if (quiet && j.Has("error"))                                ; refused meanwhile: the dot stays, the user decides
+        return Save()
     if (j.Has("error") && j["error"] = "duplicate")
         return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Macro Hub"), true)
     if (j.Has("error") && (j["error"] = "not_found" || j["error"] = "not_owner")) {     ; deleted from Macro Hub meanwhile
@@ -646,7 +746,7 @@ LibUpdateShared(m) {
         return ThemedNote(_T("`"{1}`" is no longer in Macro Hub. Share it again with the share icon.", m["name"]), _T("Macro Hub"), true)
     }
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     m["libsharehash"] := LibHash(m)
     Save()
     RedrawList()
@@ -662,6 +762,9 @@ LibCheckUpdates(force := false) {
     if (!force && A_TickCount - last < 60000)                   ; (window shown again and again: once a minute is enough)
         return
     last := A_TickCount
+    for m in Macros                                             ; updates of my shared macros asked for while offline
+        if (m["libpend"] != "")
+            LibSharedChanged(m) ? LibUpdateShared(m, true) : (m["libpend"] := "")
     LibLinkOld()
     ids := ""
     for m in Macros
@@ -862,7 +965,7 @@ LibData(m) {
 LibShareForm(m) {
     res := false, done := false
     games := []                                                 ; games already in the library (+ the last one used)
-    for x in LibGamesLoad()
+    for x in LibGames                                           ; (loaded by LibOnline just before)
         games.Push(x["game"])
     if (LibGame != "") {
         known := false

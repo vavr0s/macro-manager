@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.10"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.11"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 5 minutes, when its window opens and when Macro Hub opens.`n- Windows notifications of the app show Macro Manager with its icon instead of AutoHotkey, and Windows shows vavr0s as its publisher.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
+ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 5 minutes, when its window opens and when Macro Hub opens.`n- Without internet, Macro Hub shows No connection and tries again by itself. Sharing tells you right away that it needs the internet, and an update of your shared macro made offline is sent automatically once you are online again.`n- Windows notifications of the app show Macro Manager with its icon instead of AutoHotkey, and Windows shows vavr0s as its publisher.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 5 minut, při otevření okna a při otevření Macro Hubu.`n- Windows oznámení aplikace ukazují Macro Manager s jeho ikonou místo AutoHotkey a jako vydavatele Windows uvádí vavr0s.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 5 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Powiadomienia Windows aplikacji pokazują Macro Manager z jego ikoną zamiast AutoHotkey, a jako wydawcę Windows pokazuje vavr0s.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 5 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Windows-Benachrichtigungen der App zeigen Macro Manager mit seinem Symbol statt AutoHotkey, und Windows zeigt vavr0s als Herausgeber.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 5 minut, při otevření okna a při otevření Macro Hubu.`n- Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Sdílení hned řekne, že potřebuje internet, a aktualizace sdíleného makra udělaná offline se odešle sama, jakmile budeš zase online.`n- Windows oznámení aplikace ukazují Macro Manager s jeho ikonou místo AutoHotkey a jako vydavatele Windows uvádí vavr0s.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 5 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Bez internetu Macro Hub pokazuje Brak połączenia i sam próbuje ponownie. Udostępnianie od razu informuje, że potrzebuje internetu, a aktualizacja udostępnionego makra zrobiona offline zostanie wysłana sama, gdy znów będziesz online.`n- Powiadomienia Windows aplikacji pokazują Macro Manager z jego ikoną zamiast AutoHotkey, a jako wydawcę Windows pokazuje vavr0s.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 5 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Ohne Internet zeigt der Macro Hub Keine Verbindung und versucht es von selbst erneut. Beim Teilen erfährst du sofort, dass es das Internet braucht, und eine offline gemachte Aktualisierung deines geteilten Makros wird automatisch gesendet, sobald du wieder online bist.`n- Windows-Benachrichtigungen der App zeigen Macro Manager mit seinem Symbol statt AutoHotkey, und Windows zeigt vavr0s als Herausgeber.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -158,6 +158,7 @@ LibGameF := ""          ; library filter: one game ("" = all)
 LibGames := []          ; games used in the library (game filter, share form)
 LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
+LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
@@ -1834,6 +1835,7 @@ Defaults() {
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
         "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "",     ; libshare = its id in the macro library once shared
         "libsharehash", "",                                 ; fingerprint of what was shared (changed since: offer an update)
+        "libpend", "",                                      ; 1 = its update could not be sent (offline) - sent later by itself
         "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "",   ; downloaded from the library: id, author, fingerprint, version
         "libchk", "")                                       ; 1 = already asked Macro Hub whether it is one of its macros
 }
@@ -4972,7 +4974,7 @@ LibCall(method, path, body := "", url := "") {
     hdr := Map("X-MM-Install", LibInstall(), "Accept", "application/json")
     if IsObject(body)
         hdr["Content-Type"] := "application/json"
-    r := HttpSend(url != "" ? url : LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
+    r := HttpSend(url != "" ? url : LibApi path, hdr, 10000, false, method, IsObject(body) ? JsonStr(body) : "")
     if !r
         return Map("error", "network")
     j := 0
@@ -4997,9 +4999,10 @@ LibErr(code) {
 }
 
 ; game tags used in the library, the most used first (for the game filter and the share form)
-LibGamesLoad() {
+LibGamesLoad(j := 0) {
     global LibGames
-    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if !j
+        j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
     if (!j.Has("error") && j.Has("games")) {
         LibGames := []
         for g in j["games"]
@@ -5107,10 +5110,82 @@ LibFit(h) {
     ControlGetPos(, &ly, , &lh, LibLV)
     for hwnd, c in LibGui {
         ControlGetPos(&cx, &cy, , , c)
-        if (cy > ly + 4 && cy > -500)                       ; (the hidden font controls stay where they are)
+        if (cy > ly + 4 && cy > -500 && !LibOff.Has(hwnd))  ; (hidden font controls and the "no connection" parts stay)
             ControlMove(, cy + d, , , c)
     }
     ControlMove(, , , lh + d, LibLV)
+    if LibIsOff
+        LibOffline(true)                                    ; centred again in the new list area
+}
+
+; ---- no internet: instead of the list, a "No connection" sign in the middle; tried again every 15 seconds ----
+LibOffline(on) {
+    global LibIsOff
+    if !LibGui
+        return
+    LibIsOff := on
+    LibLV.Visible := !on
+    if on {
+        ControlGetPos(&lx, &ly, &lw, &lh, LibLV)
+        s := A_ScreenDPI / 96
+        top := ly + Max(0, (lh - Round(190 * s)) // 2)
+        for hwnd, c in LibOff {
+            k := c.Name
+            ControlGetPos(, , &cw, &ch, c)
+            y := top + Round((k = "pic" ? 0 : k = "ttl" ? 86 : k = "sub" ? 120 : 158) * s)
+            ControlMove(lx + (lw - cw) // 2, y, , , c)
+        }
+        SetTimer(LibRetry, 15000)
+    } else
+        SetTimer(LibRetry, 0)
+    for hwnd, c in LibOff
+        c.Visible := on
+    if on
+        LibInfo.Text := ""
+}
+
+LibRetry(*) {
+    if (!LibGui || !DllCall("IsWindowVisible", "Ptr", LibGui.Hwnd))
+        return SetTimer(LibRetry, 0)
+    LibLoad()
+}
+
+; an action failed: no internet = the panel shows it too
+LibFail(j) {
+    if (j["error"] = "network")
+        LibOffline(true)
+    ThemedNote(LibErr(j["error"]), , true)
+}
+
+; the "!" in a circle (gold, transparent) for the "No connection" sign - drawn once into the assets folder
+LibOfflinePng() {
+    f := AssetsDir "\offline.png"
+    if (FileExist(f) || !GdipOn())
+        return f
+    sz := 96
+    DllCall("gdiplus\GdipCreateBitmapFromScan0", "Int", sz, "Int", sz, "Int", 0, "Int", 0x26200A, "Ptr", 0, "Ptr*", &bmp := 0)
+    DllCall("gdiplus\GdipGetImageGraphicsContext", "Ptr", bmp, "Ptr*", &gr := 0)
+    DllCall("gdiplus\GdipSetSmoothingMode", "Ptr", gr, "Int", 4)
+    DllCall("gdiplus\GdipCreatePen1", "UInt", 0xFFD0AE6B, "Float", 7, "Int", 2, "Ptr*", &pen := 0)
+    DllCall("gdiplus\GdipDrawEllipse", "Ptr", gr, "Ptr", pen, "Float", 5, "Float", 5, "Float", sz - 10, "Float", sz - 10)
+    FillRound(gr, sz / 2 - 5, 22, 10, 36, 10, "D0AE6B")         ; the bar of the "!"
+    FillRound(gr, sz / 2 - 6, 64, 12, 12, 12, "D0AE6B")         ; its dot
+    clsid := Buffer(16)
+    DllCall("ole32\CLSIDFromString", "WStr", "{557CF406-1A04-11D3-9A73-0000F81EF32E}", "Ptr", clsid)    ; PNG encoder
+    DllCall("gdiplus\GdipSaveImageToFile", "Ptr", bmp, "WStr", f, "Ptr", clsid, "Ptr", 0)
+    DllCall("gdiplus\GdipDeletePen", "Ptr", pen)
+    DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+    DllCall("gdiplus\GdipDisposeImage", "Ptr", bmp)
+    return f
+}
+
+; Macro Hub can be reached (also loads the games for the share form)
+LibOnline() {
+    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if (j.Has("error") && j["error"] = "network")
+        return false
+    LibGamesLoad(j)
+    return true
 }
 
 BuildLibrary() {
@@ -5151,6 +5226,15 @@ BuildLibrary() {
     LibLV.OnEvent("ItemSelect", (*) => LibShowSel())
     LibLV.OnEvent("DoubleClick", (*) => LibDownload())
     SendMessage(0x127, 0x10001, 0, LibLV.Hwnd)
+    ; "No connection" sign, shown instead of the list (LibOffline places it in the middle)
+    p := g.AddPicture("vpic x0 y0 w64 h64 Hidden BackgroundTrans", LibOfflinePng())
+    g.SetFont("s14 bold", "Segoe UI")
+    t1 := g.AddText("vttl x0 y0 w" (W - 40) " Center Hidden", _T("No connection"))
+    g.SetFont("s9 norm", "Segoe UI")
+    t2 := AddHint(g, "vsub x0 y0 w" (W - 40) " h34 Center Hidden", _T("Macro Hub needs the internet. It tries again by itself every few seconds."))
+    b := AddBtn(g, "vbtn x0 y0 w130 h30 Hidden", _T("Try again"), (*) => LibLoad(), "btnprimary")
+    for c in [p, t1, t2, b]
+        LibOff[c.Hwnd] := c
     LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h64 Multi ReadOnly", "")
     LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 126) " h20", "")
     LibBtn["more"] := AddBtn(g, "x" (W - 112) " y" (yInfo - 3) " w104 h24", _T("Load more"), (*) => LibLoad(true), "btnghost")
@@ -5242,14 +5326,19 @@ LibLoad(append := false) {
     if (!LibGui || LibBusy)
         return
     LibBusy := true
-    LibInfo.Text := _T("Loading...")
+    if !LibIsOff                                            ; (while "No connection" shows, it just tries again quietly)
+        LibInfo.Text := _T("Loading...")
     off := append ? LibItems.Length : 0
     j := LibCall("GET", "?who=" LibWho "&sort=" LibSort "&offset=" off "&game=" UriEnc(LibGameF) "&q=" UriEnc(Trim(LibSearch.Value)))
     LibBusy := false
     if j.Has("error") {
+        if (j["error"] = "network")
+            return LibOffline(true)
         LibInfo.Text := LibErr(j["error"])
         return
     }
+    if LibIsOff
+        LibOffline(false)                                   ; back online
     if !append
         LibItems := []
     for it in j["items"]
@@ -5411,7 +5500,7 @@ LibDownload() {
     j := LibCall("POST", "/" it["id"] "/download", Map())
     LibBusy := false
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     d := j.Has("data") ? j["data"] : 0
     if !(d is Map && d.Has("type") && (d["type"] = "move" || d["type"] = "seq"))      ; never a script from the library
         return ThemedNote(LibErr("bad_macro"), , true)
@@ -5479,7 +5568,7 @@ LibRate(n, *) {
         return
     j := LibCall("POST", "/" it["id"] "/rate", Map("stars", n))
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     it["rating"] := j["rating"], it["count"] := j["count"], it["my"] := j["my"]
     LibLV.Modify(LibLV.GetNext(0), , it["name"])                ; repaint the row
     LibShowSel()
@@ -5495,7 +5584,7 @@ LibReport() {
         return
     j := LibCall("POST", "/" it["id"] "/report", Map("reason", SubStr(Trim(why), 1, 200)))
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     ThemedNote(_T("Thank you. The macro will be checked."))
 }
 
@@ -5507,7 +5596,7 @@ LibDelete() {
         return
     j := LibCall("DELETE", "/" it["id"])
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     for m in Macros                                             ; the share icon of the own copy turns grey again
         if (m["libshare"] = it["id"])
             m["libshare"] := ""
@@ -5546,6 +5635,8 @@ LibShareMacro(m) {
         return LibOfferUpdate(m)
     if (m["libshare"] != "")
         return ThemedNote(_T("`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there.", m["name"]), _T("Share macro"))
+    if !LibOnline()                                             ; know it before the form is filled in
+        return ThemedNote(_T("No connection to Macro Hub. Sharing needs the internet - try again when you are online."), _T("Share macro"), true)
     f := LibShareForm(m)
     if !f
         return
@@ -5560,7 +5651,7 @@ LibShareMacro(m) {
         return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Share macro"), true)
     }
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     m["libshare"] := j["id"], m["libsharehash"] := LibHash(m)
     LibAuthor := f["author"], LibGame := f["game"]
     Save()
@@ -5586,8 +5677,19 @@ LibOfferUpdate(m) {
         RedrawList()                                            ; the share icon keeps its dot: it can be updated later
 }
 
-LibUpdateShared(m) {
+; quiet = sent by itself later (it was asked for while offline): no messages, only a short notice when done
+LibUpdateShared(m, quiet := false) {
     j := LibCall("PUT", "/" m["libshare"], Map("data", LibData(m)))
+    if (j.Has("error") && j["error"] = "network") {             ; no internet: kept, sent when online again
+        m["libpend"] := 1
+        Save()
+        if !quiet
+            ThemedNote(_T("No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again."), _T("Macro Hub"), true)
+        return
+    }
+    m["libpend"] := ""
+    if (quiet && j.Has("error"))                                ; refused meanwhile: the dot stays, the user decides
+        return Save()
     if (j.Has("error") && j["error"] = "duplicate")
         return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Macro Hub"), true)
     if (j.Has("error") && (j["error"] = "not_found" || j["error"] = "not_owner")) {     ; deleted from Macro Hub meanwhile
@@ -5597,7 +5699,7 @@ LibUpdateShared(m) {
         return ThemedNote(_T("`"{1}`" is no longer in Macro Hub. Share it again with the share icon.", m["name"]), _T("Macro Hub"), true)
     }
     if j.Has("error")
-        return ThemedNote(LibErr(j["error"]), , true)
+        return LibFail(j)
     m["libsharehash"] := LibHash(m)
     Save()
     RedrawList()
@@ -5613,6 +5715,9 @@ LibCheckUpdates(force := false) {
     if (!force && A_TickCount - last < 60000)                   ; (window shown again and again: once a minute is enough)
         return
     last := A_TickCount
+    for m in Macros                                             ; updates of my shared macros asked for while offline
+        if (m["libpend"] != "")
+            LibSharedChanged(m) ? LibUpdateShared(m, true) : (m["libpend"] := "")
     LibLinkOld()
     ids := ""
     for m in Macros
@@ -5813,7 +5918,7 @@ LibData(m) {
 LibShareForm(m) {
     res := false, done := false
     games := []                                                 ; games already in the library (+ the last one used)
-    for x in LibGamesLoad()
+    for x in LibGames                                           ; (loaded by LibOnline just before)
         games.Push(x["game"])
     if (LibGame != "") {
         known := false
@@ -7647,6 +7752,9 @@ TrCs() {
     m["Players' macros"] := "Makra hráčů"
     m["My macros"] := "Moje makra"
     m["Search: name, game or author"] := "Hledat: název, hra nebo autor"
+    m["No connection"] := "Bez připojení"
+    m["Macro Hub needs the internet. It tries again by itself every few seconds."] := "Macro Hub potřebuje internet. Každých pár sekund to zkouší znovu sám."
+    m["Try again"] := "Zkusit znovu"
     m["Load more"] := "Načíst další"
     m["Download"] := "Stáhnout"
     m["Rate"] := "Hodnotit"
@@ -7679,6 +7787,7 @@ TrCs() {
     m["`"{1}`" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version."] := "`"{1}`" pochází z Macro Hubu (autor: {2}), proto ho nejde znovu sdílet tak, jak je. Nejdřív ho uprav - třeba prodlevu nebo klávesu - a pak nasdílej svou verzi."
     m["Share macro"] := "Sdílet makro"
     m["`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there."] := "`"{1}`" je v Macro Hubu a je aktuální. Když ho upravíš, můžeš ho tam aktualizovat."
+    m["No connection to Macro Hub. Sharing needs the internet - try again when you are online."] := "Macro Hub není dostupný. Sdílení potřebuje internet - zkus to znovu, až budeš online."
     m["You have already shared this macro as `"{1}`". Change it to share a new version."] := "Toto makro už jsi sdílel jako `"{1}`". Pro novou verzi ho nejdřív uprav."
     m["This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version."] := "Toto makro už v Macro Hubu je jako `"{1}`" od {2}. Nejdřív ho uprav - třeba prodlevu nebo klávesu - a pak nasdílej svou verzi."
     m["Thank you for sharing! `"{1}`" is now in Macro Hub."] := "Díky za sdílení! `"{1}`" je teď v Macro Hubu."
@@ -7686,6 +7795,7 @@ TrCs() {
     m["`"{1}`" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice."] := "`"{1}`" je sdílené v Macro Hubu. Aktualizovat ho tam tvými změnami? Hodnocení i počet stažení zůstanou a Macro Hub ho ukáže jako aktualizované. Hráči, kteří si ho stáhli, dostanou upozornění."
     m["Not now"] := "Teď ne"
     m["Update"] := "Aktualizovat"
+    m["No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again."] := "Macro Hub není dostupný. Tvoje změna zůstává uložená - aplikace aktualizaci odešle sama, jakmile budeš zase online."
     m["`"{1}`" is no longer in Macro Hub. Share it again with the share icon."] := "`"{1}`" už v Macro Hubu není. Nasdílej ho znovu ikonou sdílení."
     m["`"{1}`" is updated in Macro Hub."] := "`"{1}`" je v Macro Hubu aktualizované."
     m["`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes."] := "`"{1}`" má v Macro Hubu novou verzi. Klikni na jeho zelenou šipku v seznamu a uvidíš změny."
@@ -7942,6 +8052,9 @@ TrPl() {
     m["Players' macros"] := "Makra graczy"
     m["My macros"] := "Moje makra"
     m["Search: name, game or author"] := "Szukaj: nazwa, gra lub autor"
+    m["No connection"] := "Brak połączenia"
+    m["Macro Hub needs the internet. It tries again by itself every few seconds."] := "Macro Hub potrzebuje internetu. Co kilka sekund próbuje ponownie sam."
+    m["Try again"] := "Spróbuj ponownie"
     m["Load more"] := "Wczytaj więcej"
     m["Download"] := "Pobierz"
     m["Rate"] := "Oceń"
@@ -7974,6 +8087,7 @@ TrPl() {
     m["`"{1}`" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version."] := "`"{1}`" pochodzi z Macro Hub (autor: {2}), więc nie można go ponownie udostępnić bez zmian. Najpierw je zmień - np. opóźnienie lub klawisz - a potem udostępnij swoją wersję."
     m["Share macro"] := "Udostępnij makro"
     m["`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there."] := "`"{1}`" jest w Macro Hub i jest aktualne. Gdy je zmienisz, możesz je tam zaktualizować."
+    m["No connection to Macro Hub. Sharing needs the internet - try again when you are online."] := "Brak połączenia z Macro Hub. Udostępnianie wymaga internetu - spróbuj ponownie, gdy będziesz online."
     m["You have already shared this macro as `"{1}`". Change it to share a new version."] := "To makro udostępniłeś już jako `"{1}`". Zmień je, aby udostępnić nową wersję."
     m["This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version."] := "To makro jest już w Macro Hub jako `"{1}`" (autor: {2}). Najpierw je zmień - np. opóźnienie lub klawisz - a potem udostępnij swoją wersję."
     m["Thank you for sharing! `"{1}`" is now in Macro Hub."] := "Dziękujemy za udostępnienie! `"{1}`" jest teraz w Macro Hub."
@@ -7981,6 +8095,7 @@ TrPl() {
     m["`"{1}`" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice."] := "`"{1}`" jest udostępnione w Macro Hub. Zaktualizować je tam Twoimi zmianami? Oceny i liczba pobrań zostaną, a Macro Hub pokaże je jako zaktualizowane. Gracze, którzy je pobrali, dostaną powiadomienie."
     m["Not now"] := "Nie teraz"
     m["Update"] := "Aktualizuj"
+    m["No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again."] := "Brak połączenia z Macro Hub. Twoja zmiana jest zachowana - aplikacja wyśle aktualizację sama, gdy tylko znów będziesz online."
     m["`"{1}`" is no longer in Macro Hub. Share it again with the share icon."] := "`"{1}`" nie ma już w Macro Hub. Udostępnij je ponownie ikoną udostępniania."
     m["`"{1}`" is updated in Macro Hub."] := "`"{1}`" zostało zaktualizowane w Macro Hub."
     m["`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes."] := "`"{1}`" ma nową wersję w Macro Hub. Kliknij jego zieloną strzałkę na liście, aby zobaczyć zmiany."
@@ -8237,6 +8352,9 @@ TrDe() {
     m["Players' macros"] := "Makros der Spieler"
     m["My macros"] := "Meine Makros"
     m["Search: name, game or author"] := "Suchen: Name, Spiel oder Autor"
+    m["No connection"] := "Keine Verbindung"
+    m["Macro Hub needs the internet. It tries again by itself every few seconds."] := "Der Macro Hub braucht das Internet. Er versucht es alle paar Sekunden von selbst erneut."
+    m["Try again"] := "Erneut versuchen"
     m["Load more"] := "Mehr laden"
     m["Download"] := "Herunterladen"
     m["Rate"] := "Bewerten"
@@ -8269,6 +8387,7 @@ TrDe() {
     m["`"{1}`" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version."] := "`"{1}`" stammt aus dem Macro Hub (Autor: {2}) und kann so nicht erneut geteilt werden. Ändere es zuerst - zum Beispiel eine Verzögerung oder eine Taste - und teile dann deine eigene Version."
     m["Share macro"] := "Makro teilen"
     m["`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there."] := "`"{1}`" ist im Macro Hub und aktuell. Wenn du es änderst, kannst du es dort aktualisieren."
+    m["No connection to Macro Hub. Sharing needs the internet - try again when you are online."] := "Keine Verbindung zum Macro Hub. Teilen braucht das Internet - versuche es erneut, wenn du online bist."
     m["You have already shared this macro as `"{1}`". Change it to share a new version."] := "Dieses Makro hast du bereits als `"{1}`" geteilt. Ändere es, um eine neue Version zu teilen."
     m["This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version."] := "Dieses Makro ist bereits im Macro Hub als `"{1}`" von {2}. Ändere es zuerst - zum Beispiel eine Verzögerung oder eine Taste - und teile dann deine eigene Version."
     m["Thank you for sharing! `"{1}`" is now in Macro Hub."] := "Danke fürs Teilen! `"{1}`" ist jetzt im Macro Hub."
@@ -8276,6 +8395,7 @@ TrDe() {
     m["`"{1}`" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice."] := "`"{1}`" ist im Macro Hub geteilt. Dort mit deinen Änderungen aktualisieren? Bewertungen und Downloads bleiben, und der Macro Hub zeigt es als aktualisiert. Spieler, die es heruntergeladen haben, bekommen einen Hinweis."
     m["Not now"] := "Nicht jetzt"
     m["Update"] := "Aktualisieren"
+    m["No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again."] := "Keine Verbindung zum Macro Hub. Deine Änderung bleibt erhalten - die App sendet die Aktualisierung von selbst, sobald du wieder online bist."
     m["`"{1}`" is no longer in Macro Hub. Share it again with the share icon."] := "`"{1}`" ist nicht mehr im Macro Hub. Teile es erneut mit dem Teilen-Symbol."
     m["`"{1}`" is updated in Macro Hub."] := "`"{1}`" ist im Macro Hub aktualisiert."
     m["`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes."] := "`"{1}`" hat eine neue Version im Macro Hub. Klicke auf seinen grünen Pfeil in der Liste, um die Änderungen zu sehen."

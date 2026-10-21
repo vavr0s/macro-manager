@@ -27,6 +27,7 @@
    "hd := g.AddText(\"x8 y8 w\" (W - 16) \" h48 +0xD\", \"   \" _T(\"Macro Hub\"))",
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
+   "ThemedNote(_T(\"No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.\"), _T(\"Macro Hub\"), true)",
    "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Macro Hub\"), true)",
    "return ThemedNote(_T(\"`\"{1}`\" is no longer in Macro Hub. Share it again with the share icon.\", m[\"name\"]), _T(\"Macro Hub\"), true)",
    "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Macro Hub\"))",
@@ -1544,6 +1545,24 @@
    "SendMessage(0x1501, 1, StrPtr(_T(\"Search: name, game or author\")), LibSearch)"
   ]
  },
+ "No connection": {
+  "en": "No connection",
+  "ctx": [
+   "t1 := g.AddText(\"vttl x0 y0 w\" (W - 40) \" Center Hidden\", _T(\"No connection\"))"
+  ]
+ },
+ "Macro Hub needs the internet. It tries again by itself every few seconds.": {
+  "en": "Macro Hub needs the internet. It tries again by itself every few seconds.",
+  "ctx": [
+   "t2 := AddHint(g, \"vsub x0 y0 w\" (W - 40) \" h34 Center Hidden\", _T(\"Macro Hub needs the internet. It tries again by itself every few seconds.\"))"
+  ]
+ },
+ "Try again": {
+  "en": "Try again",
+  "ctx": [
+   "b := AddBtn(g, \"vbtn x0 y0 w130 h30 Hidden\", _T(\"Try again\"), (*) => LibLoad(), \"btnprimary\")"
+  ]
+ },
  "Load more": {
   "en": "Load more",
   "ctx": [
@@ -1737,6 +1756,7 @@
   "ctx": [
    "return ThemedNote(_T(\"`\"{1}`\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.\", m[\"name\"], m[\"libsrcby\"]), _T(\"Share macro",
    "return ThemedNote(_T(\"`\"{1}`\" is in Macro Hub and up to date. When you change it, you can update it there.\", m[\"name\"]), _T(\"Share macro\"))",
+   "return ThemedNote(_T(\"No connection to Macro Hub. Sharing needs the internet - try again when you are online.\"), _T(\"Share macro\"), true)",
    "return ThemedNote(_T(\"You have already shared this macro as `\"{1}`\". Change it to share a new version.\", j[\"name\"]), _T(\"Share macro\"))",
    "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Share macro\"), true)",
    "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Share macro\"))"
@@ -1746,6 +1766,12 @@
   "en": "\"{1}\" is in Macro Hub and up to date. When you change it, you can update it there.",
   "ctx": [
    "return ThemedNote(_T(\"`\"{1}`\" is in Macro Hub and up to date. When you change it, you can update it there.\", m[\"name\"]), _T(\"Share macro\"))"
+  ]
+ },
+ "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": {
+  "en": "No connection to Macro Hub. Sharing needs the internet - try again when you are online.",
+  "ctx": [
+   "return ThemedNote(_T(\"No connection to Macro Hub. Sharing needs the internet - try again when you are online.\"), _T(\"Share macro\"), true)"
   ]
  },
  "You have already shared this macro as \"{1}\". Change it to share a new version.": {
@@ -1790,6 +1816,12 @@
   "ctx": [
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
    "AddBtn(g, \"x424 y\" btnY \" w120 h32\", _T(\"Update\"), Pick.Bind(\"update\"), \"btnprimary\")"
+  ]
+ },
+ "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": {
+  "en": "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.",
+  "ctx": [
+   "ThemedNote(_T(\"No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.\"), _T(\"Macro Hub\"), true)"
   ]
  },
  "\"{1}\" is no longer in Macro Hub. Share it again with the share icon.": {
