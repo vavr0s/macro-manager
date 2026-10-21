@@ -233,11 +233,32 @@ RunSeq2(m, trig, once) {
 AltGrUp(*) {
     Sleep 30
     for k in ["LCtrl", "RAlt"]
-        if (GetKeyState(k) && !GetKeyState(k, "P"))
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(GetKeyVK(k)))
             Send "{Blind}{" k " up}"
 }
 
+; Ctrl / Alt / Shift / Win pressed by another program (mouse software with Shift on a button, Steam Input, remote
+; desktop) are held on purpose - ModWatch leaves them alone. The hook doesn't see this app's own Send (I1) and a key
+; on the keyboard is physical, so a modifier that goes down here without being physically held comes from another
+; program. AltGr's fake Left Ctrl (scan code 0x21D) is not one of them.
+ModHookStart() {
+    ih := InputHook("V I1 L0")
+    ih.KeyOpt("{LCtrl}{RCtrl}{LAlt}{RAlt}{LShift}{RShift}{LWin}{RWin}", "N")
+    ih.OnKeyDown := ModForeignDown
+    ih.OnKeyUp := ModForeignUp
+    ih.Start()
+}
+ModForeignDown(ih, vk, sc) {
+    if (sc != 0x21D && !GetKeyState(Format("vk{:x}", vk), "P"))
+        ForeignMod[vk] := true
+}
+ModForeignUp(ih, vk, sc) {
+    if ForeignMod.Has(vk)
+        ForeignMod.Delete(vk)
+}
+
 ; every 250 ms: Ctrl / Alt / Shift / Win down for Windows but not held on the keyboard for over a second -> released
+; (unless another program holds it, see ModHookStart)
 ModWatch() {
     static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"], since := Map()
     if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
@@ -245,7 +266,10 @@ ModWatch() {
         return
     }
     for k in mods {
-        if (GetKeyState(k) && !GetKeyState(k, "P")) {
+        vk := GetKeyVK(k)
+        if (!GetKeyState(k) && ForeignMod.Has(vk))
+            ForeignMod.Delete(vk)
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(vk)) {
             if !since.Has(k)
                 since[k] := A_TickCount
             else if (A_TickCount - since[k] >= 1000) {

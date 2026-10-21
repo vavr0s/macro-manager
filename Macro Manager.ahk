@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.21"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "- Release notes are now shown in the language of the app – in Help and in the update window.`n- The flag on the language button no longer disappears when you point at it or open the menu.`n- Dark mode: dark scroll bars in the help text and in the script and sequence boxes.`n- Translation fixes: Czech Exit is now Ukončit, Polish Zamknij is now Zakończ, and the Polish release notes heading is translated."
+ReleaseNotes := "- A script macro whose script finishes by itself is now turned off (unticked) and no longer starts again whenever something in the list changes.`n- Ctrl, Alt, Shift and Win held by another program (mouse software, Steam Input, remote desktop) are no longer released by the app after a second – for example Shift on a mouse button for running."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "- Poznámky k verzi se teď zobrazují v jazyce aplikace – v Nápovědě i v okně aktualizace.`n- Vlajka na tlačítku jazyka už nezmizí, když na ni najedeš myší nebo otevřeš menu.`n- Tmavý režim: tmavé posuvníky v textu nápovědy a v polích skriptu a sekvence.`n- Opravy překladů: v češtině je Exit teď Ukončit, v polštině je Zamknij teď Zakończ a přeložený je i nadpis poznámek k verzi.", "pl", "- Informacje o wersji są teraz wyświetlane w języku aplikacji – w Pomocy i w oknie aktualizacji.`n- Flaga na przycisku języka nie znika już po najechaniu myszą ani po otwarciu menu.`n- Tryb ciemny: ciemne paski przewijania w tekście pomocy oraz w polach skryptu i sekwencji.`n- Poprawki tłumaczeń: czeskie Exit to teraz Ukončit, polskie Zamknij to teraz Zakończ, a nagłówek Informacje o wersji jest przetłumaczony.", "de", "- Versionshinweise werden jetzt in der Sprache der App angezeigt – in der Hilfe und im Update-Fenster.`n- Die Flagge auf der Sprachschaltfläche verschwindet nicht mehr, wenn du mit der Maus darauf zeigst oder das Menü öffnest.`n- Dunkelmodus: dunkle Bildlaufleisten im Hilfetext und in den Skript- und Sequenzfeldern.`n- Übersetzungskorrekturen: Tschechisch Exit heißt jetzt Ukončit, Polnisch Zamknij heißt jetzt Zakończ, und die polnische Überschrift der Versionshinweise ist übersetzt.")
+ReleaseNotesL := Map("cs", "- Script makro, jehož skript sám skončí, se teď vypne (odškrtne) a už se znovu nespouští při každé změně v seznamu.`n- Ctrl, Alt, Shift a Win, které drží jiný program (software myši, Steam Input, vzdálená plocha), už aplikace po vteřině nepouští – třeba Shift na tlačítku myši pro běh.", "pl", "- Makro skryptu, którego skrypt sam się zakończy, jest teraz wyłączane (odznaczane) i nie uruchamia się ponownie przy każdej zmianie na liście.`n- Ctrl, Alt, Shift i Win przytrzymywane przez inny program (oprogramowanie myszy, Steam Input, pulpit zdalny) nie są już puszczane przez aplikację po sekundzie – na przykład Shift na przycisku myszy do biegania.", "de", "- Ein Skript-Makro, dessen Skript von selbst endet, wird jetzt ausgeschaltet (Haken entfernt) und startet nicht mehr bei jeder Änderung in der Liste neu.`n- Strg, Alt, Umschalt und Win, die ein anderes Programm gedrückt hält (Maussoftware, Steam Input, Remotedesktop), lässt die App nicht mehr nach einer Sekunde los – zum Beispiel Umschalt auf einer Maustaste zum Rennen.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -124,6 +124,7 @@ HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
 InjDown := Map()        ; trigger key -> a press from another program (mouse software, ...) is held
+ForeignMod := Map()     ; virtual key -> Ctrl / Alt / Shift / Win held by another program (ModWatch leaves it alone)
 PressBusy := Map()      ; trigger key -> its press modes are being told apart / played
 DblWait := Map()        ; trigger key -> waiting for the 2nd press of a double tap
 DblHit := Map()         ; trigger key -> the 2nd press came
@@ -274,6 +275,8 @@ Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
+ModHookStart()                       ; ... except those another program holds on purpose
+SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 Main.Show()
@@ -313,7 +316,7 @@ OnMainClose(*) {
 ExitHandler(*) {
     ReleaseHeld()                                  ; keys a macro was holding when the app was closed
     for k in ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"]     ; and modifiers Windows still thinks are down
-        if (GetKeyState(k) && !GetKeyState(k, "P"))
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(GetKeyVK(k)))
             try Send "{Blind}{" k " up}"
     for m, pid in Procs
         try ProcessClose(pid)
@@ -1977,7 +1980,7 @@ RegToggle(key, fn) {
 
 SyncScript(m) {
     if (Procs.Has(m) && !ProcessExist(Procs[m]))
-        Procs.Delete(m)
+        return ScriptEnded(m)
     want := MasterOn && m["enabled"] && InProfile(m) && !NeedsTrust(m)
     running := Procs.Has(m)
     if (want && !running)
@@ -2152,6 +2155,27 @@ StopScript(m) {
         try ProcessClose(Procs[m])
         Procs.Delete(m)
     }
+}
+
+; a script that has finished by itself turns its macro off (unticked), so it runs again only when the user turns
+; it on again - before, every change in the list (another macro ticked, profile switched, ...) started it once more
+ScriptWatch() {
+    for m, pid in Procs.Clone()
+        if !ProcessExist(pid)
+            ScriptEnded(m)
+}
+
+ScriptEnded(m) {
+    global Populating
+    Procs.Delete(m)
+    m["enabled"] := 0
+    Save()
+    for i, v in View
+        if (v == m) {
+            Populating := true
+            LV.Modify(i, "-Check")
+            Populating := false
+        }
 }
 
 ; "only in app": a plain window criterion that the keyboard hook checks by itself. A script function as the
@@ -2568,11 +2592,32 @@ RunSeq2(m, trig, once) {
 AltGrUp(*) {
     Sleep 30
     for k in ["LCtrl", "RAlt"]
-        if (GetKeyState(k) && !GetKeyState(k, "P"))
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(GetKeyVK(k)))
             Send "{Blind}{" k " up}"
 }
 
+; Ctrl / Alt / Shift / Win pressed by another program (mouse software with Shift on a button, Steam Input, remote
+; desktop) are held on purpose - ModWatch leaves them alone. The hook doesn't see this app's own Send (I1) and a key
+; on the keyboard is physical, so a modifier that goes down here without being physically held comes from another
+; program. AltGr's fake Left Ctrl (scan code 0x21D) is not one of them.
+ModHookStart() {
+    ih := InputHook("V I1 L0")
+    ih.KeyOpt("{LCtrl}{RCtrl}{LAlt}{RAlt}{LShift}{RShift}{LWin}{RWin}", "N")
+    ih.OnKeyDown := ModForeignDown
+    ih.OnKeyUp := ModForeignUp
+    ih.Start()
+}
+ModForeignDown(ih, vk, sc) {
+    if (sc != 0x21D && !GetKeyState(Format("vk{:x}", vk), "P"))
+        ForeignMod[vk] := true
+}
+ModForeignUp(ih, vk, sc) {
+    if ForeignMod.Has(vk)
+        ForeignMod.Delete(vk)
+}
+
 ; every 250 ms: Ctrl / Alt / Shift / Win down for Windows but not held on the keyboard for over a second -> released
+; (unless another program holds it, see ModHookStart)
 ModWatch() {
     static mods := ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"], since := Map()
     if (MacroBusy > 0 || Rec.ih || GetKeyState("RAlt", "P")) {      ; a macro is playing, recording, or AltGr is held
@@ -2580,7 +2625,10 @@ ModWatch() {
         return
     }
     for k in mods {
-        if (GetKeyState(k) && !GetKeyState(k, "P")) {
+        vk := GetKeyVK(k)
+        if (!GetKeyState(k) && ForeignMod.Has(vk))
+            ForeignMod.Delete(vk)
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(vk)) {
             if !since.Has(k)
                 since[k] := A_TickCount
             else if (A_TickCount - since[k] >= 1000) {

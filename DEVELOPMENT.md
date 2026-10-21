@@ -11,6 +11,18 @@ That file is **built** - do not edit it directly.
 
 Release channels: branch `main` = stable, branch `beta` = test builds (own registry keys, "(beta)" label).
 
+## Building a release
+
+- `tools/notes.json` - release notes of the version, one line per change in en / cs / pl / de.
+- Beta: `build.py plain.ahk`, `make_beta.py plain.ahk "Macro Manager.ahk"` (own registry keys / folder / shortcuts,
+  "(beta)" labels, update channel `beta`, white icon from `tools/beta_icon.b64`), then
+  `set_notes.py X.Y.n --beta` (version + notes into the app and `version.json`, with the SHA-256).
+- Stable: `build.py "Macro Manager.ahk"`, then `set_notes.py X.Y --src`.
+- Setup packages: `package.py "Macro Manager.ahk" --runtime DIR --out DIR [--ahk2exe Ahk2Exe.exe]` writes
+  `MacroManager[-Beta]-Setup.zip` and, with Ahk2Exe (Windows), the one-file installer `.exe`
+  (`tools/setup/installer_stub.ahk`). The runtime folder (`runtime64`/`runtime32` = renamed AutoHotkey 2.0.19
+  + licence) is not in the repository - take it from the last setup zip.
+
 ## Third-party credits
 
 Some features follow ideas and small techniques from MIT-licensed projects (see `src/01_credits.ahk` for the
