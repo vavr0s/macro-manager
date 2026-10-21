@@ -152,6 +152,10 @@ LibId := ""             ; random id of this install for the library (macros.ini 
 LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
 LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440
 LibItems := [], LibSort := "top", LibMore := false
+LibWho := "others"      ; library tab: others = macros of other players, mine = my shared macros
+LibGameF := ""          ; library filter: one game ("" = all)
+LibGames := []          ; games used in the library (game filter, share form)
+LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 
@@ -217,24 +221,23 @@ eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro library") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
-hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 150, 220, 150]
+hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")]
+hdrW := [270, 150, 190, 130, 80]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
-    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200", "  " nm)
+    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200" (i = 5 ? " Center" : ""), (i = 5 ? "" : "  ") nm)
     Roles[h.Hwnd] := "hdr"
-    h.OnEvent("Click", SortBy.Bind(i))
+    if (i < 5)                                ; (the share column is not sorted)
+        h.OnEvent("Click", SortBy.Bind(i))
     hdrCtl.Push(h)
     hx += hdrW[i]
 }
-LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
+LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")])
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
-LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 150)
-LV.ModifyCol(3, 220)
-LV.ModifyCol(4, 130)
+for i, w in hdrW
+    LV.ModifyCol(i, w)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
 bAdd := AddBtn(Main, "x10 y+14 w130 h36", _T("Add"), (*) => EditMacro(0), "btnprimary")

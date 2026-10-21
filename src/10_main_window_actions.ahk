@@ -92,6 +92,7 @@ OnCopyBtn(*) {
         c["name"] := newName
         c["enabled"] := 0
         c["tkey"] := ""
+        c["libshare"] := ""                     ; the copy itself is not in the library
         if (src["type"] = "script") {
             c["file"] := NewScriptFile()
             try FileCopy(ScriptPath(src), ScriptPath(c), 1)
@@ -237,7 +238,8 @@ SortBy(col, *) {
         Macros[j + 1] := cur
     }
     for i, h in hdrCtl
-        h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
+        if (i < 5)
+            h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
     Save()
     Refresh()
 }
@@ -276,12 +278,19 @@ Refresh() {
     LV.Delete()
     global View
     View := []
-    q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
+    ; search box: every word must be in the name, key or application ("war lctrl" = warrior macros on LCtrl)
+    words := StrSplit(Trim(RegExReplace(eSearch.Value, "\s+", " ")), " ")
     for m in Macros
-        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(KeyShown(m), q) || InStr(m["app"], q)))
+        if (InProfile(m) && SearchHit(m, words))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
-    LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]), "")
     Populating := false
+}
+
+SearchHit(m, words) {
+    for w in words
+        if (w != "" && !InStr(m["name"], w) && !InStr(KeyShown(m), w) && !InStr(m["app"], w))
+            return false
+    return true
 }

@@ -340,6 +340,10 @@ ApplyTheme(g) {
                     c.SetFont("c" txt)
                 case "DDL":
                     SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
+                case "ComboBox":                                   ; (the game field of the share form)
+                    c.Opt("Background" box)
+                    c.SetFont("c" txt)
+                    SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
                 case "ListView":
                     c.Opt("Background" box " c" txt)
                     SetTheme(hwnd, dark ? "DarkMode_Explorer" : "")
@@ -456,7 +460,7 @@ OnLvDraw(ctrl, lp) {
     loop sub
         x0 += SendMessage(0x101D, A_Index - 1, 0, h)          ; LVM_GETCOLUMNWIDTH
     w := SendMessage(0x101D, sub, 0, h)
-    x1 := (sub = 3) ? Max(x0 + w, cw) : x0 + w
+    x1 := (sub = 4) ? Max(x0 + w, cw) : x0 + w
     st := SendMessage(0x102C, row, 0xF002, h)                 ; LVM_GETITEMSTATE
     sel := (st & 2) != 0
     if sel {
@@ -481,6 +485,22 @@ OnLvDraw(ctrl, lp) {
                 , "Ptr", CbDC, "Int", idx * CbSz, "Int", 0, "Int", CbSz, "Int", CbSz, "UInt", 0x01FF0000)
         }
         tx := x0 + CbSz + 8
+    }
+    if (sub = 4) {                                            ; share icon: gold = already in the macro library
+        m := (row < View.Length) ? View[row + 1] : 0
+        if (m && m["type"] != "script") {
+            static icoFont := 0
+            if !icoFont
+                icoFont := DllCall("CreateFontW", "Int", -Round(16 * A_ScreenDPI / 96), "Int", 0, "Int", 0, "Int", 0, "Int", 400
+                    , "UInt", 0, "UInt", 0, "UInt", 0, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 5, "UInt", 0, "Str", "Segoe MDL2 Assets", "Ptr")
+            old := DllCall("SelectObject", "Ptr", hdc, "Ptr", icoFont, "Ptr")
+            DllCall("SetBkMode", "Ptr", hdc, "Int", 1)
+            DllCall("SetTextColor", "Ptr", hdc, "UInt", m["libshare"] != "" ? 0x6BAED0 : (DarkOn ? 0x9C8F8A : 0x867A7A))   ; (BGR: gold / grey)
+            NumPut("Int", x0, "Int", top, "Int", x0 + w, "Int", bot, r)
+            DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(0xE72D), "Int", 1, "Ptr", r, "UInt", 0x825)       ; share glyph, centred
+            DllCall("SelectObject", "Ptr", hdc, "Ptr", old)
+        }
+        return 4
     }
     txt := ctrl.GetText(row + 1, sub + 1)
     font := SendMessage(0x31, 0, 0, h)

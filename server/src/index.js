@@ -6,7 +6,7 @@ const PAGE = 50;
 const REPORTS_TO_HIDE = 3;
 const UPLOADS_PER_DAY = 10;          // per install
 const UPLOADS_PER_DAY_IP = 30;       // per internet address
-const LIMITS = { name: 40, descr: 300, author: 24, reason: 200 };
+const LIMITS = { name: 40, descr: 300, author: 24, reason: 200, game: 30 };
 
 // macro fields that can be shared (no scripts, no personal toggle key) and how each is checked
 const FIELDS = {
@@ -45,7 +45,7 @@ function clean(v, max, lines = false) {
 
 function listItem(r) {
   return {
-    id: r.id, name: r.name, descr: r.descr, author: r.author, type: r.type, hotkey: r.hotkey,
+    id: r.id, name: r.name, descr: r.descr, author: r.author, game: r.game, type: r.type, hotkey: r.hotkey, hidden: r.hidden > 0 ? 1 : 0,
     rating: r.rating_cnt ? Math.round(r.rating_sum / r.rating_cnt * 100) / 100 : 0, count: r.rating_cnt,
     downloads: r.downloads, created: r.created, mine: r.mine ? 1 : 0, my: r.my || 0,
   };
@@ -55,6 +55,13 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const parts = url.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    // games (tags) in use, the most used first - for the game filter and the share form
+    if (parts[0] === 'v1' && parts[1] === 'games' && !parts[2] && req.method === 'GET') {
+      const { results } = await env.DB.prepare(
+        `SELECT MIN(game) AS game, COUNT(*) AS n FROM macros WHERE hidden <= 0 AND game <> ''
+         GROUP BY LOWER(game) ORDER BY n DESC, game LIMIT 100`).all();
+      return json({ games: results.map(r => ({ game: r.game, count: r.n })) });
+    }
     if (parts[0] !== 'v1' || parts[1] !== 'macros')
       return fail('not_found', 404);
     const id = parts[2] ? Number(parts[2]) : 0;
@@ -67,18 +74,29 @@ export default {
     const db = env.DB;
 
     // ---- list ----
+    // list. who = others (not mine) | mine (also those hidden after reports) | all;  game = one game tag;
+    // q = words: every word must be in the name or the game tag ("4story war" = warrior macros tagged 4Story)
     if (req.method === 'GET' && !id) {
-      const q = (url.searchParams.get('q') || '').trim().slice(0, 60);
-      const offset = Math.max(0, Math.min(10000, parseInt(url.searchParams.get('offset') || '0', 10) || 0));
-      const order = { new: 'm.id DESC', dl: 'm.downloads DESC, m.id DESC' }[url.searchParams.get('sort')]
+      const p = url.searchParams;
+      const offset = Math.max(0, Math.min(10000, parseInt(p.get('offset') || '0', 10) || 0));
+      const order = { new: 'm.id DESC', dl: 'm.downloads DESC, m.id DESC' }[p.get('sort')]
         || '(m.rating_sum + 6.0) / (m.rating_cnt + 2) DESC, m.rating_cnt DESC, m.id DESC';     // top: 2 average votes of 3 to start with
-      const like = '%' + q.replace(/[\\%_]/g, c => '\\' + c) + '%';
+      const who = p.get('who') || 'all';
+      const where = [who === 'mine' ? 'm.hidden <= 1' : 'm.hidden <= 0'], args = [voter];
+      if (who === 'mine') where.push('m.owner = ?1');
+      else if (who === 'others') where.push('m.owner <> ?1');
+      const game = (p.get('game') || '').trim().slice(0, LIMITS.game);
+      if (game) { args.push(game); where.push(`LOWER(m.game) = LOWER(?${args.length})`); }
+      const words = (p.get('q') || '').trim().slice(0, 80).split(/\s+/).filter(Boolean).slice(0, 6);
+      for (const w of words) {
+        args.push('%' + w.replace(/[\\%_]/g, c => '\\' + c) + '%');
+        where.push(`(m.name LIKE ?${args.length} ESCAPE '\\' OR m.game LIKE ?${args.length} ESCAPE '\\')`);
+      }
+      args.push(PAGE + 1, offset);
       const { results } = await db.prepare(
         `SELECT m.*, m.owner = ?1 AS mine, r.stars AS my FROM macros m
          LEFT JOIN ratings r ON r.macro_id = m.id AND r.voter = ?1
-         WHERE m.hidden <= 0 AND (?2 = '' OR m.name LIKE ?3 ESCAPE '\\' OR m.descr LIKE ?3 ESCAPE '\\'
-           OR m.author LIKE ?3 ESCAPE '\\' OR m.hotkey LIKE ?3 ESCAPE '\\')
-         ORDER BY ${order} LIMIT ?4 OFFSET ?5`).bind(voter, q, like, PAGE + 1, offset).all();
+         WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ?${args.length - 1} OFFSET ?${args.length}`).bind(...args).all();
       return json({ items: results.slice(0, PAGE).map(listItem), more: results.length > PAGE });
     }
 
@@ -87,7 +105,11 @@ export default {
       let b;
       try { b = await req.json(); } catch { return fail('bad_json'); }
       const name = clean(b.name, LIMITS.name), descr = clean(b.descr, LIMITS.descr, true), author = clean(b.author, LIMITS.author);
-      if (!name || !author || descr === null) return fail('bad_text');
+      let game = clean(b.game, LIMITS.game);
+      if (!name || !author || !game || descr === null) return fail('bad_text');
+      // the same game written the same way as in the library already ("4story" -> "4Story")
+      const known = await db.prepare("SELECT game FROM macros WHERE LOWER(game) = LOWER(?1) AND hidden <= 0 GROUP BY game ORDER BY COUNT(*) DESC LIMIT 1").bind(game).first();
+      if (known) game = known.game;
       const d = b.data;
       if (!d || typeof d !== 'object') return fail('bad_macro');
       const data = {};
@@ -102,8 +124,8 @@ export default {
         .bind(voter, ip, day).first();
       if ((c.o || 0) >= UPLOADS_PER_DAY || (c.i || 0) >= UPLOADS_PER_DAY_IP) return fail('too_many', 429);
       const r = await db.prepare(
-        'INSERT INTO macros (name, descr, author, owner, type, hotkey, data, created) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) RETURNING id')
-        .bind(name, descr, author, voter, data.type, data.hotkey, JSON.stringify(data), now()).first();
+        'INSERT INTO macros (name, descr, author, owner, type, hotkey, data, created, game) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) RETURNING id')
+        .bind(name, descr, author, voter, data.type, data.hotkey, JSON.stringify(data), now(), game).first();
       await db.batch([
         db.prepare('INSERT INTO uploads (owner, ip, created) VALUES (?1, ?2, ?3)').bind(voter, ip, now()),
         db.prepare('DELETE FROM uploads WHERE created < ?1').bind(day),
@@ -111,7 +133,8 @@ export default {
       return json({ id: r.id });
     }
 
-    const m = await db.prepare('SELECT * FROM macros WHERE id = ?1 AND hidden <= 0').bind(id).first();
+    // (a macro hidden after reports is still there for its author - to see it and delete it)
+    const m = await db.prepare('SELECT * FROM macros WHERE id = ?1 AND (hidden <= 0 OR (hidden = 1 AND owner = ?2))').bind(id, voter).first();
     if (!m) return fail('not_found', 404);
 
     // ---- one macro (with its data) ----

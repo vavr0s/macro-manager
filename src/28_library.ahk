@@ -17,11 +17,11 @@ LibInstall() {
 }
 
 ; one request to the library: returns the answer (Map), with "error" when something went wrong
-LibCall(method, path, body := "") {
+LibCall(method, path, body := "", url := "") {
     hdr := Map("X-MM-Install", LibInstall(), "Accept", "application/json")
     if IsObject(body)
         hdr["Content-Type"] := "application/json"
-    r := HttpSend(LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
+    r := HttpSend(url != "" ? url : LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
     if !r
         return Map("error", "network")
     j := 0
@@ -40,9 +40,21 @@ LibErr(code) {
         case "own_macro": return _T("You can't rate your own macro.")
         case "not_found": return _T("This macro is no longer in the library.")
         case "not_owner": return _T("Only the author can delete this macro.")
-        case "bad_text": return _T("Please check the name, description and nickname.")
+        case "bad_text": return _T("Please check the name, game, description and nickname.")
     }
     return _T("The library could not do this ({1}).", code)
+}
+
+; game tags used in the library, the most used first (for the game filter and the share form)
+LibGamesLoad() {
+    global LibGames
+    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if (!j.Has("error") && j.Has("games")) {
+        LibGames := []
+        for g in j["games"]
+            LibGames.Push(g)
+    }
+    return LibGames
 }
 
 ; ---- the panel ----
@@ -109,16 +121,20 @@ BuildLibrary() {
     g.SetFont("s15 norm", "Segoe UI")
     AddBtn(g, "x" (W - 48) " y16 w32 h32", Chr(0xD7), CloseLibrary, "btnbanner")
     g.SetFont("s9 norm", "Segoe UI")
-    LibSearch := g.AddEdit("x8 y66 w" (W - 222) " h26")
-    SendMessage(0x1501, 1, StrPtr(_T("Search macros")), LibSearch)
-    LibSearch.OnEvent("Change", (*) => SetTimer(LibLoad, -600))
     LibBtn := Map()
-    LibBtn["sort"] := AddBtn(g, "x" (W - 208) " y66 w156 h26", LibSortText(), LibSortMenu)
+    tw := (W - 24) // 2                                         ; tabs: macros of other players / my shared macros
+    LibBtn["others"] := AddBtn(g, "x8 y64 w" tw " h30", _T("Players' macros"), (*) => LibSetWho("others"))
+    LibBtn["mine"] := AddBtn(g, "x" (16 + tw) " y64 w" tw " h30", _T("My macros"), (*) => LibSetWho("mine"))
+    LibSearch := g.AddEdit("x8 y102 w" (W - 62) " h26")
+    SendMessage(0x1501, 1, StrPtr(_T("Search: words from the name or game")), LibSearch)
+    LibSearch.OnEvent("Change", (*) => SetTimer(LibLoad, -600))
     g.SetFont("s10 norm", "Segoe MDL2 Assets")
-    AddBtn(g, "x" (W - 46) " y66 w38 h26", Chr(0xE72C), (*) => LibLoad())          ; refresh
+    AddBtn(g, "x" (W - 46) " y102 w38 h26", Chr(0xE72C), (*) => LibLoad())         ; refresh
     g.SetFont("s9 norm", "Segoe UI")
-    yBot := H - 40, yBtn := yBot - 40, yInfo := yBtn - 24, yDesc := yInfo - 70
-    LibLV := g.AddListView("x8 y100 w" (W - 16) " h" (yDesc - 108) " -Hdr -E0x200 -Multi", [""])
+    LibBtn["game"] := AddBtn(g, "x8 y134 w" (W - 180) " h26", LibGameText(), LibGameMenu)
+    LibBtn["sort"] := AddBtn(g, "x" (W - 164) " y134 w156 h26", LibSortText(), LibSortMenu)
+    yBtn := H - 40, yInfo := yBtn - 26, yDesc := yInfo - 70
+    LibLV := g.AddListView("x8 y168 w" (W - 16) " h" (yDesc - 176) " -Hdr -E0x200 -Multi", [""])
     LibLV.SetFont("s10")
     LibLV.Opt("+LV0x10020")                                     ; double buffer, full-row select
     LibLV.ModifyCol(1, (W - 16) * A_ScreenDPI / 96 - 24)
@@ -129,13 +145,12 @@ BuildLibrary() {
     LibLV.OnEvent("DoubleClick", (*) => LibDownload())
     SendMessage(0x127, 0x10001, 0, LibLV.Hwnd)
     LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h64 Multi ReadOnly", "")
-    LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 16) " h20", "")
+    LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 126) " h20", "")
+    LibBtn["more"] := AddBtn(g, "x" (W - 112) " y" (yInfo - 3) " w104 h24", _T("Load more"), (*) => LibLoad(true), "btnghost")
     LibBtn["dl"] := AddBtn(g, "x8 y" yBtn " w130 h32", _T("Download"), (*) => LibDownload(), "btnprimary")
     LibBtn["rate"] := AddBtn(g, "x+8 yp w110 h32", _T("Rate") "  ▾", LibRateMenu)
     LibBtn["report"] := AddBtn(g, "x+8 yp w90 h32", _T("Report"), (*) => LibReport())
     LibBtn["del"] := AddBtn(g, "x+8 yp w" (W - 370) " h32", _T("Delete"), (*) => LibDelete(), "btndanger")
-    LibBtn["share"] := AddBtn(g, "x8 y" yBot " w250 h32", _T("Share selected macro..."), (*) => LibShare())
-    LibBtn["more"] := AddBtn(g, "x" (W - 138) " y" yBot " w130 h32", _T("Load more"), (*) => LibLoad(true), "btnghost")
     ; hidden: fonts for the rows (asked for at every paint - re-theming makes new ones)
     g.SetFont("s10 bold", "Segoe UI")
     LibBtn["fontB"] := g.AddText("x-900 y-900 w10 h10", "")
@@ -144,7 +159,53 @@ BuildLibrary() {
     g.OnEvent("Escape", CloseLibrary)
     g.OnEvent("Close", CloseLibrary)
     ApplyTheme(g)
+    LibTabs()
     LibShowSel()
+}
+
+; ---- tabs, game filter, sort ----
+LibTabs() {
+    for k in ["others", "mine"] {
+        Roles[LibBtn[k].Hwnd] := (k = LibWho) ? "btnprimary" : "btn"
+        PaintBtn(LibBtn[k].Hwnd, false)
+    }
+}
+
+LibSetWho(who) {
+    global LibWho
+    if (who = LibWho)
+        return
+    LibWho := who
+    LibTabs()
+    LibLoad()
+}
+
+LibGameText() => (LibGameF = "" ? _T("All games") : _T("Game: {1}", LibGameF)) "  ▾"
+
+LibGameMenu(ctrl, *) {
+    m := Menu()
+    m.Add(_T("All games"), LibSetGame.Bind(""))
+    if (LibGameF = "")
+        m.Check(_T("All games"))
+    games := LibGamesLoad()
+    if games.Length
+        m.Add()
+    for g in games {
+        label := g["game"] "   (" g["count"] ")"
+        m.Add(label, LibSetGame.Bind(g["game"]))
+        if (g["game"] = LibGameF)
+            m.Check(label)
+    }
+    ControlGetPos(&x, &y, , &h, ctrl)
+    m.Show(x, y + h)
+}
+
+LibSetGame(game, *) {
+    global LibGameF
+    LibGameF := game
+    LibBtn["game"].Text := LibGameText()
+    PaintBtn(LibBtn["game"].Hwnd, false)
+    LibLoad()
 }
 
 LibSortText() => (LibSort = "new" ? _T("Newest") : LibSort = "dl" ? _T("Most downloaded") : _T("Top rated")) "  ▾"
@@ -176,7 +237,7 @@ LibLoad(append := false) {
     LibBusy := true
     LibInfo.Text := _T("Loading...")
     off := append ? LibItems.Length : 0
-    j := LibCall("GET", "?sort=" LibSort "&offset=" off "&q=" UriEnc(Trim(LibSearch.Value)))
+    j := LibCall("GET", "?who=" LibWho "&sort=" LibSort "&offset=" off "&game=" UriEnc(LibGameF) "&q=" UriEnc(Trim(LibSearch.Value)))
     LibBusy := false
     if j.Has("error") {
         LibInfo.Text := LibErr(j["error"])
@@ -194,7 +255,8 @@ LibLoad(append := false) {
     LibLV.Opt("+Redraw")
     LibShowSel()
     if !LibItems.Length
-        LibInfo.Text := Trim(LibSearch.Value) = "" ? _T("The library is empty so far - share the first macro!") : _T("No macros found.")
+        LibInfo.Text := LibWho = "mine" ? _T("You have not shared any macro yet - use the share icon in your list.")
+            : (Trim(LibSearch.Value) = "" && LibGameF = "") ? _T("The library is empty so far - share the first macro!") : _T("No macros found.")
 }
 
 LibSel() {
@@ -206,10 +268,12 @@ LibSel() {
 LibShowSel() {
     it := LibSel()
     LibBtn["more"].Visible := LibMore
-    for k in ["dl", "rate", "report"]
-        LibBtn[k].Enabled := !!it
-    LibBtn["del"].Visible := it && it["mine"]
+    mineTab := (LibWho = "mine")
+    LibBtn["dl"].Enabled := !!it
+    LibBtn["rate"].Visible := LibBtn["report"].Visible := !mineTab        ; own macros: download back or delete
     LibBtn["rate"].Enabled := it && !it["mine"]
+    LibBtn["report"].Enabled := !!it
+    LibBtn["del"].Visible := it && it["mine"]
     for k in ["dl", "rate", "report", "del"]
         PaintBtn(LibBtn[k].Hwnd, false)
     if !it {
@@ -219,10 +283,11 @@ LibShowSel() {
     }
     LibDesc.Value := it["descr"] = "" ? _T("(no description)") : StrReplace(it["descr"], "`n", "`r`n")
     t := TypeLabel(it["type"]) "  ·  " _T("Key") ": " (it["hotkey"] = "" ? Chr(0x2014) : it["hotkey"])
-    t .= "  ·  " _T("by {1}", it["author"])
-    if it["mine"]
-        t .= "  ·  " _T("your macro")
-    else if it["my"]
+    t .= "  ·  " (it["mine"] ? _T("your macro") : _T("by {1}", it["author"]))
+    t := (it["game"] = "" ? "" : it["game"] "  ·  ") t
+    if it["hidden"]
+        t .= "  ·  " _T("hidden after reports")
+    else if (!it["mine"] && it["my"])
         t .= "  ·  " _T("your rating: {1}", it["my"]) Chr(0x2605)
     LibInfo.Text := t
 }
@@ -302,7 +367,8 @@ LibDraw(ctrl, lp) {
     ; (number of ratings) and the author
     tx := Round(x + 5 * (sz + 2 * s) + 4 * s)
     NumPut("Int", tx, "Int", top + Round(27 * s), "Int", cw - rw - Round(8 * s), "Int", top + Round(48 * s), r)
-    DllCall("DrawTextW", "Ptr", hdc, "WStr", "(" it["count"] ")   " _T("by {1}", it["author"]), "Int", -1, "Ptr", r, "UInt", 0x8824)
+    who := it["mine"] ? (it["hidden"] ? _T("hidden after reports") : _T("your macro")) : _T("by {1}", it["author"])
+    DllCall("DrawTextW", "Ptr", hdc, "WStr", "(" it["count"] ")   " who (it["game"] = "" ? "" : "  ·  " it["game"]), "Int", -1, "Ptr", r, "UInt", 0x8824)
     DllCall("SelectObject", "Ptr", hdc, "Ptr", old, "Ptr")
     return 4                                                    ; CDRF_SKIPDEFAULT
 }
@@ -426,31 +492,41 @@ LibDelete() {
     j := LibCall("DELETE", "/" it["id"])
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
+    for m in Macros                                             ; the share icon of the own copy turns grey again
+        if (m["libshare"] = it["id"])
+            m["libshare"] := ""
+    Save()
+    RedrawList()
     LibLoad()
 }
 
-; ---- sharing the macro selected in the main list ----
-LibShare() {
-    global LibAuthor, LibSort
-    sel := SelMacros()
-    if (sel.Length != 1)
-        return ThemedNote(_T("Select one macro in the list of the main window first, then press Share."))
-    m := sel[1]
+; ---- sharing: the share icon at the end of a row in the main list ----
+LibShareMacro(m) {
+    global LibAuthor, LibGame, LibSort, LibWho
+    if !IndexOf(m)
+        return
     if (m["type"] = "script")
         return ThemedNote(_T("Script macros can't be shared - only Move + actions and Sequence macros."), , true)
+    if (m["libshare"] != "" && ThemedAsk(_T("Share macro"), _T("Already shared"), _T("`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.", m["name"]), [[_T("Share again"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]], false) != "yes")
+        return
     f := LibShareForm(m)
     if !f
         return
-    j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "data", LibData(m)))
+    j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "game", f["game"], "data", LibData(m)))
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
-    LibAuthor := f["author"]
+    m["libshare"] := j["id"]
+    LibAuthor := f["author"], LibGame := f["game"]
     Save()
-    LibSort := "new"
-    LibBtn["sort"].Text := LibSortText()
-    PaintBtn(LibBtn["sort"].Hwnd, false)
-    LibSearch.Value := ""
-    LibLoad()
+    RedrawList()
+    if (LibGui && DllCall("IsWindowVisible", "Ptr", LibGui.Hwnd)) {      ; the panel is open: show it among my macros
+        LibWho := "mine", LibSort := "new"
+        LibTabs()
+        LibBtn["sort"].Text := LibSortText()
+        PaintBtn(LibBtn["sort"].Hwnd, false)
+        LibSearch.Value := ""
+        LibLoad()
+    }
     ThemedNote(_T("Thank you for sharing! `"{1}`" is now in the library.", f["name"]))
 }
 
@@ -467,9 +543,19 @@ LibData(m) {
     return d
 }
 
-; name, description and nickname for sharing; returns a Map or false
+; name, game, description and nickname for sharing; returns a Map or false
 LibShareForm(m) {
     res := false, done := false
+    games := []                                                 ; games already in the library (+ the last one used)
+    for x in LibGamesLoad()
+        games.Push(x["game"])
+    if (LibGame != "") {
+        known := false
+        for x in games
+            known := known || (x = LibGame)
+        if !known
+            games.InsertAt(1, LibGame)
+    }
     oh := DlgOwner()
     g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Share macro"))
     g.SetFont("s10 bold", "Segoe UI")
@@ -477,21 +563,25 @@ LibShareForm(m) {
     g.SetFont("s9 norm", "Segoe UI")
     g.AddText("x16 y48 w388", _T("Name"))
     eN := g.AddEdit("x16 y66 w388 h26 Limit40", m["name"])
-    g.AddText("x16 y100 w388", _T("Description (optional): what it does, for which game / class"))
-    eD := g.AddEdit("x16 y118 w388 h70 Multi Limit300", "")
-    g.AddText("x16 y196 w388", _T("Your nickname"))
-    eA := g.AddEdit("x16 y214 w388 h26 Limit24", LibAuthor)
-    hc := DlgText(g, "x16 y250 w388", _T("Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."))
+    g.AddText("x16 y100 w388", _T("Game (people filter and search by it, for example 4Story)"))
+    eG := g.AddComboBox("x16 y118 w388", games)
+    eG.Text := LibGame
+    SendMessage(0x141, 30, 0, eG)                               ; CB_LIMITTEXT
+    g.AddText("x16 y152 w388", _T("Description (optional): what it does, for which class"))
+    eD := g.AddEdit("x16 y170 w388 h70 Multi Limit300", "")
+    g.AddText("x16 y248 w388", _T("Your nickname"))
+    eA := g.AddEdit("x16 y266 w388 h26 Limit24", LibAuthor)
+    hc := DlgText(g, "x16 y302 w388", _T("Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."))
     Roles[hc.Hwnd] := "hint"
     hc.GetPos(, &hy, , &hh)
     btnY := hy + hh + 16
     Ok(*) {
-        nm := Trim(eN.Value), au := Trim(eA.Value)
-        if (nm = "" || au = "") {
-            ThemedNote(_T("Please fill in the name and your nickname."), , true)
+        nm := Trim(eN.Value), au := Trim(eA.Value), gm := Trim(eG.Text)
+        if (nm = "" || au = "" || gm = "") {
+            ThemedNote(_T("Please fill in the name, the game and your nickname."), , true)
             return
         }
-        res := Map("name", nm, "descr", Trim(StrReplace(eD.Value, "`r", "")), "author", au)
+        res := Map("name", nm, "game", gm, "descr", Trim(StrReplace(eD.Value, "`r", "")), "author", au)
         Close()
     }
     Close(*) {
@@ -510,7 +600,9 @@ LibShareForm(m) {
     if oh
         DllCall("EnableWindow", "Ptr", oh, "Int", 0)
     ShowOver(g, "w420 h" (btnY + 46), oh)
-    if (LibAuthor = "")
+    if (LibGame = "")
+        eG.Focus()
+    else if (LibAuthor = "")
         eA.Focus()
     else
         eD.Focus()

@@ -1,15 +1,27 @@
 {
   "_about": "Release notes of the version being built: one line per change, every language. tools/set_notes.py writes them into the app (Help) and into version.json (update window). Do not use double quotes or backticks.",
   "en": [
-    "New: Macro library – browse macros shared by other players, rate them with 1 to 5 stars, download them into your current profile and share your own. Open it with the Macro library button next to the search box; it sticks to the side of the window."
+    "Sharing is now part of the main list: click the share icon at the end of a row. The icon turns gold once the macro is shared.",
+    "Macro library: tabs Players' macros and My macros – see the macros you shared with their ratings and downloads.",
+    "Every shared macro has a game tag, and the library can be filtered by game.",
+    "Search with several words: every word must be in the name or the game, so 4story war finds only the warrior macros for 4Story. The search in your own list works the same way (name, key, application)."
   ],
   "cs": [
-    "Novinka: Knihovna maker – prohlížej makra, která sdílejí ostatní hráči, hodnoť je 1 až 5 hvězdičkami, stahuj je do aktuálního profilu a sdílej svoje. Otevřeš ji tlačítkem Knihovna maker vedle hledání, drží se u boku okna."
+    "Sdílení je teď součástí hlavního seznamu: klikni na ikonu sdílení na konci řádku. Po sdílení ikona zezlátne.",
+    "Knihovna maker: záložky Makra hráčů a Moje makra – uvidíš makra, která jsi sdílel, s hodnocením a počtem stažení.",
+    "Každé sdílené makro má tag hry a knihovnu jde filtrovat podle hry.",
+    "Hledání více slovy: každé slovo musí být v názvu nebo ve hře, takže 4story war najde jen makra pro warriora ve 4Story. Stejně funguje i hledání ve tvém seznamu (název, klávesa, aplikace)."
   ],
   "pl": [
-    "Nowość: Biblioteka makr – przeglądaj makra udostępnione przez innych graczy, oceniaj je od 1 do 5 gwiazdek, pobieraj je do bieżącego profilu i udostępniaj własne. Otwórz ją przyciskiem Biblioteka makr obok wyszukiwania; trzyma się boku okna."
+    "Udostępnianie jest teraz częścią głównej listy: kliknij ikonę udostępniania na końcu wiersza. Po udostępnieniu ikona staje się złota.",
+    "Biblioteka makr: zakładki Makra graczy i Moje makra – zobaczysz udostępnione przez siebie makra z ocenami i liczbą pobrań.",
+    "Każde udostępnione makro ma tag gry, a bibliotekę można filtrować według gry.",
+    "Wyszukiwanie kilkoma słowami: każde słowo musi być w nazwie lub grze, więc 4story war znajdzie tylko makra dla wojownika w 4Story. Tak samo działa wyszukiwanie na Twojej liście (nazwa, klawisz, aplikacja)."
   ],
   "de": [
-    "Neu: Makro-Bibliothek – stöbere in Makros, die andere Spieler teilen, bewerte sie mit 1 bis 5 Sternen, lade sie in dein aktuelles Profil und teile deine eigenen. Öffne sie mit der Schaltfläche Makro-Bibliothek neben der Suche; sie haftet an der Seite des Fensters."
+    "Teilen ist jetzt Teil der Hauptliste: Klicke auf das Teilen-Symbol am Ende einer Zeile. Das Symbol wird golden, sobald das Makro geteilt ist.",
+    "Makro-Bibliothek: Reiter Makros der Spieler und Meine Makros – sieh deine geteilten Makros mit Bewertungen und Downloads.",
+    "Jedes geteilte Makro hat einen Spiel-Tag, und die Bibliothek lässt sich nach Spiel filtern.",
+    "Suche mit mehreren Wörtern: Jedes Wort muss im Namen oder im Spiel vorkommen, 4story war findet also nur die Krieger-Makros für 4Story. Die Suche in deiner eigenen Liste funktioniert genauso (Name, Taste, Anwendung)."
   ]
 }

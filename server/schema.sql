@@ -14,8 +14,10 @@ CREATE TABLE IF NOT EXISTS macros (
   rating_cnt INTEGER NOT NULL DEFAULT 0,
   downloads  INTEGER NOT NULL DEFAULT 0,
   reports    INTEGER NOT NULL DEFAULT 0,
-  hidden     INTEGER NOT NULL DEFAULT 0   -- 1 = hidden after reports, 2 = removed by the admin, -1 = approved (no auto-hide)
+  hidden     INTEGER NOT NULL DEFAULT 0,  -- 1 = hidden after reports, 2 = removed by the admin, -1 = approved (no auto-hide)
+  game       TEXT    NOT NULL DEFAULT ''  -- game tag (filter and search)
 );
+-- databases made before the game tag: migrations/0002_game.sql
 CREATE INDEX IF NOT EXISTS macros_owner ON macros(owner);
 CREATE TABLE IF NOT EXISTS ratings   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, stars INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS reports   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, reason TEXT NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));

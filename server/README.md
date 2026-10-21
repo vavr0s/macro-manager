@@ -14,6 +14,8 @@ npx wrangler deploy
 npx wrangler d1 execute macro-manager-library --remote --file schema.sql     # only for a new database
 ```
 
+Changes of an existing database are in `migrations/` (run each once with `--file`).
+
 ## Moderation
 
 A macro is hidden automatically after 3 reports (`hidden = 1`). Check reported macros:
@@ -35,9 +37,10 @@ npx wrangler d1 execute macro-manager-library --remote --command "UPDATE macros 
 
 | Request | |
 |---|---|
-| `GET /v1/macros?sort=top\|new\|dl&q=&offset=` | list, 50 per page (`more` = another page exists) |
+| `GET /v1/macros?who=others\|mine\|all&game=&sort=top\|new\|dl&q=&offset=` | list, 50 per page (`more` = another page exists); every word of `q` must be in the name or the game |
+| `GET /v1/games` | game tags in use with their counts |
 | `GET /v1/macros/:id` | one macro with its `data` |
-| `POST /v1/macros` `{name, descr, author, data}` | share (Move + actions / Sequence only; 10 a day per install, 30 per address) |
+| `POST /v1/macros` `{name, game, descr, author, data}` | share (Move + actions / Sequence only; 10 a day per install, 30 per address); the game is written like the one already in the library |
 | `POST /v1/macros/:id/download` | the macro data; counted once per install |
 | `POST /v1/macros/:id/rate` `{stars: 1-5}` | one rating per install (can be changed), not for your own macro |
 | `POST /v1/macros/:id/report` `{reason}` | one report per install |

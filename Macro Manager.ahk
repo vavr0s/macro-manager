@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.1"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.2"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- New: Macro library – browse macros shared by other players, rate them with 1 to 5 stars, download them into your current profile and share your own. Open it with the Macro library button next to the search box; it sticks to the side of the window."
+ReleaseNotes := "BETA build - for testing.`n- Sharing is now part of the main list: click the share icon at the end of a row. The icon turns gold once the macro is shared.`n- Macro library: tabs Players' macros and My macros – see the macros you shared with their ratings and downloads.`n- Every shared macro has a game tag, and the library can be filtered by game.`n- Search with several words: every word must be in the name or the game, so 4story war finds only the warrior macros for 4Story. The search in your own list works the same way (name, key, application)."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Novinka: Knihovna maker – prohlížej makra, která sdílejí ostatní hráči, hodnoť je 1 až 5 hvězdičkami, stahuj je do aktuálního profilu a sdílej svoje. Otevřeš ji tlačítkem Knihovna maker vedle hledání, drží se u boku okna.", "pl", "Wersja BETA – do testów.`n- Nowość: Biblioteka makr – przeglądaj makra udostępnione przez innych graczy, oceniaj je od 1 do 5 gwiazdek, pobieraj je do bieżącego profilu i udostępniaj własne. Otwórz ją przyciskiem Biblioteka makr obok wyszukiwania; trzyma się boku okna.", "de", "BETA-Version – zum Testen.`n- Neu: Makro-Bibliothek – stöbere in Makros, die andere Spieler teilen, bewerte sie mit 1 bis 5 Sternen, lade sie in dein aktuelles Profil und teile deine eigenen. Öffne sie mit der Schaltfläche Makro-Bibliothek neben der Suche; sie haftet an der Seite des Fensters.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Sdílení je teď součástí hlavního seznamu: klikni na ikonu sdílení na konci řádku. Po sdílení ikona zezlátne.`n- Knihovna maker: záložky Makra hráčů a Moje makra – uvidíš makra, která jsi sdílel, s hodnocením a počtem stažení.`n- Každé sdílené makro má tag hry a knihovnu jde filtrovat podle hry.`n- Hledání více slovy: každé slovo musí být v názvu nebo ve hře, takže 4story war najde jen makra pro warriora ve 4Story. Stejně funguje i hledání ve tvém seznamu (název, klávesa, aplikace).", "pl", "Wersja BETA – do testów.`n- Udostępnianie jest teraz częścią głównej listy: kliknij ikonę udostępniania na końcu wiersza. Po udostępnieniu ikona staje się złota.`n- Biblioteka makr: zakładki Makra graczy i Moje makra – zobaczysz udostępnione przez siebie makra z ocenami i liczbą pobrań.`n- Każde udostępnione makro ma tag gry, a bibliotekę można filtrować według gry.`n- Wyszukiwanie kilkoma słowami: każde słowo musi być w nazwie lub grze, więc 4story war znajdzie tylko makra dla wojownika w 4Story. Tak samo działa wyszukiwanie na Twojej liście (nazwa, klawisz, aplikacja).", "de", "BETA-Version – zum Testen.`n- Teilen ist jetzt Teil der Hauptliste: Klicke auf das Teilen-Symbol am Ende einer Zeile. Das Symbol wird golden, sobald das Makro geteilt ist.`n- Makro-Bibliothek: Reiter Makros der Spieler und Meine Makros – sieh deine geteilten Makros mit Bewertungen und Downloads.`n- Jedes geteilte Makro hat einen Spiel-Tag, und die Bibliothek lässt sich nach Spiel filtern.`n- Suche mit mehreren Wörtern: Jedes Wort muss im Namen oder im Spiel vorkommen, 4story war findet also nur die Krieger-Makros für 4Story. Die Suche in deiner eigenen Liste funktioniert genauso (Name, Taste, Anwendung).")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -153,6 +153,10 @@ LibId := ""             ; random id of this install for the library (macros.ini 
 LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
 LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440
 LibItems := [], LibSort := "top", LibMore := false
+LibWho := "others"      ; library tab: others = macros of other players, mine = my shared macros
+LibGameF := ""          ; library filter: one game ("" = all)
+LibGames := []          ; games used in the library (game filter, share form)
+LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 
@@ -221,24 +225,23 @@ eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
 bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro library") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
-hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 150, 220, 150]
+hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")]
+hdrW := [270, 150, 190, 130, 80]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
-    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200", "  " nm)
+    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200" (i = 5 ? " Center" : ""), (i = 5 ? "" : "  ") nm)
     Roles[h.Hwnd] := "hdr"
-    h.OnEvent("Click", SortBy.Bind(i))
+    if (i < 5)                                ; (the share column is not sorted)
+        h.OnEvent("Click", SortBy.Bind(i))
     hdrCtl.Push(h)
     hx += hdrW[i]
 }
-LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
+LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")])
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
-LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 150)
-LV.ModifyCol(3, 220)
-LV.ModifyCol(4, 130)
+for i, w in hdrW
+    LV.ModifyCol(i, w)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
 bAdd := AddBtn(Main, "x10 y+14 w130 h36", _T("Add"), (*) => EditMacro(0), "btnprimary")
@@ -412,6 +415,7 @@ OnCopyBtn(*) {
         c["name"] := newName
         c["enabled"] := 0
         c["tkey"] := ""
+        c["libshare"] := ""                     ; the copy itself is not in the library
         if (src["type"] = "script") {
             c["file"] := NewScriptFile()
             try FileCopy(ScriptPath(src), ScriptPath(c), 1)
@@ -557,7 +561,8 @@ SortBy(col, *) {
         Macros[j + 1] := cur
     }
     for i, h in hdrCtl
-        h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
+        if (i < 5)
+            h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
     Save()
     Refresh()
 }
@@ -596,14 +601,21 @@ Refresh() {
     LV.Delete()
     global View
     View := []
-    q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
+    ; search box: every word must be in the name, key or application ("war lctrl" = warrior macros on LCtrl)
+    words := StrSplit(Trim(RegExReplace(eSearch.Value, "\s+", " ")), " ")
     for m in Macros
-        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(KeyShown(m), q) || InStr(m["app"], q)))
+        if (InProfile(m) && SearchHit(m, words))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
-    LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]), "")
     Populating := false
+}
+
+SearchHit(m, words) {
+    for w in words
+        if (w != "" && !InStr(m["name"], w) && !InStr(KeyShown(m), w) && !InStr(m["app"], w))
+            return false
+    return true
 }
 
 ; ============ export / import ============
@@ -1756,7 +1768,7 @@ FixLineEnds(ed, *) {
 Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
-        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1)
+        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "")     ; libshare = its id in the macro library once shared
 }
 
 ; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),
@@ -1769,7 +1781,7 @@ PressOf(m) {
 PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
 
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -1786,6 +1798,7 @@ Load() {
     MasterKey := Get("main", "masterkey", "")
     LibId := Get("main", "libid", "")
     LibAuthor := Get("main", "libauthor", "")
+    LibGame := Get("main", "libgame", "")
     HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
     DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
     pl := StrSplit(Get("main", "proflist", "Default"), "|")
@@ -1856,6 +1869,7 @@ Save() {
     t .= "language=" Lang "`r`n"
     t .= "libid=" LibId "`r`n"
     t .= "libauthor=" IniVal(LibAuthor) "`r`n"
+    t .= "libgame=" IniVal(LibGame) "`r`n"
     t .= "proflist=" JoinProfs(Profiles) "`r`n"
     t .= "profile=" CurProfile "`r`n"
     t .= "count=" Macros.Length "`r`n"
@@ -3052,6 +3066,10 @@ ApplyTheme(g) {
                     c.SetFont("c" txt)
                 case "DDL":
                     SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
+                case "ComboBox":                                   ; (the game field of the share form)
+                    c.Opt("Background" box)
+                    c.SetFont("c" txt)
+                    SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
                 case "ListView":
                     c.Opt("Background" box " c" txt)
                     SetTheme(hwnd, dark ? "DarkMode_Explorer" : "")
@@ -3168,7 +3186,7 @@ OnLvDraw(ctrl, lp) {
     loop sub
         x0 += SendMessage(0x101D, A_Index - 1, 0, h)          ; LVM_GETCOLUMNWIDTH
     w := SendMessage(0x101D, sub, 0, h)
-    x1 := (sub = 3) ? Max(x0 + w, cw) : x0 + w
+    x1 := (sub = 4) ? Max(x0 + w, cw) : x0 + w
     st := SendMessage(0x102C, row, 0xF002, h)                 ; LVM_GETITEMSTATE
     sel := (st & 2) != 0
     if sel {
@@ -3193,6 +3211,22 @@ OnLvDraw(ctrl, lp) {
                 , "Ptr", CbDC, "Int", idx * CbSz, "Int", 0, "Int", CbSz, "Int", CbSz, "UInt", 0x01FF0000)
         }
         tx := x0 + CbSz + 8
+    }
+    if (sub = 4) {                                            ; share icon: gold = already in the macro library
+        m := (row < View.Length) ? View[row + 1] : 0
+        if (m && m["type"] != "script") {
+            static icoFont := 0
+            if !icoFont
+                icoFont := DllCall("CreateFontW", "Int", -Round(16 * A_ScreenDPI / 96), "Int", 0, "Int", 0, "Int", 0, "Int", 400
+                    , "UInt", 0, "UInt", 0, "UInt", 0, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 5, "UInt", 0, "Str", "Segoe MDL2 Assets", "Ptr")
+            old := DllCall("SelectObject", "Ptr", hdc, "Ptr", icoFont, "Ptr")
+            DllCall("SetBkMode", "Ptr", hdc, "Int", 1)
+            DllCall("SetTextColor", "Ptr", hdc, "UInt", m["libshare"] != "" ? 0x6BAED0 : (DarkOn ? 0x9C8F8A : 0x867A7A))   ; (BGR: gold / grey)
+            NumPut("Int", x0, "Int", top, "Int", x0 + w, "Int", bot, r)
+            DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(0xE72D), "Int", 1, "Ptr", r, "UInt", 0x825)       ; share glyph, centred
+            DllCall("SelectObject", "Ptr", hdc, "Ptr", old)
+        }
+        return 4
     }
     txt := ctrl.GetText(row + 1, sub + 1)
     font := SendMessage(0x31, 0, 0, h)
@@ -4175,7 +4209,7 @@ HelpTopics() {
     order.Push("Updates")
     t["Updates"] := _TL("hlp_updates", "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access to github.com.")
     order.Push("Macro library")
-    t["Macro library"] := _TL("hlp_library", "Macro library (the button next to the search box) shows macros shared by other players. It opens as a panel on the side of the main window.`n`n- Search by name, description, author or key, and sort by Top rated, Newest or Most downloaded.`n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its trigger key and how many times it was downloaded.`n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.`n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.`n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.`n- Share selected macro... uploads the macro selected in the main list with a name, a description and your nickname. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.`n- Delete removes a macro you shared from the library (your own copy in the list stays).`n`nThe library needs internet access. Nobody can see who rated or reported a macro.")
+    t["Macro library"] := _TL("hlp_libshare", "Macro library (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.`n`n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.`n- Search with words from the name or the game: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.`n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.`n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded.`n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.`n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.`n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.`n- Delete (My macros) removes a macro you shared from the library; your own copy in the list stays.`n`nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.`n`nThe library needs internet access. Nobody can see who rated or reported a macro.")
     order.Push("Tips and problems")
     t["Tips and problems"] := _TL("hlp_tips", "- The game does nothing: try raising the delays, make sure Only in app matches the game (use Select), and keep the app as administrator.`n- Character runs in one direction: keep direction pairs in Directions (a,d) and the delay between cycles small but not 0.`n- A macro does not start: check that it is ticked, All macros is on, it is in the current profile and the trigger key is set (not undefined).`n- Two macros with the same trigger key: only one of them works - use different keys, different profiles or different Press modes (short tap / double tap / long press).`n- Macros made before Exact delays existed keep their old timing. If you switch Exact delays on for one of them, it may play faster - then raise its delays a little.`n- Stuck key after an abort: press and release it once; the app releases keys it pressed when the macro stops.`n- Settings and scripts live in the config folder next to the app.")
     return [order, t]
@@ -4309,6 +4343,11 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
         return
     x := lParam & 0xFFFF, y := (lParam >> 16) & 0xFFFF
     hit := LvHit(x, y)
+    if (hit[1] >= 1 && hit[3] = 4 && hit[1] <= View.Length) {          ; the share icon at the end of the row
+        if (msg = 0x201 && View[hit[1]]["type"] != "script")
+            SetTimer(LibShareMacro.Bind(View[hit[1]]), -10)
+        return 0
+    }
     if (hit[1] >= 1 && x < Round(34 * A_ScreenDPI / 96)) {              ; on the check box: toggle it ourselves (every click, also fast ones)
         st := SendMessage(0x102C, hit[1] - 1, 0xF000, LV)       ; LVM_GETITEMSTATE
         on := (st >> 12) != 2
@@ -4330,12 +4369,12 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
     SetTimer(DragTick, 15)
 }
 
-; [row (1-based, 0 = none), hit flags] for a point in list client coordinates
+; [row (1-based, 0 = none), hit flags, column (0-based)] for a point in list client coordinates
 LvHit(x, y) {
     hti := Buffer(24, 0)
     NumPut("Int", x, "Int", y, hti)
     SendMessage(0x1039, 0, hti, LV)                    ; LVM_SUBITEMHITTEST (finds the row over any column)
-    return [NumGet(hti, 12, "Int") + 1, NumGet(hti, 8, "UInt")]
+    return [NumGet(hti, 12, "Int") + 1, NumGet(hti, 8, "UInt"), NumGet(hti, 16, "Int")]
 }
 
 DragTick() {
@@ -4782,11 +4821,11 @@ LibInstall() {
 }
 
 ; one request to the library: returns the answer (Map), with "error" when something went wrong
-LibCall(method, path, body := "") {
+LibCall(method, path, body := "", url := "") {
     hdr := Map("X-MM-Install", LibInstall(), "Accept", "application/json")
     if IsObject(body)
         hdr["Content-Type"] := "application/json"
-    r := HttpSend(LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
+    r := HttpSend(url != "" ? url : LibApi path, hdr, 15000, false, method, IsObject(body) ? JsonStr(body) : "")
     if !r
         return Map("error", "network")
     j := 0
@@ -4805,9 +4844,21 @@ LibErr(code) {
         case "own_macro": return _T("You can't rate your own macro.")
         case "not_found": return _T("This macro is no longer in the library.")
         case "not_owner": return _T("Only the author can delete this macro.")
-        case "bad_text": return _T("Please check the name, description and nickname.")
+        case "bad_text": return _T("Please check the name, game, description and nickname.")
     }
     return _T("The library could not do this ({1}).", code)
+}
+
+; game tags used in the library, the most used first (for the game filter and the share form)
+LibGamesLoad() {
+    global LibGames
+    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "games"))
+    if (!j.Has("error") && j.Has("games")) {
+        LibGames := []
+        for g in j["games"]
+            LibGames.Push(g)
+    }
+    return LibGames
 }
 
 ; ---- the panel ----
@@ -4874,16 +4925,20 @@ BuildLibrary() {
     g.SetFont("s15 norm", "Segoe UI")
     AddBtn(g, "x" (W - 48) " y16 w32 h32", Chr(0xD7), CloseLibrary, "btnbanner")
     g.SetFont("s9 norm", "Segoe UI")
-    LibSearch := g.AddEdit("x8 y66 w" (W - 222) " h26")
-    SendMessage(0x1501, 1, StrPtr(_T("Search macros")), LibSearch)
-    LibSearch.OnEvent("Change", (*) => SetTimer(LibLoad, -600))
     LibBtn := Map()
-    LibBtn["sort"] := AddBtn(g, "x" (W - 208) " y66 w156 h26", LibSortText(), LibSortMenu)
+    tw := (W - 24) // 2                                         ; tabs: macros of other players / my shared macros
+    LibBtn["others"] := AddBtn(g, "x8 y64 w" tw " h30", _T("Players' macros"), (*) => LibSetWho("others"))
+    LibBtn["mine"] := AddBtn(g, "x" (16 + tw) " y64 w" tw " h30", _T("My macros"), (*) => LibSetWho("mine"))
+    LibSearch := g.AddEdit("x8 y102 w" (W - 62) " h26")
+    SendMessage(0x1501, 1, StrPtr(_T("Search: words from the name or game")), LibSearch)
+    LibSearch.OnEvent("Change", (*) => SetTimer(LibLoad, -600))
     g.SetFont("s10 norm", "Segoe MDL2 Assets")
-    AddBtn(g, "x" (W - 46) " y66 w38 h26", Chr(0xE72C), (*) => LibLoad())          ; refresh
+    AddBtn(g, "x" (W - 46) " y102 w38 h26", Chr(0xE72C), (*) => LibLoad())         ; refresh
     g.SetFont("s9 norm", "Segoe UI")
-    yBot := H - 40, yBtn := yBot - 40, yInfo := yBtn - 24, yDesc := yInfo - 70
-    LibLV := g.AddListView("x8 y100 w" (W - 16) " h" (yDesc - 108) " -Hdr -E0x200 -Multi", [""])
+    LibBtn["game"] := AddBtn(g, "x8 y134 w" (W - 180) " h26", LibGameText(), LibGameMenu)
+    LibBtn["sort"] := AddBtn(g, "x" (W - 164) " y134 w156 h26", LibSortText(), LibSortMenu)
+    yBtn := H - 40, yInfo := yBtn - 26, yDesc := yInfo - 70
+    LibLV := g.AddListView("x8 y168 w" (W - 16) " h" (yDesc - 176) " -Hdr -E0x200 -Multi", [""])
     LibLV.SetFont("s10")
     LibLV.Opt("+LV0x10020")                                     ; double buffer, full-row select
     LibLV.ModifyCol(1, (W - 16) * A_ScreenDPI / 96 - 24)
@@ -4894,13 +4949,12 @@ BuildLibrary() {
     LibLV.OnEvent("DoubleClick", (*) => LibDownload())
     SendMessage(0x127, 0x10001, 0, LibLV.Hwnd)
     LibDesc := g.AddEdit("x8 y" yDesc " w" (W - 16) " h64 Multi ReadOnly", "")
-    LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 16) " h20", "")
+    LibInfo := AddHint(g, "x8 y" yInfo " w" (W - 126) " h20", "")
+    LibBtn["more"] := AddBtn(g, "x" (W - 112) " y" (yInfo - 3) " w104 h24", _T("Load more"), (*) => LibLoad(true), "btnghost")
     LibBtn["dl"] := AddBtn(g, "x8 y" yBtn " w130 h32", _T("Download"), (*) => LibDownload(), "btnprimary")
     LibBtn["rate"] := AddBtn(g, "x+8 yp w110 h32", _T("Rate") "  ▾", LibRateMenu)
     LibBtn["report"] := AddBtn(g, "x+8 yp w90 h32", _T("Report"), (*) => LibReport())
     LibBtn["del"] := AddBtn(g, "x+8 yp w" (W - 370) " h32", _T("Delete"), (*) => LibDelete(), "btndanger")
-    LibBtn["share"] := AddBtn(g, "x8 y" yBot " w250 h32", _T("Share selected macro..."), (*) => LibShare())
-    LibBtn["more"] := AddBtn(g, "x" (W - 138) " y" yBot " w130 h32", _T("Load more"), (*) => LibLoad(true), "btnghost")
     ; hidden: fonts for the rows (asked for at every paint - re-theming makes new ones)
     g.SetFont("s10 bold", "Segoe UI")
     LibBtn["fontB"] := g.AddText("x-900 y-900 w10 h10", "")
@@ -4909,7 +4963,53 @@ BuildLibrary() {
     g.OnEvent("Escape", CloseLibrary)
     g.OnEvent("Close", CloseLibrary)
     ApplyTheme(g)
+    LibTabs()
     LibShowSel()
+}
+
+; ---- tabs, game filter, sort ----
+LibTabs() {
+    for k in ["others", "mine"] {
+        Roles[LibBtn[k].Hwnd] := (k = LibWho) ? "btnprimary" : "btn"
+        PaintBtn(LibBtn[k].Hwnd, false)
+    }
+}
+
+LibSetWho(who) {
+    global LibWho
+    if (who = LibWho)
+        return
+    LibWho := who
+    LibTabs()
+    LibLoad()
+}
+
+LibGameText() => (LibGameF = "" ? _T("All games") : _T("Game: {1}", LibGameF)) "  ▾"
+
+LibGameMenu(ctrl, *) {
+    m := Menu()
+    m.Add(_T("All games"), LibSetGame.Bind(""))
+    if (LibGameF = "")
+        m.Check(_T("All games"))
+    games := LibGamesLoad()
+    if games.Length
+        m.Add()
+    for g in games {
+        label := g["game"] "   (" g["count"] ")"
+        m.Add(label, LibSetGame.Bind(g["game"]))
+        if (g["game"] = LibGameF)
+            m.Check(label)
+    }
+    ControlGetPos(&x, &y, , &h, ctrl)
+    m.Show(x, y + h)
+}
+
+LibSetGame(game, *) {
+    global LibGameF
+    LibGameF := game
+    LibBtn["game"].Text := LibGameText()
+    PaintBtn(LibBtn["game"].Hwnd, false)
+    LibLoad()
 }
 
 LibSortText() => (LibSort = "new" ? _T("Newest") : LibSort = "dl" ? _T("Most downloaded") : _T("Top rated")) "  ▾"
@@ -4941,7 +5041,7 @@ LibLoad(append := false) {
     LibBusy := true
     LibInfo.Text := _T("Loading...")
     off := append ? LibItems.Length : 0
-    j := LibCall("GET", "?sort=" LibSort "&offset=" off "&q=" UriEnc(Trim(LibSearch.Value)))
+    j := LibCall("GET", "?who=" LibWho "&sort=" LibSort "&offset=" off "&game=" UriEnc(LibGameF) "&q=" UriEnc(Trim(LibSearch.Value)))
     LibBusy := false
     if j.Has("error") {
         LibInfo.Text := LibErr(j["error"])
@@ -4959,7 +5059,8 @@ LibLoad(append := false) {
     LibLV.Opt("+Redraw")
     LibShowSel()
     if !LibItems.Length
-        LibInfo.Text := Trim(LibSearch.Value) = "" ? _T("The library is empty so far - share the first macro!") : _T("No macros found.")
+        LibInfo.Text := LibWho = "mine" ? _T("You have not shared any macro yet - use the share icon in your list.")
+            : (Trim(LibSearch.Value) = "" && LibGameF = "") ? _T("The library is empty so far - share the first macro!") : _T("No macros found.")
 }
 
 LibSel() {
@@ -4971,10 +5072,12 @@ LibSel() {
 LibShowSel() {
     it := LibSel()
     LibBtn["more"].Visible := LibMore
-    for k in ["dl", "rate", "report"]
-        LibBtn[k].Enabled := !!it
-    LibBtn["del"].Visible := it && it["mine"]
+    mineTab := (LibWho = "mine")
+    LibBtn["dl"].Enabled := !!it
+    LibBtn["rate"].Visible := LibBtn["report"].Visible := !mineTab        ; own macros: download back or delete
     LibBtn["rate"].Enabled := it && !it["mine"]
+    LibBtn["report"].Enabled := !!it
+    LibBtn["del"].Visible := it && it["mine"]
     for k in ["dl", "rate", "report", "del"]
         PaintBtn(LibBtn[k].Hwnd, false)
     if !it {
@@ -4984,10 +5087,11 @@ LibShowSel() {
     }
     LibDesc.Value := it["descr"] = "" ? _T("(no description)") : StrReplace(it["descr"], "`n", "`r`n")
     t := TypeLabel(it["type"]) "  ·  " _T("Key") ": " (it["hotkey"] = "" ? Chr(0x2014) : it["hotkey"])
-    t .= "  ·  " _T("by {1}", it["author"])
-    if it["mine"]
-        t .= "  ·  " _T("your macro")
-    else if it["my"]
+    t .= "  ·  " (it["mine"] ? _T("your macro") : _T("by {1}", it["author"]))
+    t := (it["game"] = "" ? "" : it["game"] "  ·  ") t
+    if it["hidden"]
+        t .= "  ·  " _T("hidden after reports")
+    else if (!it["mine"] && it["my"])
         t .= "  ·  " _T("your rating: {1}", it["my"]) Chr(0x2605)
     LibInfo.Text := t
 }
@@ -5067,7 +5171,8 @@ LibDraw(ctrl, lp) {
     ; (number of ratings) and the author
     tx := Round(x + 5 * (sz + 2 * s) + 4 * s)
     NumPut("Int", tx, "Int", top + Round(27 * s), "Int", cw - rw - Round(8 * s), "Int", top + Round(48 * s), r)
-    DllCall("DrawTextW", "Ptr", hdc, "WStr", "(" it["count"] ")   " _T("by {1}", it["author"]), "Int", -1, "Ptr", r, "UInt", 0x8824)
+    who := it["mine"] ? (it["hidden"] ? _T("hidden after reports") : _T("your macro")) : _T("by {1}", it["author"])
+    DllCall("DrawTextW", "Ptr", hdc, "WStr", "(" it["count"] ")   " who (it["game"] = "" ? "" : "  ·  " it["game"]), "Int", -1, "Ptr", r, "UInt", 0x8824)
     DllCall("SelectObject", "Ptr", hdc, "Ptr", old, "Ptr")
     return 4                                                    ; CDRF_SKIPDEFAULT
 }
@@ -5191,31 +5296,41 @@ LibDelete() {
     j := LibCall("DELETE", "/" it["id"])
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
+    for m in Macros                                             ; the share icon of the own copy turns grey again
+        if (m["libshare"] = it["id"])
+            m["libshare"] := ""
+    Save()
+    RedrawList()
     LibLoad()
 }
 
-; ---- sharing the macro selected in the main list ----
-LibShare() {
-    global LibAuthor, LibSort
-    sel := SelMacros()
-    if (sel.Length != 1)
-        return ThemedNote(_T("Select one macro in the list of the main window first, then press Share."))
-    m := sel[1]
+; ---- sharing: the share icon at the end of a row in the main list ----
+LibShareMacro(m) {
+    global LibAuthor, LibGame, LibSort, LibWho
+    if !IndexOf(m)
+        return
     if (m["type"] = "script")
         return ThemedNote(_T("Script macros can't be shared - only Move + actions and Sequence macros."), , true)
+    if (m["libshare"] != "" && ThemedAsk(_T("Share macro"), _T("Already shared"), _T("`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.", m["name"]), [[_T("Share again"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]], false) != "yes")
+        return
     f := LibShareForm(m)
     if !f
         return
-    j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "data", LibData(m)))
+    j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "game", f["game"], "data", LibData(m)))
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
-    LibAuthor := f["author"]
+    m["libshare"] := j["id"]
+    LibAuthor := f["author"], LibGame := f["game"]
     Save()
-    LibSort := "new"
-    LibBtn["sort"].Text := LibSortText()
-    PaintBtn(LibBtn["sort"].Hwnd, false)
-    LibSearch.Value := ""
-    LibLoad()
+    RedrawList()
+    if (LibGui && DllCall("IsWindowVisible", "Ptr", LibGui.Hwnd)) {      ; the panel is open: show it among my macros
+        LibWho := "mine", LibSort := "new"
+        LibTabs()
+        LibBtn["sort"].Text := LibSortText()
+        PaintBtn(LibBtn["sort"].Hwnd, false)
+        LibSearch.Value := ""
+        LibLoad()
+    }
     ThemedNote(_T("Thank you for sharing! `"{1}`" is now in the library.", f["name"]))
 }
 
@@ -5232,9 +5347,19 @@ LibData(m) {
     return d
 }
 
-; name, description and nickname for sharing; returns a Map or false
+; name, game, description and nickname for sharing; returns a Map or false
 LibShareForm(m) {
     res := false, done := false
+    games := []                                                 ; games already in the library (+ the last one used)
+    for x in LibGamesLoad()
+        games.Push(x["game"])
+    if (LibGame != "") {
+        known := false
+        for x in games
+            known := known || (x = LibGame)
+        if !known
+            games.InsertAt(1, LibGame)
+    }
     oh := DlgOwner()
     g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Share macro"))
     g.SetFont("s10 bold", "Segoe UI")
@@ -5242,21 +5367,25 @@ LibShareForm(m) {
     g.SetFont("s9 norm", "Segoe UI")
     g.AddText("x16 y48 w388", _T("Name"))
     eN := g.AddEdit("x16 y66 w388 h26 Limit40", m["name"])
-    g.AddText("x16 y100 w388", _T("Description (optional): what it does, for which game / class"))
-    eD := g.AddEdit("x16 y118 w388 h70 Multi Limit300", "")
-    g.AddText("x16 y196 w388", _T("Your nickname"))
-    eA := g.AddEdit("x16 y214 w388 h26 Limit24", LibAuthor)
-    hc := DlgText(g, "x16 y250 w388", _T("Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."))
+    g.AddText("x16 y100 w388", _T("Game (people filter and search by it, for example 4Story)"))
+    eG := g.AddComboBox("x16 y118 w388", games)
+    eG.Text := LibGame
+    SendMessage(0x141, 30, 0, eG)                               ; CB_LIMITTEXT
+    g.AddText("x16 y152 w388", _T("Description (optional): what it does, for which class"))
+    eD := g.AddEdit("x16 y170 w388 h70 Multi Limit300", "")
+    g.AddText("x16 y248 w388", _T("Your nickname"))
+    eA := g.AddEdit("x16 y266 w388 h26 Limit24", LibAuthor)
+    hc := DlgText(g, "x16 y302 w388", _T("Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."))
     Roles[hc.Hwnd] := "hint"
     hc.GetPos(, &hy, , &hh)
     btnY := hy + hh + 16
     Ok(*) {
-        nm := Trim(eN.Value), au := Trim(eA.Value)
-        if (nm = "" || au = "") {
-            ThemedNote(_T("Please fill in the name and your nickname."), , true)
+        nm := Trim(eN.Value), au := Trim(eA.Value), gm := Trim(eG.Text)
+        if (nm = "" || au = "" || gm = "") {
+            ThemedNote(_T("Please fill in the name, the game and your nickname."), , true)
             return
         }
-        res := Map("name", nm, "descr", Trim(StrReplace(eD.Value, "`r", "")), "author", au)
+        res := Map("name", nm, "game", gm, "descr", Trim(StrReplace(eD.Value, "`r", "")), "author", au)
         Close()
     }
     Close(*) {
@@ -5275,7 +5404,9 @@ LibShareForm(m) {
     if oh
         DllCall("EnableWindow", "Ptr", oh, "Int", 0)
     ShowOver(g, "w420 h" (btnY + 46), oh)
-    if (LibAuthor = "")
+    if (LibGame = "")
+        eG.Focus()
+    else if (LibAuthor = "")
         eA.Focus()
     else
         eD.Focus()
@@ -6833,6 +6964,7 @@ TrCs() {
     m["Key"] := "Klávesa"
     m["Application"] := "Aplikace"
     m["Type"] := "Typ"
+    m["Share"] := "Sdílet"
     m["Add"] := "Přidat"
     m["Copy"] := "Kopírovat"
     m["Edit"] := "Upravit"
@@ -7025,7 +7157,7 @@ TrCs() {
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
     m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu na github.com."
-    m["hlp_library"] := "Knihovna maker (tlačítko vedle hledání) ukazuje makra, která sdílejí ostatní hráči. Otevře se jako panel po straně hlavního okna.`n`n- Hledej podle názvu, popisu, autora nebo klávesy a řaď podle hodnocení, nejnovějších nebo nejstahovanějších.`n- U každého makra je průměrné hodnocení ve hvězdičkách (1 = nejhorší, 5 = nejlepší) s počtem hodnocení v závorce, autor, spouštěcí klávesa a počet stažení.`n- Stáhnout (nebo dvojklik) přidá makro do aktuálního profilu jako vypnuté. Zkontroluj klávesu a aplikaci a pak ho zaškrtni.`n- Hodnotit dá 1 až 5 hvězdiček - jedno hodnocení na instalaci, později ho můžeš změnit. Vlastní makra hodnotit nejde.`n- Nahlásit pošle makro ke kontrole, třeba farm / AFK makro, které není povolené. Po několika nahlášeních se makro schová.`n- Sdílet vybrané makro... nahraje makro vybrané v hlavním seznamu s názvem, popisem a tvou přezdívkou. Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Skript makra sdílet nejde.`n- Smazat odstraní z knihovny makro, které jsi sdílel (tvoje kopie v seznamu zůstane).`n`nKnihovna potřebuje připojení k internetu. Kdo makro hodnotil nebo nahlásil, nikdo neuvidí."
+    m["hlp_libshare"] := "Knihovna maker (tlačítko vedle hledání) ukazuje makra, která sdílejí hráči. Otevře se jako panel po straně hlavního okna.`n`n- Makra hráčů: makra ostatních hráčů. Moje makra: makra, která jsi sdílel, s jejich hodnocením a počtem stažení.`n- Hledej slovy z názvu nebo hry: musí sedět každé slovo. 4story najde všechna makra pro 4Story, 4story war jen ta pro warriora.`n- Tlačítko hry vyfiltruje jednu hru, tlačítko řazení řadí podle hodnocení, nejnovějších nebo nejstahovanějších.`n- U každého makra je průměrné hodnocení ve hvězdičkách (1 = nejhorší, 5 = nejlepší) s počtem hodnocení v závorce, autor, hra, spouštěcí klávesa a počet stažení.`n- Stáhnout (nebo dvojklik) přidá makro do aktuálního profilu jako vypnuté. Zkontroluj klávesu a aplikaci a pak ho zaškrtni.`n- Hodnotit dá 1 až 5 hvězdiček - jedno hodnocení na instalaci, později ho můžeš změnit. Vlastní makra hodnotit nejde.`n- Nahlásit pošle makro ke kontrole, třeba farm / AFK makro, které není povolené. Po několika nahlášeních se makro schová.`n- Smazat (Moje makra) odstraní z knihovny makro, které jsi sdílel; tvoje kopie v seznamu zůstane.`n`nSdílení: klikni na ikonu sdílení na konci řádku v hlavním seznamu a vyplň název, hru, popis a přezdívku. Po sdílení ikona zezlátne. Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Skript makra sdílet nejde.`n`nKnihovna potřebuje připojení k internetu. Kdo makro hodnotil nebo nahlásil, nikdo neuvidí."
     m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).`n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
     m["Help"] := "Nápověda"
@@ -7048,24 +7180,29 @@ TrCs() {
     m["You can't rate your own macro."] := "Vlastní makro hodnotit nemůžeš."
     m["This macro is no longer in the library."] := "Toto makro už v knihovně není."
     m["Only the author can delete this macro."] := "Toto makro může smazat jen jeho autor."
-    m["Please check the name, description and nickname."] := "Zkontroluj prosím název, popis a přezdívku."
+    m["Please check the name, game, description and nickname."] := "Zkontroluj prosím název, hru, popis a přezdívku."
     m["The library could not do this ({1})."] := "Knihovna to nemohla provést ({1})."
-    m["Search macros"] := "Hledat makra"
+    m["Players' macros"] := "Makra hráčů"
+    m["My macros"] := "Moje makra"
+    m["Search: words from the name or game"] := "Hledat: slova z názvu nebo hry"
+    m["Load more"] := "Načíst další"
     m["Download"] := "Stáhnout"
     m["Rate"] := "Hodnotit"
     m["Report"] := "Nahlásit"
-    m["Share selected macro..."] := "Sdílet vybrané makro..."
-    m["Load more"] := "Načíst další"
+    m["All games"] := "Všechny hry"
+    m["Game: {1}"] := "Hra: {1}"
     m["Newest"] := "Nejnovější"
     m["Most downloaded"] := "Nejstahovanější"
     m["Top rated"] := "Nejlépe hodnocené"
     m["Loading..."] := "Načítám..."
+    m["You have not shared any macro yet - use the share icon in your list."] := "Zatím jsi nesdílel žádné makro - použij ikonu sdílení ve svém seznamu."
     m["The library is empty so far - share the first macro!"] := "Knihovna je zatím prázdná - nasdílej první makro!"
     m["No macros found."] := "Žádná makra nenalezena."
     m["Pick a macro to see its description."] := "Vyber makro a uvidíš jeho popis."
     m["(no description)"] := "(bez popisu)"
-    m["by {1}"] := "od {1}"
     m["your macro"] := "tvoje makro"
+    m["by {1}"] := "od {1}"
+    m["hidden after reports"] := "schované po nahlášení"
     m["your rating: {1}"] := "tvé hodnocení: {1}"
     m["`"{1}`" added to profile {2} - switched off, tick it to turn it on."] := "`"{1}`" přidáno do profilu {2} - je vypnuté, zapneš ho zaškrtnutím."
     m["Downloaded macro"] := "Stažené makro"
@@ -7075,16 +7212,18 @@ TrCs() {
     m["Thank you. The macro will be checked."] := "Děkujeme. Makro zkontrolujeme."
     m["Delete from the library?"] := "Smazat z knihovny?"
     m["`"{1}`" will be removed from the library for everyone, with its ratings. Your own copy in the list stays."] := "`"{1}`" zmizí z knihovny pro všechny, i s hodnocením. Tvoje vlastní kopie v seznamu zůstane."
-    m["Select one macro in the list of the main window first, then press Share."] := "Nejdřív vyber jedno makro v seznamu hlavního okna a pak stiskni Sdílet."
     m["Script macros can't be shared - only Move + actions and Sequence macros."] := "Skript makra sdílet nejde - jen makra Pohyb + akce a Sekvence."
-    m["Thank you for sharing! `"{1}`" is now in the library."] := "Díky za sdílení! `"{1}`" je teď v knihovně."
     m["Share macro"] := "Sdílet makro"
+    m["Already shared"] := "Už sdíleno"
+    m["`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros."] := "`"{1}`" už v knihovně maker je. Sdílet ho znovu jako novou položku (třeba když jsi ho upravil)? Starou můžeš smazat v Moje makra."
+    m["Share again"] := "Sdílet znovu"
+    m["Thank you for sharing! `"{1}`" is now in the library."] := "Díky za sdílení! `"{1}`" je teď v knihovně."
     m["Share `"{1}`" in the macro library"] := "Sdílet `"{1}`" v knihovně maker"
-    m["Description (optional): what it does, for which game / class"] := "Popis (nepovinný): co dělá, pro jakou hru / třídu"
+    m["Game (people filter and search by it, for example 4Story)"] := "Hra (podle ní se filtruje a hledá, např. 4Story)"
+    m["Description (optional): what it does, for which class"] := "Popis (nepovinný): co dělá, pro jakou třídu"
     m["Your nickname"] := "Tvoje přezdívka"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Každý ho uvidí a může si ho stáhnout. Farm / AFK makra nejsou povolená."
-    m["Please fill in the name and your nickname."] := "Vyplň prosím název a svou přezdívku."
-    m["Share"] := "Sdílet"
+    m["Please fill in the name, the game and your nickname."] := "Vyplň prosím název, hru a svou přezdívku."
     m["Release notes"] := "Poznámky k verzi"
     m["Getting started"] := "Začínáme"
     m["Add / edit a macro"] := "Přidání / úprava makra"
@@ -7104,6 +7243,7 @@ TrPl() {
     m["Key"] := "Klawisz"
     m["Application"] := "Aplikacja"
     m["Type"] := "Typ"
+    m["Share"] := "Udostępnij"
     m["Add"] := "Dodaj"
     m["Copy"] := "Kopiuj"
     m["Edit"] := "Edytuj"
@@ -7296,7 +7436,7 @@ TrPl() {
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
     m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu i github.com."
-    m["hlp_library"] := "Biblioteka makr (przycisk obok wyszukiwania) pokazuje makra udostępnione przez innych graczy. Otwiera się jako panel z boku głównego okna.`n`n- Szukaj po nazwie, opisie, autorze lub klawiszu i sortuj według ocen, najnowszych lub najczęściej pobieranych.`n- Każde makro pokazuje średnią ocenę w gwiazdkach (1 = najgorsza, 5 = najlepsza) z liczbą ocen w nawiasie, autora, klawisz wyzwalający i liczbę pobrań.`n- Pobierz (lub podwójne kliknięcie) dodaje makro do bieżącego profilu jako wyłączone. Sprawdź jego klawisz i aplikację, a potem je zaznacz.`n- Oceń daje od 1 do 5 gwiazdek - jedna ocena na instalację, możesz ją później zmienić. Własnych makr nie można oceniać.`n- Zgłoś wysyła makro do sprawdzenia, np. makro farm / AFK, które jest niedozwolone. Po kilku zgłoszeniach makro zostaje ukryte.`n- Udostępnij zaznaczone makro... wysyła makro zaznaczone na głównej liście z nazwą, opisem i Twoim pseudonimem. Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Makr skryptowych nie można udostępniać.`n- Usuń usuwa z biblioteki makro, które udostępniłeś (Twoja kopia na liście zostaje).`n`nBiblioteka wymaga dostępu do internetu. Nikt nie widzi, kto ocenił lub zgłosił makro."
+    m["hlp_libshare"] := "Biblioteka makr (przycisk obok wyszukiwania) pokazuje makra udostępnione przez graczy. Otwiera się jako panel z boku głównego okna.`n`n- Makra graczy: makra innych graczy. Moje makra: makra, które udostępniłeś, z ich ocenami i liczbą pobrań.`n- Szukaj słowami z nazwy lub gry: każde słowo musi pasować. 4story znajdzie wszystkie makra do 4Story, 4story war tylko te dla wojownika.`n- Przycisk gry filtruje jedną grę, przycisk sortowania sortuje według ocen, najnowszych lub najczęściej pobieranych.`n- Każde makro pokazuje średnią ocenę w gwiazdkach (1 = najgorsza, 5 = najlepsza) z liczbą ocen w nawiasie, autora, grę, klawisz wyzwalający i liczbę pobrań.`n- Pobierz (lub podwójne kliknięcie) dodaje makro do bieżącego profilu jako wyłączone. Sprawdź jego klawisz i aplikację, a potem je zaznacz.`n- Oceń daje od 1 do 5 gwiazdek - jedna ocena na instalację, możesz ją później zmienić. Własnych makr nie można oceniać.`n- Zgłoś wysyła makro do sprawdzenia, np. makro farm / AFK, które jest niedozwolone. Po kilku zgłoszeniach makro zostaje ukryte.`n- Usuń (Moje makra) usuwa z biblioteki makro, które udostępniłeś; Twoja kopia na liście zostaje.`n`nUdostępnianie: kliknij ikonę udostępniania na końcu wiersza na głównej liście i wpisz nazwę, grę, opis i swój pseudonim. Po udostępnieniu ikona staje się złota. Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Makr skryptowych nie można udostępniać.`n`nBiblioteka wymaga dostępu do internetu. Nikt nie widzi, kto ocenił lub zgłosił makro."
     m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy, różnych profili lub różnego Naciśnięcia (krótkie / podwójne / przytrzymanie).`n- Makra utworzone przed Dokładnymi opóźnieniami zachowują dawny sposób odmierzania. Gdy włączysz im Dokładne opóźnienia, mogą grać szybciej - wtedy lekko zwiększ opóźnienia.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
     m["Help"] := "Pomoc"
@@ -7319,24 +7459,29 @@ TrPl() {
     m["You can't rate your own macro."] := "Nie możesz ocenić własnego makra."
     m["This macro is no longer in the library."] := "Tego makra nie ma już w bibliotece."
     m["Only the author can delete this macro."] := "Tylko autor może usunąć to makro."
-    m["Please check the name, description and nickname."] := "Sprawdź nazwę, opis i pseudonim."
+    m["Please check the name, game, description and nickname."] := "Sprawdź nazwę, grę, opis i pseudonim."
     m["The library could not do this ({1})."] := "Biblioteka nie mogła tego wykonać ({1})."
-    m["Search macros"] := "Szukaj makr"
+    m["Players' macros"] := "Makra graczy"
+    m["My macros"] := "Moje makra"
+    m["Search: words from the name or game"] := "Szukaj: słowa z nazwy lub gry"
+    m["Load more"] := "Wczytaj więcej"
     m["Download"] := "Pobierz"
     m["Rate"] := "Oceń"
     m["Report"] := "Zgłoś"
-    m["Share selected macro..."] := "Udostępnij zaznaczone makro..."
-    m["Load more"] := "Wczytaj więcej"
+    m["All games"] := "Wszystkie gry"
+    m["Game: {1}"] := "Gra: {1}"
     m["Newest"] := "Najnowsze"
     m["Most downloaded"] := "Najczęściej pobierane"
     m["Top rated"] := "Najlepiej oceniane"
     m["Loading..."] := "Wczytywanie..."
+    m["You have not shared any macro yet - use the share icon in your list."] := "Nie udostępniłeś jeszcze żadnego makra - użyj ikony udostępniania na swojej liście."
     m["The library is empty so far - share the first macro!"] := "Biblioteka jest na razie pusta - udostępnij pierwsze makro!"
     m["No macros found."] := "Nie znaleziono makr."
     m["Pick a macro to see its description."] := "Wybierz makro, aby zobaczyć jego opis."
     m["(no description)"] := "(brak opisu)"
-    m["by {1}"] := "autor: {1}"
     m["your macro"] := "Twoje makro"
+    m["by {1}"] := "autor: {1}"
+    m["hidden after reports"] := "ukryte po zgłoszeniach"
     m["your rating: {1}"] := "Twoja ocena: {1}"
     m["`"{1}`" added to profile {2} - switched off, tick it to turn it on."] := "`"{1}`" dodano do profilu {2} - jest wyłączone, zaznacz je, aby je włączyć."
     m["Downloaded macro"] := "Pobrane makro"
@@ -7346,16 +7491,18 @@ TrPl() {
     m["Thank you. The macro will be checked."] := "Dziękujemy. Makro zostanie sprawdzone."
     m["Delete from the library?"] := "Usunąć z biblioteki?"
     m["`"{1}`" will be removed from the library for everyone, with its ratings. Your own copy in the list stays."] := "`"{1}`" zostanie usunięte z biblioteki dla wszystkich, razem z ocenami. Twoja kopia na liście zostaje."
-    m["Select one macro in the list of the main window first, then press Share."] := "Najpierw zaznacz jedno makro na liście w głównym oknie, potem naciśnij Udostępnij."
     m["Script macros can't be shared - only Move + actions and Sequence macros."] := "Makr skryptowych nie można udostępniać - tylko makra Ruch + akcje i Sekwencja."
-    m["Thank you for sharing! `"{1}`" is now in the library."] := "Dziękujemy za udostępnienie! `"{1}`" jest teraz w bibliotece."
     m["Share macro"] := "Udostępnij makro"
+    m["Already shared"] := "Już udostępnione"
+    m["`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros."] := "`"{1}`" jest już w bibliotece makr. Udostępnić je ponownie jako nową pozycję (np. po zmianach)? Starą możesz usunąć w Moje makra."
+    m["Share again"] := "Udostępnij ponownie"
+    m["Thank you for sharing! `"{1}`" is now in the library."] := "Dziękujemy za udostępnienie! `"{1}`" jest teraz w bibliotece."
     m["Share `"{1}`" in the macro library"] := "Udostępnij `"{1}`" w bibliotece makr"
-    m["Description (optional): what it does, for which game / class"] := "Opis (opcjonalny): co robi, do jakiej gry / klasy"
+    m["Game (people filter and search by it, for example 4Story)"] := "Gra (według niej się filtruje i szuka, np. 4Story)"
+    m["Description (optional): what it does, for which class"] := "Opis (opcjonalny): co robi, do jakiej klasy"
     m["Your nickname"] := "Twój pseudonim"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Każdy może je zobaczyć i pobrać. Makra farm / AFK są niedozwolone."
-    m["Please fill in the name and your nickname."] := "Wpisz nazwę i swój pseudonim."
-    m["Share"] := "Udostępnij"
+    m["Please fill in the name, the game and your nickname."] := "Wpisz nazwę, grę i swój pseudonim."
     m["Release notes"] := "Informacje o wersji"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
@@ -7375,6 +7522,7 @@ TrDe() {
     m["Key"] := "Taste"
     m["Application"] := "Anwendung"
     m["Type"] := "Typ"
+    m["Share"] := "Teilen"
     m["Add"] := "Hinzufügen"
     m["Copy"] := "Kopieren"
     m["Edit"] := "Bearbeiten"
@@ -7567,7 +7715,7 @@ TrDe() {
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
     m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang zu github.com nötig."
-    m["hlp_library"] := "Die Makro-Bibliothek (Schaltfläche neben der Suche) zeigt Makros, die andere Spieler teilen. Sie öffnet sich als Seitenleiste neben dem Hauptfenster.`n`n- Suche nach Name, Beschreibung, Autor oder Taste und sortiere nach Bewertung, Neueste oder Meiste Downloads.`n- Jedes Makro zeigt seine Durchschnittsbewertung in Sternen (1 = am schlechtesten, 5 = am besten) mit der Anzahl der Bewertungen in Klammern, den Autor, die Auslösetaste und wie oft es heruntergeladen wurde.`n- Herunterladen (oder ein Doppelklick) fügt das Makro dem aktuellen Profil hinzu, ausgeschaltet. Prüfe Taste und Anwendung und hake es dann an.`n- Bewerten vergibt 1 bis 5 Sterne - eine Bewertung pro Installation, du kannst sie später ändern. Eigene Makros kann man nicht bewerten.`n- Melden schickt ein Makro zur Prüfung, zum Beispiel ein Farm- / AFK-Makro, das nicht erlaubt ist. Nach mehreren Meldungen wird es ausgeblendet.`n- Ausgewähltes Makro teilen... lädt das in der Hauptliste ausgewählte Makro mit Name, Beschreibung und deinem Spitznamen hoch. Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt werden: die Umschalttaste und deine Profile. Skript-Makros können nicht geteilt werden.`n- Löschen entfernt ein von dir geteiltes Makro aus der Bibliothek (deine eigene Kopie in der Liste bleibt).`n`nDie Bibliothek braucht eine Internetverbindung. Niemand kann sehen, wer ein Makro bewertet oder gemeldet hat."
+    m["hlp_libshare"] := "Die Makro-Bibliothek (Schaltfläche neben der Suche) zeigt Makros, die Spieler teilen. Sie öffnet sich als Seitenleiste neben dem Hauptfenster.`n`n- Makros der Spieler: Makros anderer Spieler. Meine Makros: die Makros, die du geteilt hast, mit ihren Bewertungen und Downloads.`n- Suche mit Wörtern aus dem Namen oder dem Spiel: jedes Wort muss passen. 4story findet alle 4Story-Makros, 4story war nur die für den Krieger.`n- Die Spiel-Schaltfläche filtert ein Spiel, die Sortier-Schaltfläche sortiert nach Bewertung, Neueste oder Meiste Downloads.`n- Jedes Makro zeigt seine Durchschnittsbewertung in Sternen (1 = am schlechtesten, 5 = am besten) mit der Anzahl der Bewertungen in Klammern, den Autor, das Spiel, die Auslösetaste und wie oft es heruntergeladen wurde.`n- Herunterladen (oder ein Doppelklick) fügt das Makro dem aktuellen Profil hinzu, ausgeschaltet. Prüfe Taste und Anwendung und hake es dann an.`n- Bewerten vergibt 1 bis 5 Sterne - eine Bewertung pro Installation, du kannst sie später ändern. Eigene Makros kann man nicht bewerten.`n- Melden schickt ein Makro zur Prüfung, zum Beispiel ein Farm- / AFK-Makro, das nicht erlaubt ist. Nach mehreren Meldungen wird es ausgeblendet.`n- Löschen (Meine Makros) entfernt ein von dir geteiltes Makro aus der Bibliothek; deine eigene Kopie in der Liste bleibt.`n`nTeilen: Klicke auf das Teilen-Symbol am Ende einer Zeile in der Hauptliste und gib Name, Spiel, Beschreibung und deinen Spitznamen ein. Das Symbol wird golden, sobald das Makro geteilt ist. Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt: die Umschalttaste und deine Profile. Skript-Makros können nicht geteilt werden.`n`nDie Bibliothek braucht eine Internetverbindung. Niemand kann sehen, wer ein Makro bewertet oder gemeldet hat."
     m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten, unterschiedliche Profile oder unterschiedliches Drücken (kurz / doppelt / lang).`n- Makros, die vor den Genauen Verzögerungen erstellt wurden, behalten ihr altes Timing. Schaltest du sie für eines davon ein, kann es schneller spielen - erhöhe dann seine Verzögerungen etwas.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
     m["Help"] := "Hilfe"
@@ -7590,24 +7738,29 @@ TrDe() {
     m["You can't rate your own macro."] := "Dein eigenes Makro kannst du nicht bewerten."
     m["This macro is no longer in the library."] := "Dieses Makro ist nicht mehr in der Bibliothek."
     m["Only the author can delete this macro."] := "Nur der Autor kann dieses Makro löschen."
-    m["Please check the name, description and nickname."] := "Bitte prüfe Name, Beschreibung und Spitznamen."
+    m["Please check the name, game, description and nickname."] := "Bitte prüfe Name, Spiel, Beschreibung und Spitznamen."
     m["The library could not do this ({1})."] := "Die Bibliothek konnte das nicht ausführen ({1})."
-    m["Search macros"] := "Makros suchen"
+    m["Players' macros"] := "Makros der Spieler"
+    m["My macros"] := "Meine Makros"
+    m["Search: words from the name or game"] := "Suchen: Wörter aus Name oder Spiel"
+    m["Load more"] := "Mehr laden"
     m["Download"] := "Herunterladen"
     m["Rate"] := "Bewerten"
     m["Report"] := "Melden"
-    m["Share selected macro..."] := "Ausgewähltes Makro teilen..."
-    m["Load more"] := "Mehr laden"
+    m["All games"] := "Alle Spiele"
+    m["Game: {1}"] := "Spiel: {1}"
     m["Newest"] := "Neueste"
     m["Most downloaded"] := "Meiste Downloads"
     m["Top rated"] := "Bestbewertet"
     m["Loading..."] := "Wird geladen..."
+    m["You have not shared any macro yet - use the share icon in your list."] := "Du hast noch kein Makro geteilt - nutze das Teilen-Symbol in deiner Liste."
     m["The library is empty so far - share the first macro!"] := "Die Bibliothek ist noch leer - teile das erste Makro!"
     m["No macros found."] := "Keine Makros gefunden."
     m["Pick a macro to see its description."] := "Wähle ein Makro, um seine Beschreibung zu sehen."
     m["(no description)"] := "(keine Beschreibung)"
-    m["by {1}"] := "von {1}"
     m["your macro"] := "dein Makro"
+    m["by {1}"] := "von {1}"
+    m["hidden after reports"] := "nach Meldungen ausgeblendet"
     m["your rating: {1}"] := "deine Bewertung: {1}"
     m["`"{1}`" added to profile {2} - switched off, tick it to turn it on."] := "`"{1}`" wurde zum Profil {2} hinzugefügt - ausgeschaltet, hake es an, um es einzuschalten."
     m["Downloaded macro"] := "Heruntergeladenes Makro"
@@ -7617,16 +7770,18 @@ TrDe() {
     m["Thank you. The macro will be checked."] := "Danke. Das Makro wird geprüft."
     m["Delete from the library?"] := "Aus der Bibliothek löschen?"
     m["`"{1}`" will be removed from the library for everyone, with its ratings. Your own copy in the list stays."] := "`"{1}`" wird für alle aus der Bibliothek entfernt, samt Bewertungen. Deine eigene Kopie in der Liste bleibt."
-    m["Select one macro in the list of the main window first, then press Share."] := "Wähle zuerst ein Makro in der Liste des Hauptfensters aus und drücke dann Teilen."
     m["Script macros can't be shared - only Move + actions and Sequence macros."] := "Skript-Makros können nicht geteilt werden - nur Bewegung + Aktionen und Sequenz."
-    m["Thank you for sharing! `"{1}`" is now in the library."] := "Danke fürs Teilen! `"{1}`" ist jetzt in der Bibliothek."
     m["Share macro"] := "Makro teilen"
+    m["Already shared"] := "Bereits geteilt"
+    m["`"{1}`" is already in the macro library. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros."] := "`"{1}`" ist bereits in der Makro-Bibliothek. Erneut als neuen Eintrag teilen (zum Beispiel nach einer Änderung)? Den alten kannst du unter Meine Makros löschen."
+    m["Share again"] := "Erneut teilen"
+    m["Thank you for sharing! `"{1}`" is now in the library."] := "Danke fürs Teilen! `"{1}`" ist jetzt in der Bibliothek."
     m["Share `"{1}`" in the macro library"] := "`"{1}`" in der Makro-Bibliothek teilen"
-    m["Description (optional): what it does, for which game / class"] := "Beschreibung (optional): was es tut, für welches Spiel / welche Klasse"
+    m["Game (people filter and search by it, for example 4Story)"] := "Spiel (danach wird gefiltert und gesucht, z. B. 4Story)"
+    m["Description (optional): what it does, for which class"] := "Beschreibung (optional): was es tut, für welche Klasse"
     m["Your nickname"] := "Dein Spitzname"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt: die Umschalttaste und deine Profile. Jeder kann es sehen und herunterladen. Farm- / AFK-Makros sind nicht erlaubt."
-    m["Please fill in the name and your nickname."] := "Bitte gib den Namen und deinen Spitznamen ein."
-    m["Share"] := "Teilen"
+    m["Please fill in the name, the game and your nickname."] := "Bitte gib Name, Spiel und deinen Spitznamen ein."
     m["Release notes"] := "Versionshinweise"
     m["Getting started"] := "Erste Schritte"
     m["Add / edit a macro"] := "Makro anlegen/ändern"
