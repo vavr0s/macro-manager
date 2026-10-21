@@ -1,9 +1,9 @@
 {
-  "version": "1.20.6",
+  "version": "1.21.1",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "402520eb3af1299c09be668ed197b591698f80666047d3ac52d832bb97d2485e",
-  "notes": "BETA build - for testing.\n- Test version: checks that the update window shows the release notes in the app language. No changes in the app.",
-  "notes_cs": "BETA verze \u2013 k testov\u00e1n\u00ed.\n- Testovac\u00ed verze: ov\u011b\u0159uje, \u017ee okno aktualizace ukazuje pozn\u00e1mky k verzi v jazyce aplikace. V aplikaci se nic nem\u011bn\u00ed.",
-  "notes_pl": "Wersja BETA \u2013 do test\u00f3w.\n- Wersja testowa: sprawdza, czy okno aktualizacji pokazuje informacje o wersji w j\u0119zyku aplikacji. Bez zmian w aplikacji.",
-  "notes_de": "BETA-Version \u2013 zum Testen.\n- Testversion: pr\u00fcft, ob das Update-Fenster die Versionshinweise in der Sprache der App zeigt. Keine \u00c4nderungen an der App."
+  "sha256": "25de411d0ce5cdb8dad27584ca0cb54a3fdb0f36f5ee3d9f113554526ebbee49",
+  "notes": "BETA build - for testing.\n- A script macro whose script finishes by itself is now turned off (unticked) and no longer starts again whenever something in the list changes.\n- Ctrl, Alt, Shift and Win held by another program (mouse software, Steam Input, remote desktop) are no longer released by the app after a second \u2013 for example Shift on a mouse button for running.",
+  "notes_cs": "BETA verze \u2013 k testov\u00e1n\u00ed.\n- Script makro, jeho\u017e skript s\u00e1m skon\u010d\u00ed, se te\u010f vypne (od\u0161krtne) a u\u017e se znovu nespou\u0161t\u00ed p\u0159i ka\u017ed\u00e9 zm\u011bn\u011b v seznamu.\n- Ctrl, Alt, Shift a Win, kter\u00e9 dr\u017e\u00ed jin\u00fd program (software my\u0161i, Steam Input, vzd\u00e1len\u00e1 plocha), u\u017e aplikace po vte\u0159in\u011b nepou\u0161t\u00ed \u2013 t\u0159eba Shift na tla\u010d\u00edtku my\u0161i pro b\u011bh.",
+  "notes_pl": "Wersja BETA \u2013 do test\u00f3w.\n- Makro skryptu, kt\u00f3rego skrypt sam si\u0119 zako\u0144czy, jest teraz wy\u0142\u0105czane (odznaczane) i nie uruchamia si\u0119 ponownie przy ka\u017cdej zmianie na li\u015bcie.\n- Ctrl, Alt, Shift i Win przytrzymywane przez inny program (oprogramowanie myszy, Steam Input, pulpit zdalny) nie s\u0105 ju\u017c puszczane przez aplikacj\u0119 po sekundzie \u2013 na przyk\u0142ad Shift na przycisku myszy do biegania.",
+  "notes_de": "BETA-Version \u2013 zum Testen.\n- Ein Skript-Makro, dessen Skript von selbst endet, wird jetzt ausgeschaltet (Haken entfernt) und startet nicht mehr bei jeder \u00c4nderung in der Liste neu.\n- Strg, Alt, Umschalt und Win, die ein anderes Programm gedr\u00fcckt h\u00e4lt (Maussoftware, Steam Input, Remotedesktop), l\u00e4sst die App nicht mehr nach einer Sekunde los \u2013 zum Beispiel Umschalt auf einer Maustaste zum Rennen."
 }

@@ -123,6 +123,7 @@ HoverHwnd := 0
 BtnAlias := Map()       ; picture hwnd -> button hwnd (a flag lying on a button hovers the button)
 Recording := false
 InjDown := Map()        ; trigger key -> a press from another program (mouse software, ...) is held
+ForeignMod := Map()     ; virtual key -> Ctrl / Alt / Shift / Win held by another program (ModWatch leaves it alone)
 PressBusy := Map()      ; trigger key -> its press modes are being told apart / played
 DblWait := Map()        ; trigger key -> waiting for the 2nd press of a double tap
 DblHit := Map()         ; trigger key -> the 2nd press came
@@ -273,6 +274,8 @@ Apply()
 ApplyTheme(Main)
 SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
+ModHookStart()                       ; ... except those another program holds on purpose
+SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 Main.Show()

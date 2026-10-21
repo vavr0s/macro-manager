@@ -116,7 +116,7 @@ RegToggle(key, fn) {
 
 SyncScript(m) {
     if (Procs.Has(m) && !ProcessExist(Procs[m]))
-        Procs.Delete(m)
+        return ScriptEnded(m)
     want := MasterOn && m["enabled"] && InProfile(m) && !NeedsTrust(m)
     running := Procs.Has(m)
     if (want && !running)
@@ -291,6 +291,27 @@ StopScript(m) {
         try ProcessClose(Procs[m])
         Procs.Delete(m)
     }
+}
+
+; a script that has finished by itself turns its macro off (unticked), so it runs again only when the user turns
+; it on again - before, every change in the list (another macro ticked, profile switched, ...) started it once more
+ScriptWatch() {
+    for m, pid in Procs.Clone()
+        if !ProcessExist(pid)
+            ScriptEnded(m)
+}
+
+ScriptEnded(m) {
+    global Populating
+    Procs.Delete(m)
+    m["enabled"] := 0
+    Save()
+    for i, v in View
+        if (v == m) {
+            Populating := true
+            LV.Modify(i, "-Check")
+            Populating := false
+        }
 }
 
 ; "only in app": a plain window criterion that the keyboard hook checks by itself. A script function as the

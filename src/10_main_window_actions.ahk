@@ -7,7 +7,7 @@ OnMainClose(*) {
 ExitHandler(*) {
     ReleaseHeld()                                  ; keys a macro was holding when the app was closed
     for k in ["LCtrl", "RCtrl", "LAlt", "RAlt", "LShift", "RShift", "LWin", "RWin"]     ; and modifiers Windows still thinks are down
-        if (GetKeyState(k) && !GetKeyState(k, "P"))
+        if (GetKeyState(k) && !GetKeyState(k, "P") && !ForeignMod.Has(GetKeyVK(k)))
             try Send "{Blind}{" k " up}"
     for m, pid in Procs
         try ProcessClose(pid)
