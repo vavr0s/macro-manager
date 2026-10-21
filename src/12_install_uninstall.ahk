@@ -328,6 +328,7 @@ UninstallApp(fromArg := false) {
     ; remove registry entries and the Start Menu / Desktop shortcuts
     try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager")
     try RegDeleteKey("HKCU\Software\MacroManager")
+    try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\" AppId())     ; name + icon of its notifications
     try FileDelete(A_Programs "\Macro Manager.lnk")
     try FileDelete(A_Desktop "\Macro Manager.lnk")
     ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))

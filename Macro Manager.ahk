@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.8"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.9"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 5 minutes, when its window opens and when Macro Hub opens.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
+ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 5 minutes, when its window opens and when Macro Hub opens.`n- Windows notifications of the app show Macro Manager with its icon instead of AutoHotkey.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 5 minut, při otevření okna a při otevření Macro Hubu.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 5 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 5 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 5 minut, při otevření okna a při otevření Macro Hubu.`n- Windows oznámení aplikace ukazují Macro Manager s jeho ikonou místo AutoHotkey.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 5 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Powiadomienia Windows aplikacji pokazują Macro Manager z jego ikoną zamiast AutoHotkey.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 5 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Windows-Benachrichtigungen der App zeigen Macro Manager mit seinem Symbol statt AutoHotkey.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -160,6 +160,7 @@ LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
+SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
@@ -1231,6 +1232,7 @@ UninstallApp(fromArg := false) {
     ; remove registry entries and the Start Menu / Desktop shortcuts
     try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManagerBeta")
     try RegDeleteKey("HKCU\Software\MacroManagerBeta")
+    try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\" AppId())     ; name + icon of its notifications
     try FileDelete(A_Programs "\Macro Manager Beta.lnk")
     try FileDelete(A_Desktop "\Macro Manager Beta.lnk")
     ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))
@@ -2786,7 +2788,76 @@ MakeShortcut(lnk, target, icon) {
     try {
         lp := LaunchParts(target)
         FileCreateShortcut(lp[1], lnk, target, lp[2], "Macro Manager", icon)
+        SetLnkAppId(lnk, AppId())
     }
+}
+
+; ============ app identity (Windows notifications, taskbar) ============
+; Windows shows a notification with the name and icon of the app's AppUserModelID. Without an own one it makes one
+; from the exe - a renamed AutoHotkey, so the notice said "AutoHotkey" with its green icon. The shortcuts get the
+; same id, so the taskbar still groups the running app with a pinned shortcut.
+AppId() => UpdBranch = "beta" ? "VAVROS.MacroManager.Beta" : "VAVROS.MacroManager"
+
+SetAppIdentity() {
+    id := AppId()
+    try DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "WStr", id)
+    png := AssetsDir "\notify_" AssetVersion ".png"
+    if !FileExist(png)
+        try IcoToPng(IconFile, png)
+    k := "HKCU\Software\Classes\AppUserModelId\" id
+    try {
+        RegWrite(UpdBranch = "beta" ? "Macro Manager (beta)" : "Macro Manager", "REG_SZ", k, "DisplayName")
+        if FileExist(png)
+            RegWrite(png, "REG_SZ", k, "IconUri")
+    }
+    lnk := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"
+    for dir in [A_Programs, A_Desktop]                         ; shortcuts made by older versions
+        if FileExist(dir "\" lnk)
+            SetLnkAppId(dir "\" lnk, id)
+}
+
+; the largest picture of the app icon as a PNG file (the icon keeps its big sizes as PNG inside)
+IcoToPng(ico, png) {
+    b := FileRead(ico, "RAW")
+    n := NumGet(b, 4, "UShort"), best := 0, bestSz := 0
+    loop n {
+        e := 6 + (A_Index - 1) * 16
+        w := NumGet(b, e, "UChar") || 256
+        if (w > bestSz)
+            bestSz := w, best := e
+    }
+    size := NumGet(b, best + 8, "UInt"), off := NumGet(b, best + 12, "UInt")
+    if (NumGet(b, off, "UInt") != 0x474E5089)                   ; not a PNG inside ("\x89PNG")
+        return
+    f := FileOpen(png, "w")
+    f.RawWrite(b.Ptr + off, size)
+    f.Close()
+}
+
+; System.AppUserModel.ID of a shortcut (only written when it differs)
+SetLnkAppId(lnk, id) {
+    static iid := 0, key := 0
+    if !iid {
+        iid := Buffer(16), key := Buffer(20)
+        DllCall("ole32\CLSIDFromString", "WStr", "{886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99}", "Ptr", iid)     ; IPropertyStore
+        DllCall("ole32\CLSIDFromString", "WStr", "{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}", "Ptr", key)     ; PKEY_AppUserModel_ID
+        NumPut("UInt", 5, key, 16)
+    }
+    ps := 0
+    if DllCall("shell32\SHGetPropertyStoreFromParsingName", "WStr", lnk, "Ptr", 0, "Int", 2, "Ptr", iid, "Ptr*", &ps)   ; GPS_READWRITE
+        return
+    try {
+        pv := Buffer(24, 0)
+        ComCall(5, ps, "Ptr", key, "Ptr", pv)                    ; GetValue
+        same := NumGet(pv, 0, "UShort") = 31 && StrGet(NumGet(pv, 8, "Ptr")) = id
+        DllCall("ole32\PropVariantClear", "Ptr", pv)
+        if !same {
+            NumPut("UShort", 31, pv, 0), NumPut("Ptr", StrPtr(id), pv, 8)       ; VT_LPWSTR
+            ComCall(6, ps, "Ptr", key, "Ptr", pv)                ; SetValue
+            ComCall(7, ps)                                       ; Commit
+        }
+    }
+    ObjRelease(ps)
 }
 
 ; ============ dark mode ============

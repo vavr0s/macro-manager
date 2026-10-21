@@ -159,6 +159,7 @@ LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
 LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
+SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
