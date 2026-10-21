@@ -179,7 +179,7 @@ BuildLibrary() {
     LibBtn["others"] := AddBtn(g, "x8 y64 w" tw " h30", _T("Players' macros"), (*) => LibSetWho("others"))
     LibBtn["mine"] := AddBtn(g, "x" (16 + tw) " y64 w" tw " h30", _T("My macros"), (*) => LibSetWho("mine"))
     LibSearch := g.AddEdit("x8 y102 w" (W - 62) " h26")
-    SendMessage(0x1501, 1, StrPtr(_T("Search: words from the name or game")), LibSearch)
+    SendMessage(0x1501, 1, StrPtr(_T("Search: name, game or author")), LibSearch)
     LibSearch.OnEvent("Change", (*) => SetTimer(LibLoad, -600))
     g.SetFont("s10 norm", "Segoe MDL2 Assets")
     AddBtn(g, "x" (W - 46) " y102 w38 h26", Chr(0xE72C), (*) => LibLoad())         ; refresh

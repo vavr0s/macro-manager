@@ -3,6 +3,7 @@
   "en": [
     "The macro library is now called Macro Hub.",
     "Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.",
+    "Macro Hub search also finds the author: every word must be in the name, the game or the author name.",
     "The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.",
     "No more line across the check boxes when the list is scrolled.",
     "The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.",
@@ -11,6 +12,7 @@
   "cs": [
     "Knihovna maker se teď jmenuje Macro Hub.",
     "Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.",
+    "Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.",
     "Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.",
     "Při posouvání seznamu už se přes zaškrtávátka nedělá čára.",
     "Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.",
@@ -19,6 +21,7 @@
   "pl": [
     "Biblioteka makr nazywa się teraz Macro Hub.",
     "Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.",
+    "Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.",
     "Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.",
     "Przy przewijaniu listy nie pojawia się już linia na polach wyboru.",
     "Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.",
@@ -27,6 +30,7 @@
   "de": [
     "Die Makro-Bibliothek heißt jetzt Macro Hub.",
     "Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.",
+    "Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.",
     "Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.",
     "Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.",
     "Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.",

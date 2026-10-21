@@ -75,7 +75,7 @@ export default {
 
     // ---- list ----
     // list. who = others (not mine) | mine (also those hidden after reports) | all;  game = one game tag;
-    // q = words: every word must be in the name or the game tag ("4story war" = warrior macros tagged 4Story)
+    // q = words: every word must be in the name, the game tag or the author ("4story war" = warrior macros tagged 4Story)
     if (req.method === 'GET' && !id) {
       const p = url.searchParams;
       const offset = Math.max(0, Math.min(10000, parseInt(p.get('offset') || '0', 10) || 0));
@@ -90,7 +90,7 @@ export default {
       const words = (p.get('q') || '').trim().slice(0, 80).split(/\s+/).filter(Boolean).slice(0, 6);
       for (const w of words) {
         args.push('%' + w.replace(/[\\%_]/g, c => '\\' + c) + '%');
-        where.push(`(m.name LIKE ?${args.length} ESCAPE '\\' OR m.game LIKE ?${args.length} ESCAPE '\\')`);
+        where.push(`(m.name LIKE ?${args.length} ESCAPE '\\' OR m.game LIKE ?${args.length} ESCAPE '\\' OR m.author LIKE ?${args.length} ESCAPE '\\')`);
       }
       args.push(PAGE + 1, offset);
       const { results } = await db.prepare(
