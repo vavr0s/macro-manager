@@ -71,8 +71,40 @@ OpenLibrary() {
     LibOpen := true
     LibGui.Show("NA")                       ; (the first Show centres the window on the screen - placed right after)
     LibPlace()
-    if !LibItems.Length
+    if !LibItems.Length {
         LibLoad()
+        if (LibWho != "mine") {             ; once: which macros of the list are shared (share icons)
+            j := LibCall("GET", "?who=mine&sort=new")
+            if !j.Has("error")
+                LibSyncShared(j["items"], !j["more"])
+        }
+    }
+}
+
+; marks the macros of the list that are in the library (gold share icon) by comparing what is shared;
+; complete = these are all my shared macros: a macro whose library entry is gone loses the mark
+LibSyncShared(items, complete) {
+    ids := Map(), byData := Map()
+    for it in items {
+        ids[String(it["id"])] := true
+        if it.Has("data")
+            byData[JsonStr(it["data"])] := it["id"]
+    }
+    changed := false
+    for m in Macros {
+        if (m["type"] = "script")
+            continue
+        if (m["libshare"] = "") {
+            k := JsonStr(LibData(m))
+            if byData.Has(k)
+                m["libshare"] := byData[k], changed := true
+        } else if (complete && !ids.Has(String(m["libshare"])))
+            m["libshare"] := "", changed := true
+    }
+    if changed {
+        Save()
+        RedrawList()
+    }
 }
 
 CloseLibrary(*) {
@@ -108,11 +140,29 @@ LibPlace() {
     }
     x := (R + w <= mr || L - w < ml) ? R : L - w
     DllCall("SetWindowPos", "Ptr", LibGui.Hwnd, "Ptr", 0, "Int", x, "Int", T, "Int", w, "Int", B - T, "UInt", 0x14)   ; NOZORDER | NOACTIVATE
+    LibFit(B - T)
+}
+
+; the main window got taller / shorter (FitList): the list of the panel too, the parts below it move
+LibFit(h) {
+    global LibH
+    d := h - LibH
+    LibH := h
+    if !d
+        return
+    ControlGetPos(, &ly, , &lh, LibLV)
+    for hwnd, c in LibGui {
+        ControlGetPos(&cx, &cy, , , c)
+        if (cy > ly + 4 && cy > -500)                       ; (the hidden font controls stay where they are)
+            ControlMove(, cy + d, , , c)
+    }
+    ControlMove(, , , lh + d, LibLV)
 }
 
 BuildLibrary() {
-    global LibGui, LibLV, LibSearch, LibDesc, LibInfo, LibBtn
+    global LibGui, LibLV, LibSearch, LibDesc, LibInfo, LibBtn, LibH
     MainFrame(&L, &T, &R, &B)
+    LibH := B - T                                           ; the height the layout is made for (LibFit)
     W := LibW, H := Round((B - T - 2) * 96 / A_ScreenDPI)
     g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro library"))
     LibGui := g
@@ -248,6 +298,8 @@ LibLoad(append := false) {
     for it in j["items"]
         LibItems.Push(it)
     LibMore := j["more"]
+    if (LibWho = "mine" && !append && Trim(LibSearch.Value) = "" && LibGameF = "")
+        LibSyncShared(LibItems, !LibMore)
     LibLV.Opt("-Redraw")
     LibLV.Delete()
     for it in LibItems

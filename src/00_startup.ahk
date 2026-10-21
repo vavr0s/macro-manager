@@ -150,7 +150,7 @@ Procs := Map()          ; macro -> PID of running imported script
 LibApi := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/macros"     ; macro library (server/)
 LibId := ""             ; random id of this install for the library (macros.ini [main] libid)
 LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
-LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440
+LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440, LibH := 0
 LibItems := [], LibSort := "top", LibMore := false
 LibWho := "others"      ; library tab: others = macros of other players, mine = my shared macros
 LibGameF := ""          ; library filter: one game ("" = all)
@@ -290,6 +290,7 @@ try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is rel
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
 Main.Show()
+FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)

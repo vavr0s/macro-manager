@@ -1,27 +1,23 @@
 {
   "_about": "Release notes of the version being built: one line per change, every language. tools/set_notes.py writes them into the app (Help) and into version.json (update window). Do not use double quotes or backticks.",
   "en": [
-    "Sharing is now part of the main list: click the share icon at the end of a row. The icon turns gold once the macro is shared.",
-    "Macro library: tabs Players' macros and My macros – see the macros you shared with their ratings and downloads.",
-    "Every shared macro has a game tag, and the library can be filtered by game.",
-    "Search with several words: every word must be in the name or the game, so 4story war finds only the warrior macros for 4Story. The search in your own list works the same way (name, key, application)."
+    "The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The library panel grows with it.",
+    "No more line across the check boxes when the list is scrolled.",
+    "The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup."
   ],
   "cs": [
-    "Sdílení je teď součástí hlavního seznamu: klikni na ikonu sdílení na konci řádku. Po sdílení ikona zezlátne.",
-    "Knihovna maker: záložky Makra hráčů a Moje makra – uvidíš makra, která jsi sdílel, s hodnocením a počtem stažení.",
-    "Každé sdílené makro má tag hry a knihovnu jde filtrovat podle hry.",
-    "Hledání více slovy: každé slovo musí být v názvu nebo ve hře, takže 4story war najde jen makra pro warriora ve 4Story. Stejně funguje i hledání ve tvém seznamu (název, klávesa, aplikace)."
+    "Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel knihovny se zvětšuje s ním.",
+    "Při posouvání seznamu už se přes zaškrtávátka nedělá čára.",
+    "Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou."
   ],
   "pl": [
-    "Udostępnianie jest teraz częścią głównej listy: kliknij ikonę udostępniania na końcu wiersza. Po udostępnieniu ikona staje się złota.",
-    "Biblioteka makr: zakładki Makra graczy i Moje makra – zobaczysz udostępnione przez siebie makra z ocenami i liczbą pobrań.",
-    "Każde udostępnione makro ma tag gry, a bibliotekę można filtrować według gry.",
-    "Wyszukiwanie kilkoma słowami: każde słowo musi być w nazwie lub grze, więc 4story war znajdzie tylko makra dla wojownika w 4Story. Tak samo działa wyszukiwanie na Twojej liście (nazwa, klawisz, aplikacja)."
+    "Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel biblioteki rośnie razem z nią.",
+    "Przy przewijaniu listy nie pojawia się już linia na polach wyboru.",
+    "Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową."
   ],
   "de": [
-    "Teilen ist jetzt Teil der Hauptliste: Klicke auf das Teilen-Symbol am Ende einer Zeile. Das Symbol wird golden, sobald das Makro geteilt ist.",
-    "Makro-Bibliothek: Reiter Makros der Spieler und Meine Makros – sieh deine geteilten Makros mit Bewertungen und Downloads.",
-    "Jedes geteilte Makro hat einen Spiel-Tag, und die Bibliothek lässt sich nach Spiel filtern.",
-    "Suche mit mehreren Wörtern: Jedes Wort muss im Namen oder im Spiel vorkommen, 4story war findet also nur die Krieger-Makros für 4Story. Die Suche in deiner eigenen Liste funktioniert genauso (Name, Taste, Anwendung)."
+    "Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Bibliotheksleiste wächst mit.",
+    "Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.",
+    "Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden."
   ]
 }

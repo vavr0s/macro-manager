@@ -101,7 +101,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.22.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +111,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Sharing is now part of the main list: click the share icon at the end of a row. The icon turns gold once the macro is shared.`n- Macro library: tabs Players' macros and My macros – see the macros you shared with their ratings and downloads.`n- Every shared macro has a game tag, and the library can be filtered by game.`n- Search with several words: every word must be in the name or the game, so 4story war finds only the warrior macros for 4Story. The search in your own list works the same way (name, key, application)."
+ReleaseNotes := "BETA build - for testing.`n- The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The library panel grows with it.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Sdílení je teď součástí hlavního seznamu: klikni na ikonu sdílení na konci řádku. Po sdílení ikona zezlátne.`n- Knihovna maker: záložky Makra hráčů a Moje makra – uvidíš makra, která jsi sdílel, s hodnocením a počtem stažení.`n- Každé sdílené makro má tag hry a knihovnu jde filtrovat podle hry.`n- Hledání více slovy: každé slovo musí být v názvu nebo ve hře, takže 4story war najde jen makra pro warriora ve 4Story. Stejně funguje i hledání ve tvém seznamu (název, klávesa, aplikace).", "pl", "Wersja BETA – do testów.`n- Udostępnianie jest teraz częścią głównej listy: kliknij ikonę udostępniania na końcu wiersza. Po udostępnieniu ikona staje się złota.`n- Biblioteka makr: zakładki Makra graczy i Moje makra – zobaczysz udostępnione przez siebie makra z ocenami i liczbą pobrań.`n- Każde udostępnione makro ma tag gry, a bibliotekę można filtrować według gry.`n- Wyszukiwanie kilkoma słowami: każde słowo musi być w nazwie lub grze, więc 4story war znajdzie tylko makra dla wojownika w 4Story. Tak samo działa wyszukiwanie na Twojej liście (nazwa, klawisz, aplikacja).", "de", "BETA-Version – zum Testen.`n- Teilen ist jetzt Teil der Hauptliste: Klicke auf das Teilen-Symbol am Ende einer Zeile. Das Symbol wird golden, sobald das Makro geteilt ist.`n- Makro-Bibliothek: Reiter Makros der Spieler und Meine Makros – sieh deine geteilten Makros mit Bewertungen und Downloads.`n- Jedes geteilte Makro hat einen Spiel-Tag, und die Bibliothek lässt sich nach Spiel filtern.`n- Suche mit mehreren Wörtern: Jedes Wort muss im Namen oder im Spiel vorkommen, 4story war findet also nur die Krieger-Makros für 4Story. Die Suche in deiner eigenen Liste funktioniert genauso (Name, Taste, Anwendung).")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel knihovny se zvětšuje s ním.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.", "pl", "Wersja BETA – do testów.`n- Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel biblioteki rośnie razem z nią.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.", "de", "BETA-Version – zum Testen.`n- Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Bibliotheksleiste wächst mit.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -151,7 +151,7 @@ Procs := Map()          ; macro -> PID of running imported script
 LibApi := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/macros"     ; macro library (server/)
 LibId := ""             ; random id of this install for the library (macros.ini [main] libid)
 LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
-LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440
+LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440, LibH := 0
 LibItems := [], LibSort := "top", LibMore := false
 LibWho := "others"      ; library tab: others = macros of other players, mine = my shared macros
 LibGameF := ""          ; library filter: one game ("" = all)
@@ -294,6 +294,7 @@ try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is rel
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
 Main.Show()
+FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
@@ -609,6 +610,61 @@ Refresh() {
     for m in View
         LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]), "")
     Populating := false
+    FitList()
+}
+
+; the list grows with the macros of the profile (down to the bottom of the screen), so it needs no scroll bar;
+; the window grows with it, everything below the list moves down. Never smaller than at the start.
+FitList() {
+    static base := 0
+    n := 0
+    for m in Macros
+        n += InProfile(m) ? 1 : 0
+    ControlGetPos(&lx, &ly, &lw, &lh, LV)
+    if !base
+        base := lh
+    rh := Round(29 * A_ScreenDPI / 96)                           ; row height (check box image)
+    if LV.GetCount() {
+        rc := Buffer(16, 0)
+        SendMessage(0x100E, 0, rc, LV)                            ; LVM_GETITEMRECT of the first row
+        rh := NumGet(rc, 12, "Int") - NumGet(rc, 4, "Int")
+    }
+    want := Max(base, n * rh + 4)
+    if !DllCall("IsWindowVisible", "Ptr", Main.Hwnd)              ; (before the first Show the window has no real size)
+        return FitCols()
+    WinGetPos(&wx, &wy, &ww, &wh, Main.Hwnd)
+    mt := 0, mb := A_ScreenHeight
+    loop MonitorGetCount() {
+        MonitorGetWorkArea(A_Index, &a, &t, &r, &b2)
+        if (wx + ww // 2 >= a && wx + ww // 2 < r && wy + 10 >= t && wy + 10 < b2)
+            mt := t, mb := b2
+    }
+    want := Min(want, lh + (mb - mt) - wh)                          ; the whole window fits on the screen
+    d := want - lh
+    if (Abs(d) >= 2) {
+        for hwnd, c in Main {
+            ControlGetPos(&cx, &cy, , , c)
+            if (cy > ly + 4)                                       ; below the top of the list: move with its bottom
+                ControlMove(, cy + d, , , c)
+        }
+        ControlMove(, , , lh + d, LV)
+        ny := (wy + wh + d > mb) ? Max(mt, mb - wh - d) : wy      ; no room below: the window moves up
+        WinMove(, ny, , wh + d, Main.Hwnd)
+        if LibGui
+            LibPlace()
+    }
+    FitCols()
+}
+
+; the last column takes the width that is left: no horizontal scroll bar when the vertical one shows
+; (the rows are drawn by OnLvDraw, which does not follow a horizontal scroll - the check boxes got smeared)
+FitCols() {
+    cl := Buffer(16)
+    DllCall("GetClientRect", "Ptr", LV.Hwnd, "Ptr", cl)
+    used := 0
+    loop 4
+        used += SendMessage(0x101D, A_Index - 1, 0, LV)        ; LVM_GETCOLUMNWIDTH
+    SendMessage(0x101E, 4, Max(30, NumGet(cl, 8, "Int") - used), LV)       ; LVM_SETCOLUMNWIDTH
 }
 
 SearchHit(m, words) {
@@ -4875,8 +4931,40 @@ OpenLibrary() {
     LibOpen := true
     LibGui.Show("NA")                       ; (the first Show centres the window on the screen - placed right after)
     LibPlace()
-    if !LibItems.Length
+    if !LibItems.Length {
         LibLoad()
+        if (LibWho != "mine") {             ; once: which macros of the list are shared (share icons)
+            j := LibCall("GET", "?who=mine&sort=new")
+            if !j.Has("error")
+                LibSyncShared(j["items"], !j["more"])
+        }
+    }
+}
+
+; marks the macros of the list that are in the library (gold share icon) by comparing what is shared;
+; complete = these are all my shared macros: a macro whose library entry is gone loses the mark
+LibSyncShared(items, complete) {
+    ids := Map(), byData := Map()
+    for it in items {
+        ids[String(it["id"])] := true
+        if it.Has("data")
+            byData[JsonStr(it["data"])] := it["id"]
+    }
+    changed := false
+    for m in Macros {
+        if (m["type"] = "script")
+            continue
+        if (m["libshare"] = "") {
+            k := JsonStr(LibData(m))
+            if byData.Has(k)
+                m["libshare"] := byData[k], changed := true
+        } else if (complete && !ids.Has(String(m["libshare"])))
+            m["libshare"] := "", changed := true
+    }
+    if changed {
+        Save()
+        RedrawList()
+    }
 }
 
 CloseLibrary(*) {
@@ -4912,11 +5000,29 @@ LibPlace() {
     }
     x := (R + w <= mr || L - w < ml) ? R : L - w
     DllCall("SetWindowPos", "Ptr", LibGui.Hwnd, "Ptr", 0, "Int", x, "Int", T, "Int", w, "Int", B - T, "UInt", 0x14)   ; NOZORDER | NOACTIVATE
+    LibFit(B - T)
+}
+
+; the main window got taller / shorter (FitList): the list of the panel too, the parts below it move
+LibFit(h) {
+    global LibH
+    d := h - LibH
+    LibH := h
+    if !d
+        return
+    ControlGetPos(, &ly, , &lh, LibLV)
+    for hwnd, c in LibGui {
+        ControlGetPos(&cx, &cy, , , c)
+        if (cy > ly + 4 && cy > -500)                       ; (the hidden font controls stay where they are)
+            ControlMove(, cy + d, , , c)
+    }
+    ControlMove(, , , lh + d, LibLV)
 }
 
 BuildLibrary() {
-    global LibGui, LibLV, LibSearch, LibDesc, LibInfo, LibBtn
+    global LibGui, LibLV, LibSearch, LibDesc, LibInfo, LibBtn, LibH
     MainFrame(&L, &T, &R, &B)
+    LibH := B - T                                           ; the height the layout is made for (LibFit)
     W := LibW, H := Round((B - T - 2) * 96 / A_ScreenDPI)
     g := Gui("-Caption +Border +Owner" Main.Hwnd, _T("Macro library"))
     LibGui := g
@@ -5052,6 +5158,8 @@ LibLoad(append := false) {
     for it in j["items"]
         LibItems.Push(it)
     LibMore := j["more"]
+    if (LibWho = "mine" && !append && Trim(LibSearch.Value) = "" && LibGameF = "")
+        LibSyncShared(LibItems, !LibMore)
     LibLV.Opt("-Redraw")
     LibLV.Delete()
     for it in LibItems

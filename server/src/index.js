@@ -97,7 +97,9 @@ export default {
         `SELECT m.*, m.owner = ?1 AS mine, r.stars AS my FROM macros m
          LEFT JOIN ratings r ON r.macro_id = m.id AND r.voter = ?1
          WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ?${args.length - 1} OFFSET ?${args.length}`).bind(...args).all();
-      return json({ items: results.slice(0, PAGE).map(listItem), more: results.length > PAGE });
+      // own macros come with their data: the app matches them with its list (gold share icon)
+      return json({ items: results.slice(0, PAGE).map(r => who === 'mine' ? { ...listItem(r), data: JSON.parse(r.data) } : listItem(r)),
+                    more: results.length > PAGE });
     }
 
     // ---- upload ----

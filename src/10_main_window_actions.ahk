@@ -286,6 +286,61 @@ Refresh() {
     for m in View
         LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]), "")
     Populating := false
+    FitList()
+}
+
+; the list grows with the macros of the profile (down to the bottom of the screen), so it needs no scroll bar;
+; the window grows with it, everything below the list moves down. Never smaller than at the start.
+FitList() {
+    static base := 0
+    n := 0
+    for m in Macros
+        n += InProfile(m) ? 1 : 0
+    ControlGetPos(&lx, &ly, &lw, &lh, LV)
+    if !base
+        base := lh
+    rh := Round(29 * A_ScreenDPI / 96)                           ; row height (check box image)
+    if LV.GetCount() {
+        rc := Buffer(16, 0)
+        SendMessage(0x100E, 0, rc, LV)                            ; LVM_GETITEMRECT of the first row
+        rh := NumGet(rc, 12, "Int") - NumGet(rc, 4, "Int")
+    }
+    want := Max(base, n * rh + 4)
+    if !DllCall("IsWindowVisible", "Ptr", Main.Hwnd)              ; (before the first Show the window has no real size)
+        return FitCols()
+    WinGetPos(&wx, &wy, &ww, &wh, Main.Hwnd)
+    mt := 0, mb := A_ScreenHeight
+    loop MonitorGetCount() {
+        MonitorGetWorkArea(A_Index, &a, &t, &r, &b2)
+        if (wx + ww // 2 >= a && wx + ww // 2 < r && wy + 10 >= t && wy + 10 < b2)
+            mt := t, mb := b2
+    }
+    want := Min(want, lh + (mb - mt) - wh)                          ; the whole window fits on the screen
+    d := want - lh
+    if (Abs(d) >= 2) {
+        for hwnd, c in Main {
+            ControlGetPos(&cx, &cy, , , c)
+            if (cy > ly + 4)                                       ; below the top of the list: move with its bottom
+                ControlMove(, cy + d, , , c)
+        }
+        ControlMove(, , , lh + d, LV)
+        ny := (wy + wh + d > mb) ? Max(mt, mb - wh - d) : wy      ; no room below: the window moves up
+        WinMove(, ny, , wh + d, Main.Hwnd)
+        if LibGui
+            LibPlace()
+    }
+    FitCols()
+}
+
+; the last column takes the width that is left: no horizontal scroll bar when the vertical one shows
+; (the rows are drawn by OnLvDraw, which does not follow a horizontal scroll - the check boxes got smeared)
+FitCols() {
+    cl := Buffer(16)
+    DllCall("GetClientRect", "Ptr", LV.Hwnd, "Ptr", cl)
+    used := 0
+    loop 4
+        used += SendMessage(0x101D, A_Index - 1, 0, LV)        ; LVM_GETCOLUMNWIDTH
+    SendMessage(0x101E, 4, Max(30, NumGet(cl, 8, "Int") - used), LV)       ; LVM_SETCOLUMNWIDTH
 }
 
 SearchHit(m, words) {
