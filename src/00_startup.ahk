@@ -156,6 +156,7 @@ LibWho := "others"      ; library tab: others = macros of other players, mine = 
 LibGameF := ""          ; library filter: one game ("" = all)
 LibGames := []          ; games used in the library (game filter, share form)
 LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
+LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
 
@@ -293,5 +294,7 @@ Main.Show()
 FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
+SetTimer(() => LibCheckUpdates(), -8000)    ; new versions of macros downloaded from Macro Hub
+SetTimer(LibCheckUpdates, 1800000)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return

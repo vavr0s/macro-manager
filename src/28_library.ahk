@@ -86,7 +86,7 @@ OpenLibrary() {
 LibSyncShared(items, complete) {
     ids := Map(), byData := Map()
     for it in items {
-        ids[String(it["id"])] := true
+        ids[String(it["id"])] := it
         if it.Has("data")
             byData[JsonStr(it["data"])] := it["id"]
     }
@@ -97,9 +97,11 @@ LibSyncShared(items, complete) {
         if (m["libshare"] = "") {
             k := JsonStr(LibData(m))
             if byData.Has(k)
-                m["libshare"] := byData[k], changed := true
+                m["libshare"] := byData[k], m["libsharehash"] := LibHash(m), changed := true
         } else if (complete && !ids.Has(String(m["libshare"])))
-            m["libshare"] := "", changed := true
+            m["libshare"] := "", m["libsharehash"] := "", changed := true
+        else if (m["libsharehash"] = "" && ids.Has(String(m["libshare"])) && ids[String(m["libshare"])].Has("data"))
+            m["libsharehash"] := LibHashData(ids[String(m["libshare"])]["data"]), changed := true    ; shared before 1.22.7
     }
     if changed {
         Save()
@@ -340,6 +342,8 @@ LibShowSel() {
     t := TypeLabel(it["type"]) "  ·  " _T("Key") ": " (it["hotkey"] = "" ? Chr(0x2014) : it["hotkey"])
     t .= "  ·  " (it["mine"] ? _T("your macro") : _T("by {1}", it["author"]))
     t := (it["game"] = "" ? "" : it["game"] "  ·  ") t
+    if (it.Has("updated") && it["updated"])
+        t .= "  ·  " _T("updated {1}", LibDate(it["updated"]))
     if it["hidden"]
         t .= "  ·  " _T("hidden after reports")
     else if (!it["mine"] && it["my"])
@@ -467,9 +471,10 @@ LibDownload() {
         m["hotkey"] := "undefined"
     m["name"] := LibFreeName(j["name"])
     if it["mine"]                                               ; my own macro back from the library: shared (gold icon)
-        m["libshare"] := it["id"]
+        m["libshare"] := it["id"], m["libsharehash"] := LibHash(m)
     else                                                        ; someone else's: not shared again unchanged
         m["libsrc"] := it["id"], m["libsrcby"] := it["author"], m["libsrchash"] := LibHash(m)
+            , m["libsrcver"] := j.Has("version") ? j["version"] : 1
     m["profiles"] := CurProfile
     m["enabled"] := 0
     m["tkey"] := "", m["file"] := "", m["trusted"] := 1
@@ -560,8 +565,9 @@ LibDelete() {
 }
 
 ; fingerprint of what a macro shares (CRC32 of its library data)
-LibHash(m) {
-    s := JsonStr(LibData(m))
+LibHash(m) => LibHashData(LibData(m))
+LibHashData(d) {
+    s := JsonStr(d)
     buf := Buffer(StrPut(s, "UTF-8"))
     n := StrPut(s, buf, "UTF-8") - 1
     return Format("{:08x}", DllCall("ntdll\RtlComputeCrc32", "UInt", 0, "Ptr", buf, "UInt", n, "UInt"))
@@ -570,6 +576,9 @@ LibHash(m) {
 ; downloaded from the library and not changed since: it can't be shared (it is someone else's macro)
 LibFromLib(m) => (m["libsrc"] != "" && m["libsrchash"] = LibHash(m))
 
+; shared by me and changed since (Macro Hub still has the old version)
+LibSharedChanged(m) => (m["libshare"] != "" && m["libsharehash"] != "" && m["type"] != "script" && m["libsharehash"] != LibHash(m))
+
 ; ---- sharing: the share icon at the end of a row in the main list ----
 LibShareMacro(m) {
     global LibAuthor, LibGame, LibSort, LibWho
@@ -577,17 +586,21 @@ LibShareMacro(m) {
         return
     if (m["type"] = "script")
         return ThemedNote(_T("Script macros can't be shared - only Move + actions and Sequence macros."), , true)
+    if LibNew.Has(m)                                            ; downloaded, and its author has a newer version
+        return LibShowUpdate(m)
     if LibFromLib(m)
         return ThemedNote(_T("`"{1}`" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.", m["name"], m["libsrcby"]), _T("Share macro"))
-    if (m["libshare"] != "" && ThemedAsk(_T("Share macro"), _T("Already shared"), _T("`"{1}`" is already in Macro Hub. Share it again as a new entry (for example after you changed it)? You can delete the old one under My macros.", m["name"]), [[_T("Share again"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]], false) != "yes")
-        return
+    if LibSharedChanged(m)
+        return LibOfferUpdate(m)
+    if (m["libshare"] != "")
+        return ThemedNote(_T("`"{1}`" is in Macro Hub and up to date. When you change it, you can update it there.", m["name"]), _T("Share macro"))
     f := LibShareForm(m)
     if !f
         return
     j := LibCall("POST", "", Map("name", f["name"], "descr", f["descr"], "author", f["author"], "game", f["game"], "data", LibData(m)))
     if (j.Has("error") && j["error"] = "duplicate") {          ; exactly this macro is in the library already
         if j["mine"] {
-            m["libshare"] := j["id"]
+            m["libshare"] := j["id"], m["libsharehash"] := LibHash(m)
             Save()
             RedrawList()
             return ThemedNote(_T("You have already shared this macro as `"{1}`". Change it to share a new version.", j["name"]), _T("Share macro"))
@@ -596,7 +609,7 @@ LibShareMacro(m) {
     }
     if j.Has("error")
         return ThemedNote(LibErr(j["error"]), , true)
-    m["libshare"] := j["id"]
+    m["libshare"] := j["id"], m["libsharehash"] := LibHash(m)
     LibAuthor := f["author"], LibGame := f["game"]
     Save()
     RedrawList()
@@ -610,6 +623,196 @@ LibShareMacro(m) {
     }
     ThemedNote(_T("Thank you for sharing! `"{1}`" is now in Macro Hub.", f["name"]))
 }
+
+; ---- my shared macro was changed: update it in Macro Hub (ratings and downloads stay) ----
+LibOfferUpdate(m) {
+    if !(IndexOf(m) && LibSharedChanged(m))
+        return
+    if (ThemedAsk(_T("Macro Hub"), _T("Update in Macro Hub?"), _T("`"{1}`" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice.", m["name"]), [[_T("Not now"), "", "btn"], [_T("Update"), "yes", "btnprimary"]], false) = "yes")
+        LibUpdateShared(m)
+    else
+        RedrawList()                                            ; the share icon keeps its dot: it can be updated later
+}
+
+LibUpdateShared(m) {
+    j := LibCall("PUT", "/" m["libshare"], Map("data", LibData(m)))
+    if (j.Has("error") && j["error"] = "duplicate")
+        return ThemedNote(_T("This macro is already in Macro Hub as `"{1}`" by {2}. Change it first - for example a delay or a key - and then share your own version.", j["name"], j["author"]), _T("Macro Hub"), true)
+    if (j.Has("error") && (j["error"] = "not_found" || j["error"] = "not_owner")) {     ; deleted from Macro Hub meanwhile
+        m["libshare"] := "", m["libsharehash"] := ""
+        Save()
+        RedrawList()
+        return ThemedNote(_T("`"{1}`" is no longer in Macro Hub. Share it again with the share icon.", m["name"]), _T("Macro Hub"), true)
+    }
+    if j.Has("error")
+        return ThemedNote(LibErr(j["error"]), , true)
+    m["libsharehash"] := LibHash(m)
+    Save()
+    RedrawList()
+    if (LibGui && DllCall("IsWindowVisible", "Ptr", LibGui.Hwnd) && LibWho = "mine")
+        LibLoad()
+    Toast(_T("`"{1}`" is updated in Macro Hub.", m["name"]), 2500)
+}
+
+; ---- macros downloaded from Macro Hub: did their authors update them? ----
+LibCheckUpdates() {
+    static told := Map()                                        ; versions already announced in this session
+    ids := ""
+    for m in Macros
+        if (m["libsrc"] != "" && m["type"] != "script")
+            ids .= (ids = "" ? "" : ",") m["libsrc"]
+    if (ids = "")
+        return
+    j := LibCall("GET", "", "", RegExReplace(LibApi, "macros$", "versions") "?ids=" ids)
+    if (j.Has("error") || !j.Has("items"))
+        return
+    byId := Map()
+    for it in j["items"]
+        byId[String(it["id"])] := it
+    LibNew.Clear()
+    fresh := []
+    for m in Macros {
+        if (m["libsrc"] = "" || !byId.Has(String(m["libsrc"])))
+            continue
+        it := byId[String(m["libsrc"])]
+        if (it["version"] > Num(m["libsrcver"] = "" ? 1 : m["libsrcver"]) && it["data"]["type"] != "script") {
+            LibNew[m] := it
+            if !told.Has(it["id"] "/" it["version"])
+                fresh.Push(m), told[it["id"] "/" it["version"]] := true
+        }
+    }
+    RedrawList()
+    if fresh.Length
+        TrayTip(fresh.Length = 1 ? _T("`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes.", fresh[1]["name"])
+            : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "Macro Manager", 0x24)
+}
+
+; the new version of a downloaded macro: what changed, take it or keep mine
+LibShowUpdate(m) {
+    if !LibNew.Has(m)
+        return
+    it := LibNew[m]
+    mine := m["libsrchash"] != LibHash(m)                       ; the user changed the downloaded macro himself
+    done := false, res := ""
+    oh := DlgOwner()
+    g := Gui((oh ? "+Owner" oh " " : "") "+ToolWindow +AlwaysOnTop", _T("Macro Hub"))
+    g.SetFont("s10 bold", "Segoe UI")
+    hc := DlgText(g, "x16 y14 w528", _T("New version of `"{1}`" by {2}", m["name"], it["author"]) (it["updated"] ? " (" LibDate(it["updated"]) ")" : ""))
+    hc.GetPos(, &hy, , &hh)
+    y := hy + hh + 6
+    g.SetFont("s9 norm", "Segoe UI")
+    if mine {
+        wc := DlgText(g, "x16 y" y " w528", _T("You changed this macro yourself - updating replaces your changes with the new version."))
+        wc.GetPos(, &wy, , &wh)
+        y := wy + wh + 6
+    }
+    g.AddText("x16 y" y " w528", _T("Changes (yours → new):"))
+    g.SetFont("s10 norm", "Consolas")
+    ed := g.AddEdit("x16 y" (y + 20) " w528 h220 Multi ReadOnly", StrReplace(LibDiff(LibData(m), it["data"]), "`n", "`r`n"))
+    Roles[ed.Hwnd] := "code"
+    g.SetFont("s9 norm", "Segoe UI")
+    btnY := y + 20 + 220 + 16
+    Pick(v, *) {
+        res := v
+        Close()
+    }
+    Close(*) {
+        if done
+            return
+        done := true
+        if oh
+            DllCall("EnableWindow", "Ptr", oh, "Int", 1)
+        g.Destroy()
+    }
+    AddBtn(g, "x184 y" btnY " w110 h32", _T("Later"), Close)
+    AddBtn(g, "x304 y" btnY " w110 h32", _T("Keep mine"), Pick.Bind("keep"))
+    AddBtn(g, "x424 y" btnY " w120 h32", _T("Update"), Pick.Bind("update"), "btnprimary")
+    g.OnEvent("Close", Close)
+    g.OnEvent("Escape", Close)
+    ApplyTheme(g)
+    if oh
+        DllCall("EnableWindow", "Ptr", oh, "Int", 0)
+    ShowOver(g, "w560 h" (btnY + 46), oh)
+    SendMessage(0xB1, 0, 0, ed)                                 ; EM_SETSEL: nothing selected
+    while !done
+        Sleep 50
+    if (res = "")
+        return
+    if (res = "update") {
+        d := it["data"]
+        for k in ["type", "hotkey", "app", "dirs", "actions", "seq", "press", "g1", "g2", "g3", "ge", "repeat", "exact"]
+            if d.Has(k)
+                m[k] := (k ~= "^(g\d|ge|repeat|exact)$") ? Integer(Num(d[k])) : String(d[k])
+        if (Trim(m["hotkey"]) = "")
+            m["hotkey"] := "undefined"
+        m["libsrchash"] := LibHash(m)
+    }
+    m["libsrcver"] := it["version"]                             ; this version is dealt with (also "keep mine")
+    LibNew.Delete(m)
+    Save()
+    Apply()
+    Refresh()
+    if (res = "update")
+        Toast(_T("`"{1}`" is updated to the new version.", m["name"]), 2500)
+}
+
+; what differs between two versions of a macro, one line per change; a sequence line by line (- removed, + added)
+LibDiff(a, b) {
+    out := ""
+    lab := Map("type", _T("Type"), "hotkey", _T("Trigger key"), "press", _T("Press"), "repeat", _T("Run"), "app", _T("Only in app (exe)")
+        , "dirs", _T("Directions (optional)"), "actions", _T("Actions in order"), "exact", _T("Exact delays"))
+    Val(k, v) {
+        switch k {
+            case "type": return TypeLabel(v)
+            case "press": return v = "tap" ? _T("Short tap") : v = "double" ? _T("Double tap") : v = "hold" ? _T("Long press") : _T("Normal")
+            case "repeat": return v ? _T("Repeat while key is held") : _T("Once per key press")
+            case "exact": return v ? _T("ON") : _T("OFF")
+        }
+        return v = "" ? Chr(0x2014) : v
+    }
+    for k in ["type", "hotkey", "press", "repeat", "app", "dirs", "actions"]
+        if (a[k] != b[k])
+            out .= lab[k] ":`n    " Val(k, a[k]) "  →  " Val(k, b[k]) "`n"
+    for i, k in ["g1", "g2", "g3", "ge"]
+        if (a[k] != b[k])
+            out .= _T("Delays (ms)") " " i ":  " a[k] "  →  " b[k] "`n"
+    if (a["exact"] != b["exact"])
+        out .= lab["exact"] ":  " Val("exact", a["exact"]) "  →  " Val("exact", b["exact"]) "`n"
+    if (a["seq"] != b["seq"]) {
+        out .= _T("Sequence") ":`n"
+        x := StrSplit(a["seq"], "|"), y := StrSplit(b["seq"], "|")
+        ; longest common subsequence: unchanged lines stay, the others are marked
+        n := x.Length, mm := y.Length
+        L := []
+        loop n + 1 {
+            row := []
+            loop mm + 1
+                row.Push(0)
+            L.Push(row)
+        }
+        i := n
+        while (i >= 1) {
+            j := mm
+            while (j >= 1) {
+                L[i][j] := (x[i] = y[j]) ? L[i + 1][j + 1] + 1 : Max(L[i + 1][j], L[i][j + 1])
+                j--
+            }
+            i--
+        }
+        i := 1, j := 1
+        while (i <= n || j <= mm) {
+            if (i <= n && j <= mm && x[i] = y[j])
+                out .= "    " x[i] "`n", i++, j++
+            else if (i <= n && (j > mm || L[i + 1][j] >= L[i][j + 1]))
+                out .= "  - " x[i] "`n", i++                       ; removed lines first, then the added ones
+            else
+                out .= "  + " y[j] "`n", j++
+        }
+    }
+    return out = "" ? _T("(no difference)") : RTrim(out, "`n")
+}
+
+LibDate(unix) => FormatTime(DateAdd("19700101000000", unix, "Seconds"), "ShortDate")
 
 ; what is shared of a macro (not its toggle key, profiles or on / off state)
 LibData(m) {

@@ -15,9 +15,11 @@ CREATE TABLE IF NOT EXISTS macros (
   downloads  INTEGER NOT NULL DEFAULT 0,
   reports    INTEGER NOT NULL DEFAULT 0,
   hidden     INTEGER NOT NULL DEFAULT 0,  -- 1 = hidden after reports, 2 = removed by the admin, -1 = approved (no auto-hide)
-  game       TEXT    NOT NULL DEFAULT ''  -- game tag (filter and search)
+  game       TEXT    NOT NULL DEFAULT '', -- game tag (filter and search)
+  updated    INTEGER NOT NULL DEFAULT 0,  -- unix seconds of the author's last update (0 = never)
+  version    INTEGER NOT NULL DEFAULT 1   -- +1 with every update (apps compare it with what they downloaded)
 );
--- databases made before the game tag: migrations/0002_game.sql
+-- databases made before these columns: migrations/0002_game.sql, 0003_versions.sql
 CREATE INDEX IF NOT EXISTS macros_owner ON macros(owner);
 CREATE TABLE IF NOT EXISTS ratings   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, stars INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS reports   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, reason TEXT NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));

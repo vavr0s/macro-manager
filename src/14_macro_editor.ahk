@@ -239,6 +239,8 @@ EditMacro(idx) {
         Refresh()
         if (m["enabled"] && (other := KeyClash(m)))
             Toast(_T("Same trigger key as `"{1}`" - only one of them works", other["name"]))
+        if LibSharedChanged(m)                          ; shared in Macro Hub and changed now: update it there?
+            SetTimer(LibOfferUpdate.Bind(m), -150)
     }
 
     ; exact delays: on for new macros; older macros keep their timing until this is switched on

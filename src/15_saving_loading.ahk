@@ -3,7 +3,8 @@ Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
         "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "",     ; libshare = its id in the macro library once shared
-        "libsrc", "", "libsrcby", "", "libsrchash", "")    ; downloaded from the library: id, author, fingerprint of what was downloaded
+        "libsharehash", "",                                 ; fingerprint of what was shared (changed since: offer an update)
+        "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "")   ; downloaded from the library: id, author, fingerprint, version
 }
 
 ; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),

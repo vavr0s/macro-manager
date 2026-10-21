@@ -495,12 +495,20 @@ OnLvDraw(ctrl, lp) {
                     , "UInt", 0, "UInt", 0, "UInt", 0, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 5, "UInt", 0, "Str", "Segoe MDL2 Assets", "Ptr")
             old := DllCall("SelectObject", "Ptr", hdc, "Ptr", icoFont, "Ptr")
             DllCall("SetBkMode", "Ptr", hdc, "Int", 1)
-            fromLib := LibFromLib(m)                          ; downloaded, unchanged: a dim download arrow instead
-            DllCall("SetTextColor", "Ptr", hdc, "UInt", fromLib ? (DarkOn ? 0x80736E : 0xAAA0A0)
-                : m["libshare"] != "" ? 0x6BAED0 : (DarkOn ? 0x9C8F8A : 0x867A7A))   ; (BGR: dim / gold / grey)
+            ; green arrow = its author has a new version / dim arrow = downloaded, unchanged /
+            ; gold = shared (with a dot: changed since, can be updated in Macro Hub) / grey = not shared
+            newer := LibNew.Has(m), fromLib := !newer && LibFromLib(m), dot := !newer && !fromLib && LibSharedChanged(m)
+            DllCall("SetTextColor", "Ptr", hdc, "UInt", newer ? 0x5AB91F : fromLib ? (DarkOn ? 0x80736E : 0xAAA0A0)
+                : m["libshare"] != "" ? 0x6BAED0 : (DarkOn ? 0x9C8F8A : 0x867A7A))   ; (BGR: green / dim / gold / grey)
             NumPut("Int", x0, "Int", top, "Int", x0 + w, "Int", bot, r)
-            DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(fromLib ? 0xE896 : 0xE72D), "Int", 1, "Ptr", r, "UInt", 0x825)   ; centred
+            DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(newer || fromLib ? 0xE896 : 0xE72D), "Int", 1, "Ptr", r, "UInt", 0x825)   ; centred
             DllCall("SelectObject", "Ptr", hdc, "Ptr", old)
+            if (dot && GdipOn()) {
+                gr := GrOn(hdc)
+                ds := 7 * A_ScreenDPI / 96
+                FillRound(gr, x0 + w / 2 + 6 * A_ScreenDPI / 96, top + (bot - top) / 2 - 10 * A_ScreenDPI / 96, ds, ds, ds, "F2C94C")
+                DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+            }
         }
         return 4
     }

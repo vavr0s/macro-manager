@@ -47,8 +47,20 @@ function listItem(r) {
   return {
     id: r.id, name: r.name, descr: r.descr, author: r.author, game: r.game, type: r.type, hotkey: r.hotkey, hidden: r.hidden > 0 ? 1 : 0,
     rating: r.rating_cnt ? Math.round(r.rating_sum / r.rating_cnt * 100) / 100 : 0, count: r.rating_cnt,
-    downloads: r.downloads, created: r.created, mine: r.mine ? 1 : 0, my: r.my || 0,
+    downloads: r.downloads, created: r.created, updated: r.updated, version: r.version, mine: r.mine ? 1 : 0, my: r.my || 0,
   };
+}
+
+// the shared fields of a macro, checked: [data] or [null, error]
+function macroData(d) {
+  if (!d || typeof d !== 'object') return [null, 'bad_macro'];
+  const data = {};
+  for (const [k, ok] of Object.entries(FIELDS)) {
+    if (!(k in d) || !ok(d[k])) return [null, 'bad_macro:' + k];
+    data[k] = d[k];
+  }
+  if (data.type === 'seq' ? !data.seq.trim() : !data.actions.trim()) return [null, 'bad_macro:empty'];
+  return [data];
 }
 
 export default {
@@ -61,6 +73,14 @@ export default {
         `SELECT MIN(game) AS game, COUNT(*) AS n FROM macros WHERE hidden <= 0 AND game <> ''
          GROUP BY LOWER(game) ORDER BY n DESC, game LIMIT 100`).all();
       return json({ games: results.map(r => ({ game: r.game, count: r.n })) });
+    }
+    // current versions of macros (the app asks for the ones it downloaded: an author may have updated them)
+    if (parts[0] === 'v1' && parts[1] === 'versions' && !parts[2] && req.method === 'GET') {
+      const ids = [...new Set((url.searchParams.get('ids') || '').split(',').map(Number).filter(n => Number.isInteger(n) && n > 0))].slice(0, 200);
+      if (!ids.length) return json({ items: [] });
+      const { results } = await env.DB.prepare(
+        `SELECT id, name, author, version, updated, data FROM macros WHERE hidden <= 0 AND id IN (${ids.map(() => '?').join(',')})`).bind(...ids).all();
+      return json({ items: results.map(r => ({ id: r.id, name: r.name, author: r.author, version: r.version, updated: r.updated, data: JSON.parse(r.data) })) });
     }
     if (parts[0] !== 'v1' || parts[1] !== 'macros')
       return fail('not_found', 404);
@@ -112,14 +132,8 @@ export default {
       // the same game written the same way as in the library already ("4story" -> "4Story")
       const known = await db.prepare("SELECT game FROM macros WHERE LOWER(game) = LOWER(?1) AND hidden <= 0 GROUP BY game ORDER BY COUNT(*) DESC LIMIT 1").bind(game).first();
       if (known) game = known.game;
-      const d = b.data;
-      if (!d || typeof d !== 'object') return fail('bad_macro');
-      const data = {};
-      for (const [k, ok] of Object.entries(FIELDS)) {
-        if (!(k in d) || !ok(d[k])) return fail('bad_macro:' + k);
-        data[k] = d[k];
-      }
-      if (data.type === 'seq' ? !data.seq.trim() : !data.actions.trim()) return fail('bad_macro:empty');
+      const [data, bad] = macroData(b.data);
+      if (bad) return fail(bad);
       // the same macro (same keys, delays and settings - the name does not count) is in the library already:
       // downloaded macros are not shared again unchanged, and nobody shares the same macro twice
       const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 LIMIT 1').bind(JSON.stringify(data)).first();
@@ -153,7 +167,24 @@ export default {
     if (req.method === 'POST' && action === 'download') {
       const r = await db.prepare('INSERT OR IGNORE INTO downloads (macro_id, voter) VALUES (?1, ?2)').bind(id, voter).run();
       if (r.meta.changes) await db.prepare('UPDATE macros SET downloads = downloads + 1 WHERE id = ?1').bind(id).run();
-      return json({ name: m.name, data: JSON.parse(m.data), counted: r.meta.changes ? 1 : 0 });
+      return json({ name: m.name, data: JSON.parse(m.data), version: m.version, counted: r.meta.changes ? 1 : 0 });
+    }
+
+    // ---- the author updates the macro (only what it does - name, description, game, ratings and downloads stay) ----
+    if (req.method === 'PUT' && !action) {
+      if (m.owner !== voter) return fail('not_owner', 403);
+      let b;
+      try { b = await req.json(); } catch { return fail('bad_json'); }
+      const [data, bad] = macroData(b.data);
+      if (bad) return fail(bad);
+      const s = JSON.stringify(data);
+      if (s === m.data) return json({ id, version: m.version, updated: m.updated, unchanged: 1 });
+      const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 AND id <> ?2 LIMIT 1').bind(s, id).first();
+      if (dup) return json({ error: 'duplicate', id: dup.id, name: dup.name, author: dup.author, mine: dup.owner === voter ? 1 : 0 }, 409);
+      const t = now();
+      await db.prepare('UPDATE macros SET data = ?1, type = ?2, hotkey = ?3, updated = ?4, version = version + 1 WHERE id = ?5')
+        .bind(s, data.type, data.hotkey, t, id).run();
+      return json({ id, version: m.version + 1, updated: t });
     }
 
     // ---- rating 1-5, one per install (can be changed), not for your own macro ----
