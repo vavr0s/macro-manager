@@ -6,24 +6,27 @@ ToggleAutoUpd(*) {
     Save()
 }
 
-; HTTP GET that waits with Sleep instead of blocking: hotkeys and running macros keep working meanwhile.
-; returns Map(status, text, etag[, body]) or 0 (error / timeout)
-HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false) {
+; HTTP request that waits with Sleep instead of blocking: hotkeys and running macros keep working meanwhile.
+; returns Map(status, text, etag[, body]) or 0 (error / timeout).  body: text to send (POST), plain ASCII
+HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false, method := "GET", body := "") {
     r := 0
     try {
         r := ComObject("Msxml2.ServerXMLHTTP.6.0")          ; WinHTTP based, asynchronous, no browser cache
         r.setTimeouts(3000, 3000, 8000, 15000)
-        r.open("GET", url, true)
+        r.open(method, url, true)
     } catch {
         r := 0
     }
     if !r
-        return HttpSendSync(url, hdrs, wantBody)
+        return HttpSendSync(url, hdrs, wantBody, method, body)
     try {
         r.setRequestHeader("User-Agent", "MacroManager")
         for k, v in hdrs
             r.setRequestHeader(k, v)
-        r.send()
+        if (body = "")
+            r.send()
+        else
+            r.send(body)
         t0 := A_TickCount
         while (r.readyState != 4) {
             if (A_TickCount - t0 > timeoutMs) {
@@ -44,15 +47,18 @@ HttpSend(url, hdrs, timeoutMs := 8000, wantBody := false) {
 }
 
 ; fallback when MSXML is missing: the old blocking WinHttp request
-HttpSendSync(url, hdrs, wantBody) {
+HttpSendSync(url, hdrs, wantBody, method := "GET", body := "") {
     try {
         r := ComObject("WinHttp.WinHttpRequest.5.1")
         r.SetTimeouts(3000, 3000, 8000, 15000)
-        r.Open("GET", url, false)
+        r.Open(method, url, false)
         r.SetRequestHeader("User-Agent", "MacroManager")
         for k, v in hdrs
             r.SetRequestHeader(k, v)
-        r.Send()
+        if (body = "")
+            r.Send()
+        else
+            r.Send(body)
         res := Map("status", r.Status, "text", "", "etag", "")
         try res["etag"] := r.GetResponseHeader("ETag")
         if wantBody
@@ -149,7 +155,12 @@ QueryUpdate() {
     if (UpdEtag != "")
         hdr["If-None-Match"] := UpdEtag
     st := 0, info := ""
-    if (A_TickCount >= apiPause)
+    ; first the Macro Hub server: it reads GitHub for everybody (GitHub's API allows only 60 questions an hour per
+    ; internet address - a few apps behind one connection used them up); GitHub itself when the server can't answer
+    r := HttpSend(UpdServer "/version?branch=" UpdBranch, Map("Cache-Control", "no-cache"))
+    if (r && r["status"] = 200 && InStr(r["text"], '"sha256"'))
+        info := r["text"]
+    if (info = "" && A_TickCount >= apiPause)
         info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
     if (st = 403 || st = 429)
         apiPause := A_TickCount + 1800000          ; 30 minutes (the limit resets within the hour)
@@ -157,7 +168,7 @@ QueryUpdate() {
         info := UpdBody
     else if (st = 200 && info != "")
         UpdEtag := et, UpdBody := info
-    else
+    else if (info = "")
         info := HttpGet(UpdateUrl "?t=" A_TickCount)      ; API unavailable or rate limited: use the (cached) raw file
     if (!RegExMatch(info, '"version"\s*:\s*"([^"]+)"', &mv)
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
@@ -318,8 +329,12 @@ InstallUpdate() {
     url := UpdInfo["url"], sha := UpdInfo["sha"]
     tmp := A_Temp "\MacroManager-update.ahk"
     try FileDelete tmp
-    if !GhDownload("Macro%20Manager.ahk", tmp)
-        try Download(url "?t=" A_TickCount, tmp)
+    try Download(UpdServer "/file?branch=" UpdBranch "&t=" A_TickCount, tmp)           ; the Macro Hub server (no GitHub limit) ...
+    if (!FileExist(tmp) || Sha256(tmp) != sha) {
+        try FileDelete tmp
+        if !GhDownload("Macro%20Manager.ahk", tmp)                   ; ... else GitHub directly
+            try Download(url "?t=" A_TickCount, tmp)
+    }
     if !FileExist(tmp) {
         ThemedNote(_T("The download failed. Try again later."), _T("Updates"), true)
         return

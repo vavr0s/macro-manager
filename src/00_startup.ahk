@@ -4,7 +4,7 @@
 ;@Ahk2Exe-SetProductName Macro Manager
 ;@Ahk2Exe-SetInternalName Macro Manager
 ;@Ahk2Exe-SetOrigFilename Macro Manager.exe
-;@Ahk2Exe-SetCompanyName VAVROS
+;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion 1.0.0
 ;@Ahk2Exe-UpdateManifest 1
 #SingleInstance Force
@@ -100,7 +100,7 @@ DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: 
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.23"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,9 +110,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "- A script macro whose script finishes by itself is now turned off (unticked) and no longer starts again whenever something in the list changes.`n- Ctrl, Alt, Shift and Win held by another program (mouse software, Steam Input, remote desktop) are no longer released by the app after a second – for example Shift on a mouse button for running."
+ReleaseNotes := "- New: Macro Hub, a shared library of macros. Open it with the Macro Hub button and it docks to the main window. You can browse other players' macros or your own, filter by game, search by name, game or author, sort, and see what a macro does (keys, delays, sequence) before you download it. Downloading adds the macro to your active profile.`n- Share a macro with the share icon in its row (you pick its game). When you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed, then take the new version or keep yours.`n- Rate macros with stars and report bad ones. Macros checked by the moderator have a gold tick and come first. Downloaded macros can't be shared again unchanged, and the same macro can't be in Macro Hub twice.`n- Without internet, Macro Hub shows No connection and tries again by itself. Changes made offline are sent once you are back online.`n- App updates now come through the Macro Hub server, so a new version shows up reliably even when several PCs share one internet connection."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "- Script makro, jehož skript sám skončí, se teď vypne (odškrtne) a už se znovu nespouští při každé změně v seznamu.`n- Ctrl, Alt, Shift a Win, které drží jiný program (software myši, Steam Input, vzdálená plocha), už aplikace po vteřině nepouští – třeba Shift na tlačítku myši pro běh.", "pl", "- Makro skryptu, którego skrypt sam się zakończy, jest teraz wyłączane (odznaczane) i nie uruchamia się ponownie przy każdej zmianie na liście.`n- Ctrl, Alt, Shift i Win przytrzymywane przez inny program (oprogramowanie myszy, Steam Input, pulpit zdalny) nie są już puszczane przez aplikację po sekundzie – na przykład Shift na przycisku myszy do biegania.", "de", "- Ein Skript-Makro, dessen Skript von selbst endet, wird jetzt ausgeschaltet (Haken entfernt) und startet nicht mehr bei jeder Änderung in der Liste neu.`n- Strg, Alt, Umschalt und Win, die ein anderes Programm gedrückt hält (Maussoftware, Steam Input, Remotedesktop), lässt die App nicht mehr nach einer Sekunde los – zum Beispiel Umschalt auf einer Maustaste zum Rennen.")
+ReleaseNotesL := Map("cs", "- Novinka: Macro Hub, sdílená knihovna maker. Otevře se tlačítkem Macro Hub a připojí se k hlavnímu oknu. Můžeš procházet makra ostatních hráčů nebo svoje, filtrovat podle hry, hledat podle názvu, hry nebo autora, řadit a ještě před stažením vidět, co makro dělá (klávesy, prodlevy, sekvenci). Stažené makro se přidá do aktivního profilu.`n- Makro nasdílíš ikonou sdílení v jeho řádku (vybereš, ke které hře patří). Když sdílené makro upravíš, aplikace se zeptá, jestli ho aktualizovat i v Macro Hubu. Hodnocení i počet stažení zůstanou.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Po kliknutí uvidíš, co se změnilo, a buď převezmeš novou verzi, nebo si necháš svou.`n- Makra můžeš hodnotit hvězdičkami a špatná nahlásit. Makra zkontrolovaná moderátorem mají zlatou fajfku a jsou na začátku. Stažené makro nejde znovu sdílet beze změny a stejné makro nemůže být v Macro Hubu dvakrát.`n- Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Změny udělané offline se odešlou, jakmile budeš zase online.`n- Aktualizace aplikace teď chodí přes server Macro Hubu, takže se nová verze spolehlivě ukáže, i když je víc počítačů na jednom připojení.", "pl", "- Nowość: Macro Hub, wspólna biblioteka makr. Otwierasz go przyciskiem Macro Hub i dokuje się do głównego okna. Możesz przeglądać makra innych graczy lub swoje, filtrować według gry, szukać po nazwie, grze lub autorze, sortować i jeszcze przed pobraniem zobaczyć, co makro robi (klawisze, opóźnienia, sekwencja). Pobrane makro trafia do aktywnego profilu.`n- Makro udostępnisz ikoną udostępniania w jego wierszu (wybierasz, do jakiej gry należy). Gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je także w Macro Hub. Oceny i liczba pobrań zostają.`n- Gdy autor zaktualizuje pobrane przez ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zmieni kolor na zielony. Kliknij ją, aby zobaczyć zmiany, i przyjmij nową wersję albo zostaw swoją.`n- Makra możesz oceniać gwiazdkami i zgłaszać złe. Makra sprawdzone przez moderatora mają złoty znaczek i są na początku. Pobranego makra nie można ponownie udostępnić bez zmian, a to samo makro nie może być w Macro Hub dwa razy.`n- Bez internetu Macro Hub pokazuje napis Brak połączenia i sam próbuje ponownie. Zmiany zrobione offline zostaną wysłane, gdy znów będziesz online.`n- Aktualizacje aplikacji przychodzą teraz przez serwer Macro Hub, więc nowa wersja pojawia się niezawodnie, nawet gdy kilka komputerów korzysta z jednego łącza.", "de", "- Neu: Macro Hub, eine gemeinsame Makro-Bibliothek. Du öffnest ihn mit der Schaltfläche Macro Hub, er dockt am Hauptfenster an. Du kannst Makros anderer Spieler oder deine eigenen durchsuchen, nach Spiel filtern, nach Name, Spiel oder Autor suchen, sortieren und schon vor dem Herunterladen sehen, was ein Makro tut (Tasten, Pausen, Ablauf). Heruntergeladene Makros landen im aktiven Profil.`n- Ein Makro teilst du mit dem Teilen-Symbol in seiner Zeile (du wählst das Spiel). Änderst du ein geteiltes Makro, fragt die App, ob es auch im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben erhalten.`n- Aktualisiert der Autor ein Makro, das du heruntergeladen hast, bekommst du eine Meldung und sein Pfeil in der Liste wird grün. Klick darauf, um die Änderungen zu sehen, und übernimm die neue Version oder behalte deine.`n- Makros kannst du mit Sternen bewerten und schlechte melden. Vom Moderator geprüfte Makros haben einen goldenen Haken und stehen oben. Heruntergeladene Makros lassen sich unverändert nicht erneut teilen, und dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Ohne Internet zeigt Macro Hub Keine Verbindung an und versucht es selbst erneut. Offline gemachte Änderungen werden gesendet, sobald du wieder online bist.`n- App-Updates kommen jetzt über den Macro-Hub-Server, sodass eine neue Version zuverlässig erscheint, auch wenn sich mehrere PCs eine Internetverbindung teilen.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -147,7 +147,21 @@ SortAsc := true
 Rec := {ih: 0, mode: "", cb: 0, down: [], chord: [], toks: [], mpend: [], btn: 0, undo: 0}
 MouseToks := ["RButton", "MButton", "XButton1", "XButton2", "WheelUp", "WheelDown", "WheelLeft", "WheelRight"]
 Procs := Map()          ; macro -> PID of running imported script
+LibApi := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/macros"     ; macro library (server/)
+UpdServer := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/app"     ; app updates through the same server
+LibId := ""             ; random id of this install for the library (macros.ini [main] libid)
+LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
+LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440, LibH := 0
+LibItems := [], LibSort := "top", LibMore := false
+LibWho := "others"      ; library tab: others = macros of other players, mine = my shared macros
+LibGameF := ""          ; library filter: one game ("" = all)
+LibGames := []          ; games used in the library (game filter, share form)
+LibGame := ""           ; game last used for sharing (macros.ini [main] libgame)
+LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (LibCheckUpdates)
+LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
+LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
+SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
@@ -210,24 +224,24 @@ eSearch := Main.AddEdit("x10 y92 w300 h26")
 eSearch.OnEvent("Change", (*) => Refresh())
 SendMessage(0x1501, 1, StrPtr(_T("Search (name, key or application)")), eSearch)     ; EM_SETCUEBANNER: grey hint text
 bClear := AddBtn(Main, "x314 y92 w28 h26", Chr(0xD7), (*) => ClearSearch(), "btn")
-hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type")]
-hdrW := [300, 150, 220, 150]
+bLib := AddBtn(Main, "x660 y92 w170 h26", _T("Macro Hub") "  " Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)
+hdrNames := [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")]
+hdrW := [270, 150, 190, 130, 80]
 hdrCtl := []
 hx := 10
 for i, nm in hdrNames {
-    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200", "  " nm)
+    h := Main.AddText("x" hx " y126 w" hdrW[i] " h28 +0x200" (i = 5 ? " Center" : ""), (i = 5 ? "" : "  ") nm)
     Roles[h.Hwnd] := "hdr"
-    h.OnEvent("Click", SortBy.Bind(i))
+    if (i < 5)                                ; (the share column is not sorted)
+        h.OnEvent("Click", SortBy.Bind(i))
     hdrCtl.Push(h)
     hx += hdrW[i]
 }
-LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type")])
+LV := Main.AddListView("x10 y154 w820 r13 -Hdr -E0x200 Checked Multi", [_T("Name"), _T("Key"), _T("Application"), _T("Type"), _T("Share")])
 LV.SetFont("s10")
 LV.Opt("+LV0x10020")                          ; LVS_EX_DOUBLEBUFFER (no flicker on repaint) + full-row select (a row can be picked / dragged anywhere)
-LV.ModifyCol(1, 300)
-LV.ModifyCol(2, 150)
-LV.ModifyCol(3, 220)
-LV.ModifyCol(4, 130)
+for i, w in hdrW
+    LV.ModifyCol(i, w)
 LV.OnNotify(-12, OnLvDraw)                   ; custom draw: themed selection, no dotted focus rectangle
 SendMessage(0x127, 0x10001, 0, LV.Hwnd)      ; WM_CHANGEUISTATE: hide focus rectangles
 bAdd := AddBtn(Main, "x10 y+14 w130 h36", _T("Add"), (*) => EditMacro(0), "btnprimary")
@@ -278,8 +292,12 @@ ModHookStart()                       ; ... except those another program holds on
 SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
+OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
 Main.Show()
+FitCols()                            ; (now that the window has its size: the last column fits, no horizontal scroll bar)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
+SetTimer(() => LibCheckUpdates(true), -8000)   ; new versions of macros downloaded from Macro Hub (also when the
+SetTimer(() => LibCheckUpdates(true), 900000)   ; window is opened and when Macro Hub is opened)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return

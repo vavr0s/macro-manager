@@ -5,6 +5,11 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
         return
     x := lParam & 0xFFFF, y := (lParam >> 16) & 0xFFFF
     hit := LvHit(x, y)
+    if (hit[1] >= 1 && hit[3] = 4 && hit[1] <= View.Length) {          ; the share icon at the end of the row
+        if (msg = 0x201 && View[hit[1]]["type"] != "script")
+            SetTimer(LibShareMacro.Bind(View[hit[1]]), -10)
+        return 0
+    }
     if (hit[1] >= 1 && x < Round(34 * A_ScreenDPI / 96)) {              ; on the check box: toggle it ourselves (every click, also fast ones)
         st := SendMessage(0x102C, hit[1] - 1, 0xF000, LV)       ; LVM_GETITEMSTATE
         on := (st >> 12) != 2
@@ -26,12 +31,12 @@ OnLvLDown(wParam, lParam, msg, hwnd) {
     SetTimer(DragTick, 15)
 }
 
-; [row (1-based, 0 = none), hit flags] for a point in list client coordinates
+; [row (1-based, 0 = none), hit flags, column (0-based)] for a point in list client coordinates
 LvHit(x, y) {
     hti := Buffer(24, 0)
     NumPut("Int", x, "Int", y, hti)
     SendMessage(0x1039, 0, hti, LV)                    ; LVM_SUBITEMHITTEST (finds the row over any column)
-    return [NumGet(hti, 12, "Int") + 1, NumGet(hti, 8, "UInt")]
+    return [NumGet(hti, 12, "Int") + 1, NumGet(hti, 8, "UInt"), NumGet(hti, 16, "Int")]
 }
 
 DragTick() {

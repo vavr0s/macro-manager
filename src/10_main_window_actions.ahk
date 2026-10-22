@@ -1,6 +1,7 @@
 ; ============ window handlers ============
 OnMainClose(*) {
     Main.Hide()
+    try LibGui.Hide()                              ; the library panel goes with it (LibOpen stays: back on Open window)
     return 1
 }
 
@@ -91,6 +92,7 @@ OnCopyBtn(*) {
         c["name"] := newName
         c["enabled"] := 0
         c["tkey"] := ""
+        c["libshare"] := ""                     ; the copy itself is not in the library
         if (src["type"] = "script") {
             c["file"] := NewScriptFile()
             try FileCopy(ScriptPath(src), ScriptPath(c), 1)
@@ -236,7 +238,8 @@ SortBy(col, *) {
         Macros[j + 1] := cur
     }
     for i, h in hdrCtl
-        h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
+        if (i < 5)
+            h.Text := "  " hdrNames[i] (i = col ? (SortAsc ? "  ▲" : "  ▼") : "")
     Save()
     Refresh()
 }
@@ -257,8 +260,12 @@ ClearSearch() {
 ; the list is repainted whenever the main window appears: after some starts its rows kept a look from before
 ; their check boxes were set - every macro was shown unticked although it was on (seen on Windows 11)
 OnMainShown(wp, lp, msg, hwnd) {
-    if (wp && hwnd = Main.Hwnd)
+    if (wp && hwnd = Main.Hwnd) {
         SetTimer(RedrawList, -100)
+        if LibOpen
+            SetTimer(OpenLibrary, -50)
+        SetTimer(() => LibCheckUpdates(), -1500)                ; new versions of downloaded Macro Hub macros
+    }
 }
 
 RedrawList() => DllCall("RedrawWindow", "Ptr", LV.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)    ; invalidate + erase + frame + children, now
@@ -272,12 +279,31 @@ Refresh() {
     LV.Delete()
     global View
     View := []
-    q := Trim(eSearch.Value)                      ; search box: name, key or application contains the text
+    ; search box: every word must be in the name, key or application ("war lctrl" = warrior macros on LCtrl)
+    words := StrSplit(Trim(RegExReplace(eSearch.Value, "\s+", " ")), " ")
     for m in Macros
-        if (InProfile(m) && (q = "" || InStr(m["name"], q) || InStr(KeyShown(m), q) || InStr(m["app"], q)))
+        if (InProfile(m) && SearchHit(m, words))
             View.Push(m)
     for m in View
-        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]))
-    LV.ModifyCol(4, "AutoHdr")                    ; last column fills the rest, so nothing stale is left on the right
+        LV.Add(m["enabled"] ? "Check" : "", m["name"], KeyShown(m) (PressEff(m) = "" ? "" : "  · " PressShort(PressEff(m))), (m["app"] = "" || m["type"] = "script") ? _T("(everywhere)") : m["app"], TypeLabel(m["type"]), "")
     Populating := false
+    FitCols()
+}
+
+; the last column takes the width that is left: no horizontal scroll bar when the vertical one shows
+; (the rows are drawn by OnLvDraw, which does not follow a horizontal scroll - the check boxes got smeared)
+FitCols() {
+    cl := Buffer(16)
+    DllCall("GetClientRect", "Ptr", LV.Hwnd, "Ptr", cl)
+    used := 0
+    loop 4
+        used += SendMessage(0x101D, A_Index - 1, 0, LV)        ; LVM_GETCOLUMNWIDTH
+    SendMessage(0x101E, 4, Max(30, NumGet(cl, 8, "Int") - used), LV)       ; LVM_SETCOLUMNWIDTH
+}
+
+SearchHit(m, words) {
+    for w in words
+        if (w != "" && !InStr(m["name"], w) && !InStr(KeyShown(m), w) && !InStr(m["app"], w))
+            return false
+    return true
 }

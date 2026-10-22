@@ -19,5 +19,5 @@ for code,fn in (('cs','TrCs'),('pl','TrPl'),('de','TrDe')):
     out.append('    return m\n}')
 out.append(END)
 s='\n'.join(out)+'\n'
-open(P,'w',encoding='utf-8').write(s)
+open(P,'w',encoding='utf-8',newline='\n').write(s)
 print('tables written',len(keys))

@@ -12,6 +12,8 @@ OnDarkToggle(*) {
     Save()
     DarkMenus(DarkOn)
     ApplyTheme(Main)
+    if LibGui
+        ApplyTheme(LibGui)
 }
 
 ; tray menu in the app's look: dark or light, whatever Windows uses
@@ -59,6 +61,8 @@ RoleColors(role, hover := false) {
             return hover ? ["3FE07F", "FFFFFF"] : ["1FB95A", "FFFFFF"]      ; + radar halo (UpdPulseTick)
         case "hdr":
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
+        case "libhead":                                                    ; title strip of the library panel
+            return ["000000", "D0AE6B"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
@@ -122,8 +126,8 @@ DrawBtn(wParam, lParam, *) {
             DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
         }
     } else {
-        col := RoleColors(role, lk.hover)
         disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
+        col := RoleColors(disabled && role = "btnprimary" ? "btn" : role, lk.hover)     ; a disabled gold button looks plain
         under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
         ; the button itself may be smaller than the control (room for the "!" badge of the help button)
         fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
@@ -336,6 +340,10 @@ ApplyTheme(g) {
                     c.SetFont("c" txt)
                 case "DDL":
                     SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
+                case "ComboBox":                                   ; (the game field of the share form)
+                    c.Opt("Background" box)
+                    c.SetFont("c" txt)
+                    SetTheme(hwnd, dark ? "DarkMode_CFD" : "", dark ? "Combobox" : "")
                 case "ListView":
                     c.Opt("Background" box " c" txt)
                     SetTheme(hwnd, dark ? "DarkMode_Explorer" : "")
@@ -452,7 +460,7 @@ OnLvDraw(ctrl, lp) {
     loop sub
         x0 += SendMessage(0x101D, A_Index - 1, 0, h)          ; LVM_GETCOLUMNWIDTH
     w := SendMessage(0x101D, sub, 0, h)
-    x1 := (sub = 3) ? Max(x0 + w, cw) : x0 + w
+    x1 := (sub = 4) ? Max(x0 + w, cw) : x0 + w
     st := SendMessage(0x102C, row, 0xF002, h)                 ; LVM_GETITEMSTATE
     sel := (st & 2) != 0
     if sel {
@@ -462,11 +470,11 @@ OnLvDraw(ctrl, lp) {
         bg := DarkOn ? 0x1F2127 : 0xFFFFFF
         fg := DarkOn ? 0xECECEF : 0x1B1B1F
     }
-    bgr := ((bg & 0xFF) << 16) | (bg & 0xFF00) | (bg >> 16)
+    bgc := ((bg & 0xFF) << 16) | (bg & 0xFF00) | (bg >> 16)
     fgr := ((fg & 0xFF) << 16) | (fg & 0xFF00) | (fg >> 16)
     r := Buffer(16)
     NumPut("Int", x0, "Int", top, "Int", x1, "Int", bot, r)
-    br := DllCall("CreateSolidBrush", "UInt", bgr, "Ptr")
+    br := DllCall("CreateSolidBrush", "UInt", bgc, "Ptr")
     DllCall("FillRect", "Ptr", hdc, "Ptr", r, "Ptr", br)
     DllCall("DeleteObject", "Ptr", br)
     tx := x0 + 8
@@ -477,6 +485,32 @@ OnLvDraw(ctrl, lp) {
                 , "Ptr", CbDC, "Int", idx * CbSz, "Int", 0, "Int", CbSz, "Int", CbSz, "UInt", 0x01FF0000)
         }
         tx := x0 + CbSz + 8
+    }
+    if (sub = 4) {                                            ; share icon: gold = already in the macro library
+        m := (row < View.Length) ? View[row + 1] : 0
+        if (m && m["type"] != "script") {
+            static icoFont := 0
+            if !icoFont
+                icoFont := DllCall("CreateFontW", "Int", -Round(16 * A_ScreenDPI / 96), "Int", 0, "Int", 0, "Int", 0, "Int", 400
+                    , "UInt", 0, "UInt", 0, "UInt", 0, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 5, "UInt", 0, "Str", "Segoe MDL2 Assets", "Ptr")
+            old := DllCall("SelectObject", "Ptr", hdc, "Ptr", icoFont, "Ptr")
+            DllCall("SetBkMode", "Ptr", hdc, "Int", 1)
+            ; green arrow = its author has a new version / dim arrow = downloaded, unchanged /
+            ; gold = shared (with a dot: changed since, can be updated in Macro Hub) / grey = not shared
+            newer := LibNew.Has(m), fromLib := !newer && LibFromLib(m), dot := !newer && !fromLib && LibSharedChanged(m)
+            DllCall("SetTextColor", "Ptr", hdc, "UInt", newer ? 0x5AB91F : fromLib ? (DarkOn ? 0x80736E : 0xAAA0A0)
+                : m["libshare"] != "" ? 0x6BAED0 : (DarkOn ? 0x9C8F8A : 0x867A7A))   ; (BGR: green / dim / gold / grey)
+            NumPut("Int", x0, "Int", top, "Int", x0 + w, "Int", bot, r)
+            DllCall("DrawTextW", "Ptr", hdc, "WStr", Chr(newer || fromLib ? 0xE896 : 0xE72D), "Int", 1, "Ptr", r, "UInt", 0x825)   ; centred
+            DllCall("SelectObject", "Ptr", hdc, "Ptr", old)
+            if (dot && GdipOn()) {
+                gr := GrOn(hdc)
+                ds := 7 * A_ScreenDPI / 96
+                FillRound(gr, x0 + w / 2 + 6 * A_ScreenDPI / 96, top + (bot - top) / 2 - 10 * A_ScreenDPI / 96, ds, ds, ds, "F2C94C")
+                DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+            }
+        }
+        return 4
     }
     txt := ctrl.GetText(row + 1, sub + 1)
     font := SendMessage(0x31, 0, 0, h)

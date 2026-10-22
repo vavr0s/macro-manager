@@ -248,7 +248,7 @@ BuildVersionInfo() {
     fixed := Buffer(52, 0)
     NumPut("UInt", 0xFEEF04BD, "UInt", 0x10000, "UInt", 0x10000, "UInt", 0, "UInt", 0x10000, "UInt", 0, "UInt", 0x3F
          , "UInt", 0, "UInt", 0x40004, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 0, fixed)
-    strs := BufCat(VerString("CompanyName", "VAVROS"), VerString("FileDescription", "Macro Manager")
+    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "Macro Manager")
         , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "Macro Manager")
         , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "Macro Manager")
         , VerString("ProductVersion", "1.0.0.0"))
@@ -328,6 +328,7 @@ UninstallApp(fromArg := false) {
     ; remove registry entries and the Start Menu / Desktop shortcuts
     try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager")
     try RegDeleteKey("HKCU\Software\MacroManager")
+    try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\" AppId())     ; name + icon of its notifications
     try FileDelete(A_Programs "\Macro Manager.lnk")
     try FileDelete(A_Desktop "\Macro Manager.lnk")
     ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))

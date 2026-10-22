@@ -36,12 +36,12 @@ PickApp(owner, cur) {
     p := Gui("+Owner" owner.Hwnd " +ToolWindow", _T("Running applications"))
     p.SetFont("s9", "Segoe UI")
     p.AddText("x10 y10 w380", _T("Double-click an application:"))
-    lv := p.AddListView("x10 y32 w380 r11 -Hdr -E0x200 -Multi", [_T("Application")])
+    apps := p.AddListView("x10 y32 w380 r11 -Hdr -E0x200 -Multi", [_T("Application")])
     for it in items
-        lv.Add("", it[1] "   -   " (StrLen(it[2]) > 45 ? SubStr(it[2], 1, 45) "..." : it[2]))
-    lv.ModifyCol(1, 355)
+        apps.Add("", it[1] "   -   " (StrLen(it[2]) > 45 ? SubStr(it[2], 1, 45) "..." : it[2]))
+    apps.ModifyCol(1, 355)
     Choose(*) {
-        n := lv.GetNext()
+        n := apps.GetNext()
         if !n
             return
         res := items[n][1]
@@ -52,7 +52,7 @@ PickApp(owner, cur) {
         owner.Opt("-Disabled")
         p.Destroy()
     }
-    lv.OnEvent("DoubleClick", Choose)
+    apps.OnEvent("DoubleClick", Choose)
     Browse(*) {
         res := BrowseApp("")
         if (res != "")

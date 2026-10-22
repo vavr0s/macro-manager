@@ -2,7 +2,11 @@
 Defaults() {
     return Map("name", _T("New macro"), "hotkey", "LCtrl", "app", "", "type", "move", "enabled", 0,
         "dirs", "A,D", "actions", "1,2,3,4", "g1", 25, "g2", 30, "g3", 20, "ge", 10,
-        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1)
+        "seq", "down A 25|tap 4 20|up A 5", "repeat", 1, "file", "", "tkey", "", "profiles", "", "trusted", 1, "press", "", "exact", 1, "libshare", "",     ; libshare = its id in the macro library once shared
+        "libsharehash", "",                                 ; fingerprint of what was shared (changed since: offer an update)
+        "libpend", "",                                      ; 1 = its update could not be sent (offline) - sent later by itself
+        "libsrc", "", "libsrcby", "", "libsrchash", "", "libsrcver", "",   ; downloaded from the library: id, author, fingerprint, version
+        "libchk", "")                                       ; 1 = already asked Macro Hub whether it is one of its macros
 }
 
 ; how the trigger key has to be pressed: "" = as soon as it goes down, "tap" = short press (plays after release),
@@ -15,7 +19,7 @@ PressOf(m) {
 PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
 
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -30,6 +34,9 @@ Load() {
     SeenVer := Get("main", "seenver", "")
     DarkOn := Get("main", "dark", "0") = "1"
     MasterKey := Get("main", "masterkey", "")
+    LibId := Get("main", "libid", "")
+    LibAuthor := Get("main", "libauthor", "")
+    LibGame := Get("main", "libgame", "")
     HoldMs := Max(100, Min(2000, Num(Get("main", "holdms", HoldMs))))       ; long press: held at least this long
     DblMs := Max(100, Min(1000, Num(Get("main", "doublems", DblMs))))      ; double tap: 2nd press within this time
     pl := StrSplit(Get("main", "proflist", "Default"), "|")
@@ -98,6 +105,9 @@ Save() {
     t .= "holdms=" HoldMs "`r`n"
     t .= "doublems=" DblMs "`r`n"
     t .= "language=" Lang "`r`n"
+    t .= "libid=" LibId "`r`n"
+    t .= "libauthor=" IniVal(LibAuthor) "`r`n"
+    t .= "libgame=" IniVal(LibGame) "`r`n"
     t .= "proflist=" JoinProfs(Profiles) "`r`n"
     t .= "profile=" CurProfile "`r`n"
     t .= "count=" Macros.Length "`r`n"

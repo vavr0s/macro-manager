@@ -19,38 +19,65 @@
    "SendMessage(0x1501, 1, StrPtr(_T(\"Search (name, key or application)\")), eSearch)     ; EM_SETCUEBANNER: grey hint text"
   ]
  },
+ "Macro Hub": {
+  "en": "Macro Hub",
+  "ctx": [
+   "bLib := AddBtn(Main, \"x660 y92 w170 h26\", _T(\"Macro Hub\") \"  \" Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)",
+   "g := Gui(\"-Caption +Border +Owner\" Main.Hwnd, _T(\"Macro Hub\"))",
+   "hd := g.AddText(\"x8 y8 w\" (W - 16) \" h48 +0xD\", \"   \" _T(\"Macro Hub\"))",
+   "return ThemedNote(_T(\"This macro already has several ratings from your internet connection, so another one is not counted.\"), _T(\"Macro Hub\"), true)",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
+   "ThemedNote(_T(\"You updated this macro a moment ago. The app sends this change by itself in a few minutes.\"), _T(\"Macro Hub\"))",
+   "ThemedNote(_T(\"No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.\"), _T(\"Macro Hub\"), true)",
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Macro Hub\"), true)",
+   "return ThemedNote(_T(\"`\"{1}`\" is no longer in Macro Hub. Share it again with the share icon.\", m[\"name\"]), _T(\"Macro Hub\"), true)",
+   "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Macro Hub\"))",
+   "Help window topic title (navigation button, ~25 characters max)"
+  ]
+ },
  "Name": {
   "en": "Name",
   "ctx": [
-   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
-   "g.AddText(\"x10 y100 w136 +0x200 h26\", _T(\"Name\"))"
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
+   "g.AddText(\"x10 y100 w136 +0x200 h26\", _T(\"Name\"))",
+   "g.AddText(\"x16 y48 w388\", _T(\"Name\"))"
   ],
   "max_chars": 21
  },
  "Key": {
   "en": "Key",
   "ctx": [
-   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])"
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])"
   ]
  },
  "Application": {
   "en": "Application",
   "ctx": [
-   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
-   "lv := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
+   "apps := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
   ]
  },
  "Type": {
   "en": "Type",
   "ctx": [
-   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")]",
-   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\")])",
-   "g.AddText(\"x10 y208 w136 +0x200 h26\", _T(\"Type\"))"
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
+   "g.AddText(\"x10 y208 w136 +0x200 h26\", _T(\"Type\"))",
+   "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
+ },
+ "Share": {
+  "en": "Share",
+  "ctx": [
+   "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
+   "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
+   "AddBtn(g, \"x194 y\" btnY \" w100 h32\", _T(\"Share\"), Ok, \"btnprimary\")"
+  ]
  },
  "Add": {
   "en": "Add",
@@ -78,7 +105,9 @@
   "ctx": [
    "bDel := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Delete\"), OnDelBtn, \"btndanger\")",
    "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
-   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary"
+   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
+   "LibBtn[\"del\"] := AddBtn(g, \"x+8 yp w\" (W - 370) \" h32\", _T(\"Delete\"), (*) => LibDelete(), \"btndanger\")",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
   ],
   "max_chars": 16
  },
@@ -121,7 +150,8 @@
   "en": "All macros toggle key:",
   "ctx": [
    "bMKey := AddBtn(Main, \"x+8 yp w386 h36\", KeyLabel(_T(\"All macros toggle key:\") \"  \", MKst[\"key\"]), (*) => CaptureKey(bMKey, MKst, \"key\", true, _T(\"All macros toggle key:\") \"  \", OnMasterKey))",
-   "bMKey := AddBtn(Main, \"x+8 yp w386 h36\", KeyLabel(_T(\"All macros toggle key:\") \"  \", MKst[\"key\"]), (*) => CaptureKey(bMKey, MKst, \"key\", true, _T(\"All macros toggle key:\") \"  \", OnMasterKey))"
+   "bMKey := AddBtn(Main, \"x+8 yp w386 h36\", KeyLabel(_T(\"All macros toggle key:\") \"  \", MKst[\"key\"]), (*) => CaptureKey(bMKey, MKst, \"key\", true, _T(\"All macros toggle key:\") \"  \", OnMasterKey))",
+   "bMKey.Text := KeyLabel(_T(\"All macros toggle key:\") \"  \", MasterKey)"
   ],
   "max_chars": 52
  },
@@ -196,9 +226,9 @@
    "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
    "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"",
    "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)",
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)",
-   "AddBtn(g, \"x555 y482 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
+   "AddBtn(g, \"x555 y518 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
    ", [[_T(\"Turn on anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\") {",
    "AddBtn(g, \"x384 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close, \"btnprimary\")",
    "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
@@ -207,9 +237,36 @@
    "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)",
    "AddBtn(g, \"x284 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)",
-   ", [[_T(\"Restore\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")"
+   ", [[_T(\"Restore\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
+   "AddBtn(g, \"x304 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close)"
   ],
   "max_chars": 13
+ },
+ "the toggle key of \"{1}\"": {
+  "en": "the toggle key of \"{1}\"",
+  "ctx": [
+   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
+   "id := KeyId(m[\"tkey\"]), who := _T(\"the toggle key of `\"{1}`\"\", m[\"name\"])",
+   "return _T(\"the toggle key of `\"{1}`\"\", x[\"name\"])"
+  ],
+  "max_chars": 300
+ },
+ "the trigger key of \"{1}\"": {
+  "en": "the trigger key of \"{1}\"",
+  "ctx": [
+   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
+   "clash.Push([trig, used[kid], _T(\"the trigger key of `\"{1}`\"\", m[\"name\"])])",
+   "return _T(\"the trigger key of `\"{1}`\"\", x[\"name\"])"
+  ],
+  "max_chars": 300
+ },
+ "The key {1} is already used as {2}.": {
+  "en": "The key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The key {1} is already used as {2}.\", k, who), , true)"
+  ],
+  "max_chars": 300
  },
  "All macros: {1}": {
   "en": "All macros: {1}",
@@ -222,14 +279,17 @@
   "ctx": [
    "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))",
    "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))",
-   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))"
+   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))",
+   "case \"exact\": return v ? _T(\"ON\") : _T(\"OFF\")"
   ]
  },
  "OFF": {
   "en": "OFF",
   "ctx": [
    "Toast(_T(\"All macros: {1}\", MasterOn ? _T(\"ON\") : _T(\"OFF\")))",
-   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))"
+   "Toast(m[\"name\"] \": \" (m[\"enabled\"] ? _T(\"ON\") : _T(\"OFF\")))",
+   "ExLabel() => ex[\"v\"] ? Chr(0x2713) \"  \" _T(\"Exact delays\") : _T(\"Exact delays\") \": \" _T(\"OFF\")",
+   "case \"exact\": return v ? _T(\"ON\") : _T(\"OFF\")"
   ]
  },
  "Move + actions": {
@@ -245,6 +305,8 @@
   "ctx": [
    "TypeLabel(t) => t = \"move\" ? _T(\"Move + actions\") : (t = \"seq\" ? _T(\"Sequence\") : _T(\"Script (.ahk)\"))",
    "for i, nm in [_T(\"Move + actions\"), _T(\"Sequence\"), _T(\"Script (.ahk)\")]",
+   "t .= \"`n\" _T(\"Sequence\") \":\"",
+   "out .= _T(\"Sequence\") \":`n\"",
    "Help window topic title (navigation button, ~25 characters max)"
   ]
  },
@@ -259,7 +321,7 @@
  "(everywhere)": {
   "en": "(everywhere)",
   "ctx": [
-   "LV.Add(m[\"enabled\"] ? \"Check\" : \"\", m[\"name\"], m[\"hotkey\"], (m[\"app\"] = \"\" || m[\"type\"] = \"script\") ? _T(\"(everywhere)\") : m[\"app\"], TypeLabel(m[\"type\"]))"
+   "LV.Add(m[\"enabled\"] ? \"Check\" : \"\", m[\"name\"], KeyShown(m) (PressEff(m) = \"\" ? \"\" : \"  · \" PressShort(PressEff(m))), (m[\"app\"] = \"\" || m[\"type\"] = \"script\") ? _T(\"(everywhere)\") : m[\"app\"], TypeLabel(m[\"type\"]), \"\")"
   ]
  },
  "Select a macro first.": {
@@ -278,8 +340,7 @@
   "en": "{1} macro(s) exported to:\n{2}",
   "ctx": [
    "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(dir, sel), dir))",
-   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", n, dir))",
-   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"))"
+   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", n, dir))"
   ]
  },
  "Set a trigger key for this macro first.": {
@@ -297,13 +358,13 @@
  "Export macro": {
   "en": "Export macro",
   "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\\" safe \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
+   "path := FileSelect(\"S16\", A_Desktop \"\\\" SafeFileName(m[\"name\"]) \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
   ]
  },
  "AutoHotkey scripts (*.ahk)": {
   "en": "AutoHotkey scripts (*.ahk)",
   "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\\" safe \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))",
+   "path := FileSelect(\"S16\", A_Desktop \"\\\" SafeFileName(m[\"name\"]) \".ahk\", _T(\"Export macro\"), _T(\"AutoHotkey scripts (*.ahk)\"))",
    "files := FileSelect(\"M3\", , _T(\"Import macros\"), _T(\"AutoHotkey scripts (*.ahk)\"))"
   ]
  },
@@ -457,8 +518,9 @@
   "ctx": [
    "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), true)",
    "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Export all your macros to a folder before uninstalling?\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't export\"), \"no\", \"btn\"], [_T(\"Export first\"), \"yes\", \"btnprimary\"]], false)",
-   "ThemedNote(_T(\"{1} macro(s) exported to:`n{2}\", ExportAllTo(bdir), bdir), _T(\"Uninstall Macro Manager\"))",
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall Macro Manager\"), true)",
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall Macro Manager\"))",
    "ThemedNote(_T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"))"
   ]
  },
@@ -466,6 +528,56 @@
   "en": "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}",
   "ctx": [
    "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
+  ]
+ },
+ "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": {
+  "en": "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+  ],
+  "max_chars": 300
+ },
+ "Don't save": {
+  "en": "Don't save",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+  ],
+  "max_chars": 40
+ },
+ "Create backup...": {
+  "en": "Create backup...",
+  "ctx": [
+   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
+   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
+  ]
+ },
+ "Create backup": {
+  "en": "Create backup",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+  ]
+ },
+ "Macro Manager backup (*.mmbackup)": {
+  "en": "Macro Manager backup (*.mmbackup)",
+  "ctx": [
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+  ]
+ },
+ "The backup could not be saved:\n{1}": {
+  "en": "The backup could not be saved:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall Macro Manager\"), true)",
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), , true)"
+  ]
+ },
+ "Backup saved to:\n{1}": {
+  "en": "Backup saved to:\n{1}",
+  "ctx": [
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall Macro Manager\"))",
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path))"
   ]
  },
  "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": {
@@ -500,7 +612,9 @@
  "Trigger key": {
   "en": "Trigger key",
   "ctx": [
-   "g.AddText(\"x10 y136 w136 +0x200 h26\", _T(\"Trigger key\"))"
+   "g.AddText(\"x10 y136 w136 +0x200 h26\", _T(\"Trigger key\"))",
+   "t := TypeLabel(d[\"type\"]) \"`n\" _T(\"Trigger key\") \": \" (d[\"hotkey\"] = \"\" ? Chr(0x2014) : d[\"hotkey\"]) \"  ·  \" _T(\"Press\") \": \" pr",
+   "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
  },
@@ -514,7 +628,9 @@
  "Only in app (exe)": {
   "en": "Only in app (exe)",
   "ctx": [
-   "g.AddText(\"x10 y172 w136 +0x200 h26\", _T(\"Only in app (exe)\"))"
+   "g.AddText(\"x10 y172 w136 +0x200 h26\", _T(\"Only in app (exe)\"))",
+   "t .= \"`n\" _T(\"Only in app (exe)\") \": \" d[\"app\"]",
+   "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
  },
@@ -526,37 +642,90 @@
   ],
   "max_chars": 8
  },
+ "Press": {
+  "en": "Press",
+  "ctx": [
+   "pl := g.AddText(\"x10 y244 w136 +0x200 h26\", _T(\"Press\"))",
+   "t := TypeLabel(d[\"type\"]) \"`n\" _T(\"Trigger key\") \": \" (d[\"hotkey\"] = \"\" ? Chr(0x2014) : d[\"hotkey\"]) \"  ·  \" _T(\"Press\") \": \" pr",
+   "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
+  ],
+  "max_chars": 15
+ },
+ "Normal": {
+  "en": "Normal",
+  "ctx": [
+   "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
+   "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
+  ],
+  "max_chars": 14
+ },
+ "Short tap": {
+  "en": "Short tap",
+  "ctx": [
+   "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
+   "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
+  ],
+  "max_chars": 14
+ },
+ "Double tap": {
+  "en": "Double tap",
+  "ctx": [
+   "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
+   "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
+  ],
+  "max_chars": 14
+ },
+ "Long press": {
+  "en": "Long press",
+  "ctx": [
+   "for i, nm in [_T(\"Normal\"), _T(\"Short tap\"), _T(\"Double tap\"), _T(\"Long press\")]",
+   "pr := d[\"press\"] = \"tap\" ? _T(\"Short tap\") : d[\"press\"] = \"double\" ? _T(\"Double tap\") : d[\"press\"] = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")",
+   "case \"press\": return v = \"tap\" ? _T(\"Short tap\") : v = \"double\" ? _T(\"Double tap\") : v = \"hold\" ? _T(\"Long press\") : _T(\"Normal\")"
+  ],
+  "max_chars": 14
+ },
  "Run": {
   "en": "Run",
   "ctx": [
-   "rl := g.AddText(\"x10 y244 w136 +0x200 h26\", _T(\"Run\"))"
+   "rl := g.AddText(\"x10 y280 w136 +0x200 h26\", _T(\"Run\"))",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
+   "lab := Map(\"type\", _T(\"Type\"), \"hotkey\", _T(\"Trigger key\"), \"press\", _T(\"Press\"), \"repeat\", _T(\"Run\"), \"app\", _T(\"Only in app (exe)\")"
   ],
   "max_chars": 21
  },
  "Once per key press": {
   "en": "Once per key press",
   "ctx": [
-   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]"
+   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
+   "case \"repeat\": return v ? _T(\"Repeat while key is held\") : _T(\"Once per key press\")"
   ]
  },
  "Repeat while key is held": {
   "en": "Repeat while key is held",
   "ctx": [
-   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]"
+   "for i, nm in [_T(\"Once per key press\"), _T(\"Repeat while key is held\")]",
+   ". \"`n\" _T(\"Run\") \": \" (d[\"repeat\"] ? _T(\"Repeat while key is held\") : _T(\"Once per key press\"))",
+   "case \"repeat\": return v ? _T(\"Repeat while key is held\") : _T(\"Once per key press\")"
   ]
  },
  "Directions (optional)": {
   "en": "Directions (optional)",
   "ctx": [
-   "mv.Push(g.AddText(\"x10 y292 w136 +0x200 h26\", _T(\"Directions (optional)\")))"
+   "mv.Push(g.AddText(\"x10 y328 w136 +0x200 h26\", _T(\"Directions (optional)\")))",
+   "t .= \"`n\" _T(\"Directions (optional)\") \": \" (d[\"dirs\"] = \"\" ? Chr(0x2014) : d[\"dirs\"])",
+   ", \"dirs\", _T(\"Directions (optional)\"), \"actions\", _T(\"Actions in order\"), \"exact\", _T(\"Exact delays\"))"
   ],
   "max_chars": 21
  },
  "Record": {
   "en": "Record",
   "ctx": [
-   "rb1 := AddBtn(g, \"x580 y292 w70 h26\", _T(\"Record\"), (*) => StartListRec(eDirs, rb1))",
-   "rb2 := AddBtn(g, \"x580 y328 w70 h26\", _T(\"Record\"), (*) => StartListRec(eActs, rb2))",
+   "rb1 := AddBtn(g, \"x580 y328 w70 h26\", _T(\"Record\"), (*) => StartListRec(eDirs, rb1))",
+   "rb2 := AddBtn(g, \"x580 y364 w70 h26\", _T(\"Record\"), (*) => StartListRec(eActs, rb2))",
    "Rec.btn.Text := _T(\"Record\")"
   ],
   "max_chars": 9
@@ -564,57 +733,61 @@
  "Actions in order": {
   "en": "Actions in order",
   "ctx": [
-   "mv.Push(g.AddText(\"x10 y328 w136 +0x200 h26\", _T(\"Actions in order\")))"
+   "mv.Push(g.AddText(\"x10 y364 w136 +0x200 h26\", _T(\"Actions in order\")))",
+   ". \"`n\" _T(\"Actions in order\") \": \" d[\"actions\"]",
+   ", \"dirs\", _T(\"Directions (optional)\"), \"actions\", _T(\"Actions in order\"), \"exact\", _T(\"Exact delays\"))"
   ],
   "max_chars": 21
  },
  "Delays (ms)": {
   "en": "Delays (ms)",
   "ctx": [
-   "mv.Push(g.AddText(\"x10 y364 w136 +0x200 h26\", _T(\"Delays (ms)\")))"
+   "mv.Push(g.AddText(\"x10 y400 w136 +0x200 h26\", _T(\"Delays (ms)\")))",
+   ". \"`n\" _T(\"Delays (ms)\") \": \" d[\"g1\"] \" / \" d[\"g2\"] \" / \" d[\"g3\"] \" / \" d[\"ge\"]",
+   "out .= _T(\"Delays (ms)\") \" \" i \":  \" a[k] \"  →  \" b[k] \"`n\""
   ],
   "max_chars": 21
  },
  "dir↓ → action↓": {
   "en": "dir↓ → action↓",
   "ctx": [
-   "mv.Push(AddHint(g, \"x150 y394 w120 h32\", _T(\"dir↓ → action↓\")))"
+   "mv.Push(AddHint(g, \"x150 y430 w120 h32\", _T(\"dir↓ → action↓\")))"
   ]
  },
  "action↓ → dir↑": {
   "en": "action↓ → dir↑",
   "ctx": [
-   "mv.Push(AddHint(g, \"x275 y394 w120 h32\", _T(\"action↓ → dir↑\")))"
+   "mv.Push(AddHint(g, \"x275 y430 w120 h32\", _T(\"action↓ → dir↑\")))"
   ]
  },
  "dir↑ → action↑": {
   "en": "dir↑ → action↑",
   "ctx": [
-   "mv.Push(AddHint(g, \"x400 y394 w120 h32\", _T(\"dir↑ → action↑\")))"
+   "mv.Push(AddHint(g, \"x400 y430 w120 h32\", _T(\"dir↑ → action↑\")))"
   ]
  },
  "between cycles": {
   "en": "between cycles",
   "ctx": [
-   "mv.Push(AddHint(g, \"x525 y394 w120 h32\", _T(\"between cycles\")))"
+   "mv.Push(AddHint(g, \"x525 y430 w120 h32\", _T(\"between cycles\")))"
   ]
  },
  "Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).": {
   "en": "Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).",
   "ctx": [
-   "mv.Push(AddHint(g, \"x10 y434 w640\", _T(\"Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).\")))"
+   "mv.Push(AddHint(g, \"x10 y470 w640\", _T(\"Directions empty = actions only (delay 2 = hold time, delay 4 = pause). Record: press keys, then Done. Keys held together are joined with + (e.g. Shift+4).\")))"
   ]
  },
  "One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)": {
   "en": "One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)",
   "ctx": [
-   "sq := [eSeq, AddHint(g, \"x10 y418 w640\", _T(\"One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)\"))]"
+   "sq := [eSeq, AddHint(g, \"x10 y454 w640\", _T(\"One step per line: down|up|tap key delay_ms   (e.g. down A 25,  tap Shift+4 10)\"))]"
   ]
  },
  "Runs as its own process while this macro is checked (AutoHotkey v2).": {
   "en": "Runs as its own process while this macro is checked (AutoHotkey v2).",
   "ctx": [
-   "sc := [eCode, AddHint(g, \"x10 y448 w640\", _T(\"Runs as its own process while this macro is checked (AutoHotkey v2).\"))]"
+   "sc := [eCode, AddHint(g, \"x10 y484 w640\", _T(\"Runs as its own process while this macro is checked (AutoHotkey v2).\"))]"
   ]
  },
  "This macro is in several profiles ({1}).": {
@@ -641,6 +814,13 @@
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)"
   ]
  },
+ "The toggle key {1} is already used as {2}.": {
+  "en": "The toggle key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The toggle key {1} is already used as {2}.\", st[\"tkey\"], who), , true)"
+  ],
+  "max_chars": 300
+ },
  "Paste or write a script first.": {
   "en": "Paste or write a script first.",
   "ctx": [
@@ -653,12 +833,56 @@
    "ThemedNote(_T(\"Enter a trigger key.\"), , true)"
   ]
  },
+ "The toggle key can't be the same as the trigger key.": {
+  "en": "The toggle key can't be the same as the trigger key.",
+  "ctx": [
+   "ThemedNote(_T(\"The toggle key can't be the same as the trigger key.\"), , true)"
+  ],
+  "max_chars": 120
+ },
+ "The trigger key {1} is already used as {2}.": {
+  "en": "The trigger key {1} is already used as {2}.",
+  "ctx": [
+   "ThemedNote(_T(\"The trigger key {1} is already used as {2}.\", key, who), , true)"
+  ],
+  "max_chars": 300
+ },
+ "Same trigger key as \"{1}\" - only one of them works": {
+  "en": "Same trigger key as \"{1}\" - only one of them works",
+  "ctx": [
+   "Toast(_T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]))",
+   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))"
+  ]
+ },
+ "Exact delays": {
+  "en": "Exact delays",
+  "ctx": [
+   "ExLabel() => ex[\"v\"] ? Chr(0x2713) \"  \" _T(\"Exact delays\") : _T(\"Exact delays\") \": \" _T(\"OFF\")",
+   "ExLabel() => ex[\"v\"] ? Chr(0x2713) \"  \" _T(\"Exact delays\") : _T(\"Exact delays\") \": \" _T(\"OFF\")",
+   ", \"dirs\", _T(\"Directions (optional)\"), \"actions\", _T(\"Actions in order\"), \"exact\", _T(\"Exact delays\"))"
+  ],
+  "max_chars": 22
+ },
  "Save": {
   "en": "Save",
   "ctx": [
-   "AddBtn(g, \"x450 y482 w95 h34\", _T(\"Save\"), Commit, \"btnprimary\")"
+   "AddBtn(g, \"x450 y518 w95 h34\", _T(\"Save\"), Commit, \"btnprimary\")"
   ],
   "max_chars": 13
+ },
+ "tap": {
+  "en": "tap",
+  "ctx": [
+   "PressShort(p) => p = \"tap\" ? _T(\"tap\") : (p = \"double\" ? \"2×\" : (p = \"hold\" ? _T(\"hold\") : \"\"))     ; in the list"
+  ],
+  "max_chars": 10
+ },
+ "hold": {
+  "en": "hold",
+  "ctx": [
+   "PressShort(p) => p = \"tap\" ? _T(\"tap\") : (p = \"double\" ? \"2×\" : (p = \"hold\" ? _T(\"hold\") : \"\"))     ; in the list"
+  ],
+  "max_chars": 10
  },
  "Saving the settings failed: {1}": {
   "en": "Saving the settings failed: {1}",
@@ -666,11 +890,26 @@
    "Toast(_T(\"Saving the settings failed: {1}\", e.Message))"
   ]
  },
+ "the All macros toggle key": {
+  "en": "the All macros toggle key",
+  "ctx": [
+   "used[KeyId(MasterKey)] := _T(\"the All macros toggle key\")",
+   "return _T(\"the All macros toggle key\")"
+  ],
+  "max_chars": 300
+ },
  "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}": {
   "en": "Macro \"{1}\" can't be enabled (key \"{2}\"):\n{3}",
   "ctx": [
-   "ThemedNote(_T(\"Macro `\"{1}`\" can't be enabled (key `\"{2}`\"):`n{3}\", m[\"name\"], trig, e.Message), , true)"
+   "ThemedNote(_T(\"Macro `\"{1}`\" can't be enabled (key `\"{2}`\"):`n{3}\", gr.name, gr.trig, e.Message), , true)"
   ]
+ },
+ "The key {1} is used twice - as {2} and as {3}. Only one of them works.": {
+  "en": "The key {1} is used twice - as {2} and as {3}. Only one of them works.",
+  "ctx": [
+   "txt .= (txt = \"\" ? \"\" : \"`n\") _T(\"The key {1} is used twice - as {2} and as {3}. Only one of them works.\", c[1], c[2], c[3])"
+  ],
+  "max_chars": 300
  },
  "Same trigger key": {
   "en": "Same trigger key",
@@ -688,12 +927,6 @@
   "en": "Turn on anyway",
   "ctx": [
    ", [[_T(\"Turn on anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\") {"
-  ]
- },
- "Same trigger key as \"{1}\" - only one of them works": {
-  "en": "Same trigger key as \"{1}\" - only one of them works",
-  "ctx": [
-   "Toast(m[\"name\"] \": \" _T(\"ON\") (other ? \"`n\" _T(\"Same trigger key as `\"{1}`\" - only one of them works\", other[\"name\"]) : \"\"))"
   ]
  },
  "starts other programs or commands": {
@@ -861,19 +1094,19 @@
  "New profile...": {
   "en": "New profile...",
   "ctx": [
-   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"  +   \" _T(\"New profile...\"), (*) => (ClosePop(), NewProfile()))"
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"  +   \" _T(\"New profile...\"), (*) => (ClosePop(), NewProfile()), \"btn\", false)"
   ]
  },
  "Rename current...": {
   "en": "Rename current...",
   "ctx": [
-   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Rename current...\"), (*) => (ClosePop(), RenameProfile()))"
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Rename current...\"), (*) => (ClosePop(), RenameProfile()), \"btn\", false)"
   ]
  },
  "Delete current": {
   "en": "Delete current",
   "ctx": [
-   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Delete current\"), (*) => (ClosePop(), DeleteProfile()), \"btndanger\")"
+   "AddBtn(g, \"x1 y\" y \" w\" W \" h32 Left\", \"       \" _T(\"Delete current\"), (*) => (ClosePop(), DeleteProfile()), \"btndanger\", false)"
   ]
  },
  "New profile": {
@@ -1049,7 +1282,8 @@
  "Later": {
   "en": "Later",
   "ctx": [
-   ", [[_T(\"Later\"), \"\", \"btn\"], [_T(\"Update now\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+   ", [[_T(\"Later\"), \"\", \"btn\"], [_T(\"Update now\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "AddBtn(g, \"x184 y\" btnY \" w110 h32\", _T(\"Later\"), Close)"
   ]
  },
  "Update now": {
@@ -1093,7 +1327,7 @@
  "Version {1}": {
   "en": "Version {1}",
   "ctx": [
-   "t[\"Release notes\"] := _T(\"Version {1}\", AppVersion) \"`n`n\" ReleaseNotes"
+   "t[\"Release notes\"] := _T(\"Version {1}\", AppVersion) \"`n`n\" NotesFor(Lang)"
   ]
  },
  "hlp_start": {
@@ -1151,7 +1385,13 @@
   ]
  },
  "hlp_updates": {
-  "en": "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.\n\nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.\n\nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.\n\nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.\n\nThe update needs internet access to github.com.",
+  "en": "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.\n\nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.\n\nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.\n\nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.\n\nThe update needs internet access (Macro Hub server or github.com).",
+  "ctx": [
+   "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
+  ]
+ },
+ "hlp_hub": {
+  "en": "Macro Hub (the button next to the search box) shows macros shared by players. It opens as a panel on the side of the main window.\n\n- Players' macros: macros of other players. My macros: the macros you shared, with their ratings and downloads.\n- Search with words from the name, the game or the author: every word must match. 4story finds all 4Story macros, 4story war only the warrior ones.\n- The game button filters one game, the sort button sorts by Top rated, Newest or Most downloaded.\n- Every macro shows its average rating in stars (1 = worst, 5 = best) with the number of ratings in brackets, its author, its game, its trigger key and how many times it was downloaded. A gold tick marks macros checked by the moderator - they come first.\n- The box under the list shows the description and what the macro does (keys, delays, sequence) - before you download it.\n- Download (or a double-click) adds the macro to the current profile, switched off. Check its key and application, then tick it.\n- Rate gives 1 to 5 stars - one rating per installation, you can change it later. Your own macros can't be rated.\n- Report sends a macro to be checked, for example a farm / AFK macro, which is not allowed. After several reports it is hidden.\n- Delete (My macros) removes a macro you shared from Macro Hub; your own copy in the list stays.\n\nSharing: click the share icon at the end of a row in the main list, then fill in the name, the game, a description and your nickname. The icon turns gold once the macro is shared. Macros downloaded from Macro Hub show a download arrow instead and can be shared only after you change them.\n\nUpdates: when you change a macro you shared, the app asks whether to update it in Macro Hub - its ratings and downloads stay (until then its icon has a dot; click it to update). When the author updates a macro you downloaded, a notice appears and its arrow in the list turns green: click it to see what changed and take the new version or keep yours. Shared: keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Script macros can't be shared.\n\nMacro Hub needs internet access. Nobody can see who rated or reported a macro. To recognise macros you downloaded with an older version, the app sends Macro Hub once what they do (keys, delays, sequence - not their names); nothing of it is stored.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1165,7 +1405,7 @@
  "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}": {
   "en": "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}\", \"https://discord.com/users/\" DiscordId))"
+   "ThemedNote(_T(\"Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}\", \"https://discord.gg/\" DiscordInvite))"
   ]
  },
  "Help": {
@@ -1223,37 +1463,6 @@
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
   ]
  },
- "Create backup...": {
-  "en": "Create backup...",
-  "ctx": [
-   ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
-  ]
- },
- "Create backup": {
-  "en": "Create backup",
-  "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
-  ]
- },
- "Macro Manager backup (*.mmbackup)": {
-  "en": "Macro Manager backup (*.mmbackup)",
-  "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
-   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
-  ]
- },
- "Backup saved to:\n{1}": {
-  "en": "Backup saved to:\n{1}",
-  "ctx": [
-   "ThemedNote(_T(\"Backup saved to:`n{1}\", path))"
-  ]
- },
- "The backup could not be saved:\n{1}": {
-  "en": "The backup could not be saved:\n{1}",
-  "ctx": [
-   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), , true)"
-  ]
- },
  "Restore from backup": {
   "en": "Restore from backup",
   "ctx": [
@@ -1289,6 +1498,465 @@
   "en": "The backup could not be restored:\n{1}",
   "ctx": [
    "ThemedNote(_T(\"The backup could not be restored:`n{1}\", e.Message), , true)"
+  ]
+ },
+ "Can't reach Macro Hub. Check your internet connection and try again.": {
+  "en": "Can't reach Macro Hub. Check your internet connection and try again.",
+  "ctx": [
+   "case \"network\": return _T(\"Can't reach Macro Hub. Check your internet connection and try again.\")"
+  ]
+ },
+ "You have shared a lot of macros today. Please try again tomorrow.": {
+  "en": "You have shared a lot of macros today. Please try again tomorrow.",
+  "ctx": [
+   "case \"too_many\": return _T(\"You have shared a lot of macros today. Please try again tomorrow.\")"
+  ]
+ },
+ "You can't rate your own macro.": {
+  "en": "You can't rate your own macro.",
+  "ctx": [
+   "case \"own_macro\": return _T(\"You can't rate your own macro.\")"
+  ]
+ },
+ "This macro is no longer in Macro Hub.": {
+  "en": "This macro is no longer in Macro Hub.",
+  "ctx": [
+   "case \"not_found\": return _T(\"This macro is no longer in Macro Hub.\")"
+  ]
+ },
+ "Only the author can delete this macro.": {
+  "en": "Only the author can delete this macro.",
+  "ctx": [
+   "case \"not_owner\": return _T(\"Only the author can delete this macro.\")"
+  ]
+ },
+ "Please check the name, game, description and nickname.": {
+  "en": "Please check the name, game, description and nickname.",
+  "ctx": [
+   "case \"bad_text\": return _T(\"Please check the name, game, description and nickname.\")"
+  ]
+ },
+ "Macro Hub could not do this ({1}).": {
+  "en": "Macro Hub could not do this ({1}).",
+  "ctx": [
+   "return _T(\"Macro Hub could not do this ({1}).\", code)"
+  ]
+ },
+ "Players' macros": {
+  "en": "Players' macros",
+  "ctx": [
+   "LibBtn[\"others\"] := AddBtn(g, \"x8 y64 w\" tw \" h30\", _T(\"Players' macros\"), (*) => LibSetWho(\"others\"))"
+  ]
+ },
+ "My macros": {
+  "en": "My macros",
+  "ctx": [
+   "LibBtn[\"mine\"] := AddBtn(g, \"x\" (16 + tw) \" y64 w\" tw \" h30\", _T(\"My macros\"), (*) => LibSetWho(\"mine\"))"
+  ]
+ },
+ "Search: name, game or author": {
+  "en": "Search: name, game or author",
+  "ctx": [
+   "SendMessage(0x1501, 1, StrPtr(_T(\"Search: name, game or author\")), LibSearch)"
+  ]
+ },
+ "No connection": {
+  "en": "No connection",
+  "ctx": [
+   "t1 := g.AddText(\"vttl x0 y0 w\" (W - 40) \" Center Hidden\", _T(\"No connection\"))"
+  ]
+ },
+ "Macro Hub needs the internet. It tries again by itself every few seconds.": {
+  "en": "Macro Hub needs the internet. It tries again by itself every few seconds.",
+  "ctx": [
+   "t2 := AddHint(g, \"vsub x0 y0 w\" (W - 40) \" h34 Center Hidden\", _T(\"Macro Hub needs the internet. It tries again by itself every few seconds.\"))"
+  ]
+ },
+ "Try again": {
+  "en": "Try again",
+  "ctx": [
+   "b := AddBtn(g, \"vbtn x0 y0 w130 h30 Hidden\", _T(\"Try again\"), (*) => LibLoad(), \"btnprimary\")"
+  ]
+ },
+ "Load more": {
+  "en": "Load more",
+  "ctx": [
+   "LibBtn[\"more\"] := AddBtn(g, \"x\" (W - 112) \" y\" (yInfo - 3) \" w104 h24\", _T(\"Load more\"), (*) => LibLoad(true), \"btnghost\")"
+  ]
+ },
+ "Download": {
+  "en": "Download",
+  "ctx": [
+   "LibBtn[\"dl\"] := AddBtn(g, \"x8 y\" yBtn \" w130 h32\", _T(\"Download\"), (*) => LibDownload(), \"btnprimary\")"
+  ]
+ },
+ "Rate": {
+  "en": "Rate",
+  "ctx": [
+   "LibBtn[\"rate\"] := AddBtn(g, \"x+8 yp w110 h32\", _T(\"Rate\") \"  ▾\", LibRateMenu)"
+  ]
+ },
+ "Report": {
+  "en": "Report",
+  "ctx": [
+   "LibBtn[\"report\"] := AddBtn(g, \"x+8 yp w90 h32\", _T(\"Report\"), (*) => LibReport())"
+  ]
+ },
+ "All games": {
+  "en": "All games",
+  "ctx": [
+   "LibGameText() => (LibGameF = \"\" ? _T(\"All games\") : _T(\"Game: {1}\", LibGameF)) \"  ▾\"",
+   "m.Add(_T(\"All games\"), LibSetGame.Bind(\"\"))",
+   "m.Check(_T(\"All games\"))"
+  ]
+ },
+ "Game: {1}": {
+  "en": "Game: {1}",
+  "ctx": [
+   "LibGameText() => (LibGameF = \"\" ? _T(\"All games\") : _T(\"Game: {1}\", LibGameF)) \"  ▾\""
+  ]
+ },
+ "Newest": {
+  "en": "Newest",
+  "ctx": [
+   "LibSortText() => (LibSort = \"new\" ? _T(\"Newest\") : LibSort = \"dl\" ? _T(\"Most downloaded\") : _T(\"Top rated\")) \"  ▾\"",
+   "for o in [[\"top\", _T(\"Top rated\")], [\"new\", _T(\"Newest\")], [\"dl\", _T(\"Most downloaded\")]] {"
+  ]
+ },
+ "Most downloaded": {
+  "en": "Most downloaded",
+  "ctx": [
+   "LibSortText() => (LibSort = \"new\" ? _T(\"Newest\") : LibSort = \"dl\" ? _T(\"Most downloaded\") : _T(\"Top rated\")) \"  ▾\"",
+   "for o in [[\"top\", _T(\"Top rated\")], [\"new\", _T(\"Newest\")], [\"dl\", _T(\"Most downloaded\")]] {"
+  ]
+ },
+ "Top rated": {
+  "en": "Top rated",
+  "ctx": [
+   "LibSortText() => (LibSort = \"new\" ? _T(\"Newest\") : LibSort = \"dl\" ? _T(\"Most downloaded\") : _T(\"Top rated\")) \"  ▾\"",
+   "for o in [[\"top\", _T(\"Top rated\")], [\"new\", _T(\"Newest\")], [\"dl\", _T(\"Most downloaded\")]] {"
+  ]
+ },
+ "Loading...": {
+  "en": "Loading...",
+  "ctx": [
+   "LibInfo.Text := _T(\"Loading...\")"
+  ]
+ },
+ "You have not shared any macro yet - use the share icon in your list.": {
+  "en": "You have not shared any macro yet - use the share icon in your list.",
+  "ctx": [
+   "LibInfo.Text := LibWho = \"mine\" ? _T(\"You have not shared any macro yet - use the share icon in your list.\")"
+  ]
+ },
+ "Macro Hub is empty so far - share the first macro!": {
+  "en": "Macro Hub is empty so far - share the first macro!",
+  "ctx": [
+   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"Macro Hub is empty so far - share the first macro!\") : _T(\"No macros found.\")"
+  ]
+ },
+ "No macros found.": {
+  "en": "No macros found.",
+  "ctx": [
+   ": (Trim(LibSearch.Value) = \"\" && LibGameF = \"\") ? _T(\"Macro Hub is empty so far - share the first macro!\") : _T(\"No macros found.\")"
+  ]
+ },
+ "Pick a macro to see its description.": {
+  "en": "Pick a macro to see its description.",
+  "ctx": [
+   "LibInfo.Text := LibItems.Length ? _T(\"Pick a macro to see its description.\") : \"\""
+  ]
+ },
+ "(no description)": {
+  "en": "(no description)",
+  "ctx": [
+   "LibDesc.Value := StrReplace((it[\"descr\"] = \"\" ? _T(\"(no description)\") : it[\"descr\"])"
+  ]
+ },
+ "What it does:": {
+  "en": "What it does:",
+  "ctx": [
+   ". (d ? \"`n`n\" _T(\"What it does:\") \"`n\" LibDescribe(d) : \"\"), \"`n\", \"`r`n\")"
+  ]
+ },
+ "your macro": {
+  "en": "your macro",
+  "ctx": [
+   "t := it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"])         ; (type and key are in the preview)",
+   "who := it[\"mine\"] ? (it[\"hidden\"] ? _T(\"hidden after reports\") : _T(\"your macro\")) : _T(\"by {1}\", it[\"author\"])"
+  ]
+ },
+ "by {1}": {
+  "en": "by {1}",
+  "ctx": [
+   "t := it[\"mine\"] ? _T(\"your macro\") : _T(\"by {1}\", it[\"author\"])         ; (type and key are in the preview)",
+   "who := it[\"mine\"] ? (it[\"hidden\"] ? _T(\"hidden after reports\") : _T(\"your macro\")) : _T(\"by {1}\", it[\"author\"])"
+  ]
+ },
+ "updated {1}": {
+  "en": "updated {1}",
+  "ctx": [
+   "t .= \"  ·  \" _T(\"updated {1}\", LibDate(it[\"updated\"]))"
+  ]
+ },
+ "verified": {
+  "en": "verified",
+  "ctx": [
+   "t := Chr(0x2714) \" \" _T(\"verified\") \"  ·  \" t"
+  ]
+ },
+ "hidden after reports": {
+  "en": "hidden after reports",
+  "ctx": [
+   "t .= \"  ·  \" _T(\"hidden after reports\")",
+   "who := it[\"mine\"] ? (it[\"hidden\"] ? _T(\"hidden after reports\") : _T(\"your macro\")) : _T(\"by {1}\", it[\"author\"])"
+  ]
+ },
+ "your rating: {1}": {
+  "en": "your rating: {1}",
+  "ctx": [
+   "t .= \"  ·  \" _T(\"your rating: {1}\", it[\"my\"]) Chr(0x2605)"
+  ]
+ },
+ "\"{1}\" added to profile {2} - switched off, tick it to turn it on.": {
+  "en": "\"{1}\" added to profile {2} - switched off, tick it to turn it on.",
+  "ctx": [
+   "Toast(_T(\"`\"{1}`\" added to profile {2} - switched off, tick it to turn it on.\", m[\"name\"], CurProfile), 3000)"
+  ]
+ },
+ "Downloaded macro": {
+  "en": "Downloaded macro",
+  "ctx": [
+   "base := CleanName(base) = \"\" ? _T(\"Downloaded macro\") : CleanName(base)"
+  ]
+ },
+ "This macro already has several ratings from your internet connection, so another one is not counted.": {
+  "en": "This macro already has several ratings from your internet connection, so another one is not counted.",
+  "ctx": [
+   "return ThemedNote(_T(\"This macro already has several ratings from your internet connection, so another one is not counted.\"), _T(\"Macro Hub\"), true)"
+  ]
+ },
+ "Thank you for rating!": {
+  "en": "Thank you for rating!",
+  "ctx": [
+   "Toast(_T(\"Thank you for rating!\"))"
+  ]
+ },
+ "Report macro": {
+  "en": "Report macro",
+  "ctx": [
+   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
+  ]
+ },
+ "Why should \"{1}\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.": {
+  "en": "Why should \"{1}\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.",
+  "ctx": [
+   "why := ThemedInput(_T(\"Report macro\"), _T(\"Why should `\"{1}`\" be removed from Macro Hub? For example: a farm / AFK macro (not allowed), it does not work, or spam.\", it[\"name\"]))"
+  ]
+ },
+ "Thank you. The macro will be checked.": {
+  "en": "Thank you. The macro will be checked.",
+  "ctx": [
+   "ThemedNote(_T(\"Thank you. The macro will be checked.\"))"
+  ]
+ },
+ "Delete from Macro Hub?": {
+  "en": "Delete from Macro Hub?",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
+  ]
+ },
+ "\"{1}\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.": {
+  "en": "\"{1}\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
+  ]
+ },
+ "Script macros can't be shared - only Move + actions and Sequence macros.": {
+  "en": "Script macros can't be shared - only Move + actions and Sequence macros.",
+  "ctx": [
+   "return ThemedNote(_T(\"Script macros can't be shared - only Move + actions and Sequence macros.\"), , true)"
+  ]
+ },
+ "\"{1}\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.": {
+  "en": "\"{1}\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.",
+  "ctx": [
+   "return ThemedNote(_T(\"`\"{1}`\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.\", m[\"name\"], m[\"libsrcby\"]), _T(\"Share macro"
+  ]
+ },
+ "Share macro": {
+  "en": "Share macro",
+  "ctx": [
+   "return ThemedNote(_T(\"`\"{1}`\" comes from Macro Hub (author: {2}), so it can't be shared again as it is. Change it first - for example a delay or a key - and then share your own version.\", m[\"name\"], m[\"libsrcby\"]), _T(\"Share macro",
+   "return ThemedNote(_T(\"`\"{1}`\" is in Macro Hub and up to date. When you change it, you can update it there.\", m[\"name\"]), _T(\"Share macro\"))",
+   "return ThemedNote(_T(\"No connection to Macro Hub. Sharing needs the internet - try again when you are online.\"), _T(\"Share macro\"), true)",
+   "return ThemedNote(_T(\"You have already shared this macro as `\"{1}`\". Change it to share a new version.\", j[\"name\"]), _T(\"Share macro\"))",
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Share macro\"), true)",
+   "g := Gui((oh ? \"+Owner\" oh \" \" : \"\") \"+ToolWindow +AlwaysOnTop\", _T(\"Share macro\"))"
+  ]
+ },
+ "\"{1}\" is in Macro Hub and up to date. When you change it, you can update it there.": {
+  "en": "\"{1}\" is in Macro Hub and up to date. When you change it, you can update it there.",
+  "ctx": [
+   "return ThemedNote(_T(\"`\"{1}`\" is in Macro Hub and up to date. When you change it, you can update it there.\", m[\"name\"]), _T(\"Share macro\"))"
+  ]
+ },
+ "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": {
+  "en": "No connection to Macro Hub. Sharing needs the internet - try again when you are online.",
+  "ctx": [
+   "return ThemedNote(_T(\"No connection to Macro Hub. Sharing needs the internet - try again when you are online.\"), _T(\"Share macro\"), true)"
+  ]
+ },
+ "You have already shared this macro as \"{1}\". Change it to share a new version.": {
+  "en": "You have already shared this macro as \"{1}\". Change it to share a new version.",
+  "ctx": [
+   "return ThemedNote(_T(\"You have already shared this macro as `\"{1}`\". Change it to share a new version.\", j[\"name\"]), _T(\"Share macro\"))"
+  ]
+ },
+ "This macro is already in Macro Hub as \"{1}\" by {2}. Change it first - for example a delay or a key - and then share your own version.": {
+  "en": "This macro is already in Macro Hub as \"{1}\" by {2}. Change it first - for example a delay or a key - and then share your own version.",
+  "ctx": [
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Share macro\"), true)",
+   "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Macro Hub\"), true)"
+  ]
+ },
+ "Thank you for sharing! \"{1}\" is now in Macro Hub.": {
+  "en": "Thank you for sharing! \"{1}\" is now in Macro Hub.",
+  "ctx": [
+   "ThemedNote(_T(\"Thank you for sharing! `\"{1}`\" is now in Macro Hub.\", f[\"name\"]))"
+  ]
+ },
+ "Update in Macro Hub?": {
+  "en": "Update in Macro Hub?",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n"
+  ]
+ },
+ "\"{1}\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice.": {
+  "en": "\"{1}\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a notice.",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n"
+  ]
+ },
+ "Not now": {
+  "en": "Not now",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n"
+  ]
+ },
+ "Update": {
+  "en": "Update",
+  "ctx": [
+   "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
+   "AddBtn(g, \"x424 y\" btnY \" w120 h32\", _T(\"Update\"), Pick.Bind(\"update\"), \"btnprimary\")"
+  ]
+ },
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": {
+  "en": "You updated this macro a moment ago. The app sends this change by itself in a few minutes.",
+  "ctx": [
+   "ThemedNote(_T(\"You updated this macro a moment ago. The app sends this change by itself in a few minutes.\"), _T(\"Macro Hub\"))"
+  ]
+ },
+ "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": {
+  "en": "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.",
+  "ctx": [
+   "ThemedNote(_T(\"No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.\"), _T(\"Macro Hub\"), true)"
+  ]
+ },
+ "\"{1}\" is no longer in Macro Hub. Share it again with the share icon.": {
+  "en": "\"{1}\" is no longer in Macro Hub. Share it again with the share icon.",
+  "ctx": [
+   "return ThemedNote(_T(\"`\"{1}`\" is no longer in Macro Hub. Share it again with the share icon.\", m[\"name\"]), _T(\"Macro Hub\"), true)"
+  ]
+ },
+ "\"{1}\" is updated in Macro Hub.": {
+  "en": "\"{1}\" is updated in Macro Hub.",
+  "ctx": [
+   "Toast(_T(\"`\"{1}`\" is updated in Macro Hub.\", m[\"name\"]), 2500)"
+  ]
+ },
+ "\"{1}\" has a new version in Macro Hub. Click its green arrow in the list to see the changes.": {
+  "en": "\"{1}\" has a new version in Macro Hub. Click its green arrow in the list to see the changes.",
+  "ctx": [
+   "TrayTip(fresh.Length = 1 ? _T(\"`\"{1}`\" has a new version in Macro Hub. Click its green arrow in the list to see the changes.\", fresh[1][\"name\"])"
+  ]
+ },
+ "{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.": {
+  "en": "{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.",
+  "ctx": [
+   ": _T(\"{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.\", fresh.Length), \"Macro Manager\", 0x24)"
+  ]
+ },
+ "New version of \"{1}\" by {2}": {
+  "en": "New version of \"{1}\" by {2}",
+  "ctx": [
+   "hc := DlgText(g, \"x16 y14 w528\", _T(\"New version of `\"{1}`\" by {2}\", m[\"name\"], it[\"author\"]) (it[\"updated\"] ? \" (\" LibDate(it[\"updated\"]) \")\" : \"\"))"
+  ]
+ },
+ "You changed this macro yourself - updating replaces your changes with the new version.": {
+  "en": "You changed this macro yourself - updating replaces your changes with the new version.",
+  "ctx": [
+   "wc := DlgText(g, \"x16 y\" y \" w528\", _T(\"You changed this macro yourself - updating replaces your changes with the new version.\"))"
+  ]
+ },
+ "Changes (yours → new):": {
+  "en": "Changes (yours → new):",
+  "ctx": [
+   "g.AddText(\"x16 y\" y \" w528\", _T(\"Changes (yours → new):\"))"
+  ]
+ },
+ "Keep mine": {
+  "en": "Keep mine",
+  "ctx": [
+   "AddBtn(g, \"x304 y\" btnY \" w110 h32\", _T(\"Keep mine\"), Pick.Bind(\"keep\"))"
+  ]
+ },
+ "\"{1}\" is updated to the new version.": {
+  "en": "\"{1}\" is updated to the new version.",
+  "ctx": [
+   "Toast(_T(\"`\"{1}`\" is updated to the new version.\", m[\"name\"]), 2500)"
+  ]
+ },
+ "(no difference)": {
+  "en": "(no difference)",
+  "ctx": [
+   "return out = \"\" ? _T(\"(no difference)\") : RTrim(out, \"`n\")"
+  ]
+ },
+ "Share \"{1}\" in Macro Hub": {
+  "en": "Share \"{1}\" in Macro Hub",
+  "ctx": [
+   "DlgText(g, \"x16 y14 w388\", _T(\"Share `\"{1}`\" in Macro Hub\", m[\"name\"]))"
+  ]
+ },
+ "Game (people filter and search by it, for example 4Story)": {
+  "en": "Game (people filter and search by it, for example 4Story)",
+  "ctx": [
+   "g.AddText(\"x16 y100 w388\", _T(\"Game (people filter and search by it, for example 4Story)\"))"
+  ]
+ },
+ "Description (optional): what it does, for which class": {
+  "en": "Description (optional): what it does, for which class",
+  "ctx": [
+   "g.AddText(\"x16 y152 w388\", _T(\"Description (optional): what it does, for which class\"))"
+  ]
+ },
+ "Your nickname": {
+  "en": "Your nickname",
+  "ctx": [
+   "g.AddText(\"x16 y248 w388\", _T(\"Your nickname\"))"
+  ]
+ },
+ "Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed.": {
+  "en": "Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed.",
+  "ctx": [
+   "hc := DlgText(g, \"x16 y302 w388\", _T(\"Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed.\"))"
+  ]
+ },
+ "Please fill in the name, the game and your nickname.": {
+  "en": "Please fill in the name, the game and your nickname.",
+  "ctx": [
+   "ThemedNote(_T(\"Please fill in the name, the game and your nickname.\"), , true)"
   ]
  },
  "Release notes": {
@@ -1339,136 +2007,5 @@
    "Help window topic title (navigation button, ~25 characters max)"
   ],
   "max_chars": 24
- },
- "Press": {
-  "en": "Press",
-  "ctx": [
-   "Editor row label: how the trigger key must be pressed"
-  ],
-  "max_chars": 15
- },
- "Normal": {
-  "en": "Normal",
-  "ctx": [
-   "Editor segmented button (press mode): starts when key goes down"
-  ],
-  "max_chars": 14
- },
- "Short tap": {
-  "en": "Short tap",
-  "ctx": [
-   "Editor segmented button (press mode): quick press and release"
-  ],
-  "max_chars": 14
- },
- "Double tap": {
-  "en": "Double tap",
-  "ctx": [
-   "Editor segmented button (press mode): pressed twice quickly"
-  ],
-  "max_chars": 14
- },
- "Long press": {
-  "en": "Long press",
-  "ctx": [
-   "Editor segmented button (press mode): key held a moment"
-  ],
-  "max_chars": 14
- },
- "tap": {
-  "en": "tap",
-  "ctx": [
-   "Very short suffix in the macro list Key column, e.g. \"F7 · tap\""
-  ],
-  "max_chars": 10
- },
- "hold": {
-  "en": "hold",
-  "ctx": [
-   "Very short suffix in the macro list Key column, e.g. \"F7 · hold\""
-  ],
-  "max_chars": 10
- },
- "Exact delays": {
-  "en": "Exact delays",
-  "ctx": [
-   "Editor toggle button: delays kept exact to ~1 ms (shown as \"✓  Exact delays\" or \"Exact delays: OFF\")"
-  ],
-  "max_chars": 22
- },
- "The toggle key can't be the same as the trigger key.": {
-  "en": "The toggle key can't be the same as the trigger key.",
-  "ctx": [
-   "Error dialog in the macro editor when the Toggle key equals the Trigger key"
-  ],
-  "max_chars": 120
- },
- "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": {
-  "en": "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...",
-  "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
-  ],
-  "max_chars": 300
- },
- "Don't save": {
-  "en": "Don't save",
-  "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
-  ],
-  "max_chars": 40
- },
- "the toggle key of \"{1}\"": {
-  "en": "the toggle key of \"{1}\"",
-  "ctx": [
-   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
-   "id := KeyId(m[\"tkey\"]), who := _T(\"the toggle key of `\"{1}`\"\", m[\"name\"])",
-   "return _T(\"the toggle key of `\"{1}`\"\", x[\"name\"])"
-  ],
-  "max_chars": 300
- },
- "the trigger key of \"{1}\"": {
-  "en": "the trigger key of \"{1}\"",
-  "ctx": [
-   "who := KeyId(m[\"tkey\"]) = id ? _T(\"the toggle key of `\"{1}`\"\", m[\"name\"]) : (TrigId(m) = id ? _T(\"the trigger key of `\"{1}`\"\", m[\"name\"]) : \"\")",
-   "clash.Push([trig, used[kid], _T(\"the trigger key of `\"{1}`\"\", m[\"name\"])])",
-   "return _T(\"the trigger key of `\"{1}`\"\", x[\"name\"])"
-  ],
-  "max_chars": 300
- },
- "The key {1} is already used as {2}.": {
-  "en": "The key {1} is already used as {2}.",
-  "ctx": [
-   "ThemedNote(_T(\"The key {1} is already used as {2}.\", k, who), , true)"
-  ],
-  "max_chars": 300
- },
- "The toggle key {1} is already used as {2}.": {
-  "en": "The toggle key {1} is already used as {2}.",
-  "ctx": [
-   "ThemedNote(_T(\"The toggle key {1} is already used as {2}.\", st[\"tkey\"], who), , true)"
-  ],
-  "max_chars": 300
- },
- "The trigger key {1} is already used as {2}.": {
-  "en": "The trigger key {1} is already used as {2}.",
-  "ctx": [
-   "ThemedNote(_T(\"The trigger key {1} is already used as {2}.\", key, who), , true)"
-  ],
-  "max_chars": 300
- },
- "the All macros toggle key": {
-  "en": "the All macros toggle key",
-  "ctx": [
-   "used[KeyId(MasterKey)] := _T(\"the All macros toggle key\")",
-   "return _T(\"the All macros toggle key\")"
-  ],
-  "max_chars": 300
- },
- "The key {1} is used twice - as {2} and as {3}. Only one of them works.": {
-  "en": "The key {1} is used twice - as {2} and as {3}. Only one of them works.",
-  "ctx": [
-   "txt .= (txt = \"\" ? \"\" : \"`n\") _T(\"The key {1} is used twice - as {2} and as {3}. Only one of them works.\", c[1], c[2], c[3])"
-  ],
-  "max_chars": 300
  }
 }
