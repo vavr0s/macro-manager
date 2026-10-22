@@ -161,6 +161,7 @@ LibFit(h) {
             ControlMove(, cy + d, , , c)
     }
     ControlMove(, , , lh + d, LibLV)
+    DllCall("RedrawWindow", "Ptr", LibGui.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)     ; no copies of moved buttons left behind
     if LibIsOff
         LibOffline(true)                                    ; centred again in the new list area
 }

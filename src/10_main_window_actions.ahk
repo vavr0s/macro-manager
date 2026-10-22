@@ -316,8 +316,8 @@ FitList() {
         if (wx + ww // 2 >= a && wx + ww // 2 < r && wy + 10 >= t && wy + 10 < b2)
             mt := t, mb := b2
     }
-    want := Min(want, lh + (mb - mt) - wh)                          ; the whole window fits on the screen
-    d := want - lh
+    want := Max(base, Min(want, lh + (mb - mt) - wh))              ; the whole window fits on the screen - but never
+    d := want - lh                                                  ; smaller than at the start (a small screen / big font)
     if (Abs(d) >= 2) {
         for hwnd, c in Main {
             ControlGetPos(&cx, &cy, , , c)
@@ -327,6 +327,7 @@ FitList() {
         ControlMove(, , , lh + d, LV)
         ny := (wy + wh + d > mb) ? Max(mt, mb - wh - d) : wy      ; no room below: the window moves up
         WinMove(, ny, , wh + d, Main.Hwnd)
+        DllCall("RedrawWindow", "Ptr", Main.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)   ; all of it again: moved buttons left copies behind
         if LibGui
             LibPlace()
     }

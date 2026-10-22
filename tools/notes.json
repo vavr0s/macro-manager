@@ -11,6 +11,7 @@
     "Windows notifications of the app show Macro Manager with its icon instead of AutoHotkey, and Windows shows vavr0s as its publisher.",
     "Macro Hub search also finds the author: every word must be in the name, the game or the author name.",
     "The macro list grows with the number of macros in the profile, up to the height of the screen, so it needs no scroll bar. The Macro Hub panel grows with it.",
+    "On small screens or with bigger Windows text, the list no longer shrinks and the buttons under it no longer overlap after switching profiles or adding macros.",
     "No more line across the check boxes when the list is scrolled.",
     "The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.",
     "The close button (×) of the Macro Hub panel works."
@@ -26,6 +27,7 @@
     "Windows oznámení aplikace ukazují Macro Manager s jeho ikonou místo AutoHotkey a jako vydavatele Windows uvádí vavr0s.",
     "Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.",
     "Seznam maker se zvětšuje podle počtu maker v profilu, až do výšky obrazovky, takže nepotřebuje posuvník. Panel Macro Hubu se zvětšuje s ním.",
+    "Na menších obrazovkách nebo při větším písmu ve Windows se seznam už nezmenšuje a tlačítka pod ním se po přepnutí profilu nebo přidání maker nepřekrývají.",
     "Při posouvání seznamu už se přes zaškrtávátka nedělá čára.",
     "Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.",
     "Křížek (×) panelu Macro Hubu ho teď zavře."
@@ -41,6 +43,7 @@
     "Powiadomienia Windows aplikacji pokazują Macro Manager z jego ikoną zamiast AutoHotkey, a jako wydawcę Windows pokazuje vavr0s.",
     "Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.",
     "Lista makr rośnie wraz z liczbą makr w profilu, aż do wysokości ekranu, więc nie potrzebuje paska przewijania. Panel Macro Hub rośnie razem z nią.",
+    "Na mniejszych ekranach lub przy większej czcionce Windows lista już się nie zmniejsza, a przyciski pod nią nie nakładają się po zmianie profilu lub dodaniu makr.",
     "Przy przewijaniu listy nie pojawia się już linia na polach wyboru.",
     "Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.",
     "Przycisk zamykania (×) panelu Macro Hub działa."
@@ -56,6 +59,7 @@
     "Windows-Benachrichtigungen der App zeigen Macro Manager mit seinem Symbol statt AutoHotkey, und Windows zeigt vavr0s als Herausgeber.",
     "Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.",
     "Die Makroliste wächst mit der Anzahl der Makros im Profil bis zur Bildschirmhöhe, sodass sie keine Bildlaufleiste braucht. Die Macro-Hub-Leiste wächst mit.",
+    "Auf kleinen Bildschirmen oder mit größerer Windows-Schrift wird die Liste nicht mehr kleiner, und die Schaltflächen darunter überlappen sich nach dem Profilwechsel oder dem Hinzufügen von Makros nicht mehr.",
     "Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.",
     "Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.",
     "Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert."
