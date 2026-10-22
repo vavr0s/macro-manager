@@ -67,7 +67,8 @@ SetAppIdentity() {
         RegWrite(UpdBranch = "beta" ? "ComboCrown (beta)" : "ComboCrown", "REG_SZ", k, "DisplayName")
         if FileExist(png)
             RegWrite(png, "REG_SZ", k, "IconUri")
-    }
+    } catch as e
+        DiagLog("SetAppIdentity", e)
     lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
     old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
     for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions

@@ -99,7 +99,7 @@ DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: sup
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b12"    ; bump when the embedded logo/icon change
-AppVersion := "1.23.3"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.23.4"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -1138,6 +1138,25 @@ RegisterUninstall() {
         RegWrite(1, "REG_DWORD", k, "NoModify")
         RegWrite(1, "REG_DWORD", k, "NoRepair")
         RegWrite(A_ScriptDir, "REG_SZ", "HKCU\Software\MacroManagerBeta", "InstallDir")
+    } catch as e
+        DiagLog("RegisterUninstall", e)
+    if (InStr(RegRead(k, "DisplayName", ""), "ComboCrown") != 1)
+        DiagLog("RegisterUninstall", Error("written but reads back as " RegRead(k, "DisplayName", "?"), , k))
+}
+
+; problems that are not worth a message box (config\diag.log, the newest 50 lines are kept)
+DiagLog(where, e) {
+    try {
+        f := ConfigDir "\diag.log"
+        old := FileExist(f) ? FileRead(f) : ""
+        lines := StrSplit(Trim(old, "`n"), "`n")
+        while (lines.Length > 49)
+            lines.RemoveAt(1)
+        t := ""
+        for l in lines
+            t .= l "`n"
+        t .= FormatTime(, "yyyy-MM-dd HH:mm:ss") " v" AppVersion " " where ": " e.Message (e.Extra != "" ? " (" e.Extra ")" : "") " [" e.What "] admin=" A_IsAdmin "`n"
+        WriteText(f, t)
     }
 }
 
@@ -2767,7 +2786,8 @@ SetAppIdentity() {
         RegWrite(UpdBranch = "beta" ? "ComboCrown (beta)" : "ComboCrown", "REG_SZ", k, "DisplayName")
         if FileExist(png)
             RegWrite(png, "REG_SZ", k, "IconUri")
-    }
+    } catch as e
+        DiagLog("SetAppIdentity", e)
     lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
     old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
     for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions
