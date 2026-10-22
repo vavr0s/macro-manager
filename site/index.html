@@ -45,7 +45,10 @@ nav a:hover { color: var(--text); }
 .btn-gold:hover { background: var(--gold-hi); color: var(--dark-text); }
 .btn-dark { background: var(--card); color: var(--text); border-color: var(--line); }
 .btn-dark:hover { border-color: var(--gold); color: var(--text); }
-.btn img { width: 22px; height: 22px; }
+.btn img { width: 24px; height: auto; }
+@font-face { font-family: "gg sans"; src: url(/fonts/ggsans-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+.btn-discord { background: #5865F2; color: #fff; font-family: "gg sans", "Segoe UI", sans-serif; }
+.btn-discord:hover { background: #4752C4; color: #fff; }
 .btn svg { width: 20px; height: 20px; }
 
 /* hero */
@@ -98,7 +101,7 @@ details p { margin: 0; padding: 0 20px 18px; color: var(--muted); }
 
 /* discord band */
 .band { background: linear-gradient(135deg, #1d1e3a, #15161A); border: 1px solid var(--line); border-radius: 16px; padding: 40px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
-.band img { width: 72px; height: 72px; }
+.band > img { width: 80px; height: auto; }
 .band div { flex: 1; min-width: 240px; }
 .band h2 { text-align: left; margin-bottom: 6px; }
 .band p { margin: 0; color: var(--muted); }
@@ -152,7 +155,7 @@ footer a:hover { color: var(--text); }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 20h16"/></svg>
         <span data-i="download">Download for Windows</span>
       </a>
-      <a class="btn btn-dark" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord.png" alt=""><span data-i="join_discord">Join Discord</span></a>
+      <a class="btn btn-discord" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord-white.svg" alt="" width="24" height="18"><span data-i="join_discord">Join Discord</span></a>
     </div>
     <div class="meta"><span data-i="version">Version</span> {{VERSION}} · Windows 10 / 11 · {{SIZE}} MB · <a href="/download/MacroManager-Setup.zip" data-i="zip">ZIP package</a></div>
     <img class="shot" src="/img/hub.png" alt="Macro Manager with the Macro Hub panel" width="1285" height="601">
@@ -262,12 +265,12 @@ footer a:hover { color: var(--text); }
 <section>
   <div class="wrap">
     <div class="band">
-      <img src="/img/discord.png" alt="">
+      <img src="/img/discord.svg" alt="Discord" width="80" height="61">
       <div>
         <h2 data-i="dc_title">Join the community</h2>
         <p data-i="dc_p">Help, bug reports, ideas and beta versions – on our Discord (in English).</p>
       </div>
-      <a class="btn btn-gold" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener" data-i="join_discord">Join Discord</a>
+      <a class="btn btn-discord" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord-white.svg" alt="" width="24" height="18"><span data-i="join_discord">Join Discord</span></a>
     </div>
   </div>
 </section>
