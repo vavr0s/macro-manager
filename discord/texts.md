@@ -19,7 +19,7 @@ This is the community server of **ComboCrown** (formerly Macro Manager) – a fr
 **ComboCrown** (formerly Macro Manager) is a free Windows app for game macros – skill rotations, combos and key sequences, set up in a few clicks, no vendor mouse/keyboard software needed. Made for **4Story** players (4Classic and other servers), but it works in any game.
 
 **How to start**
-1. Download the installer from **<https://combocrown.pages.dev>** (more in <#download>)
+1. Download the installer from **<https://combocrown.com>** (more in <#download>)
 2. Run it and choose a folder – the app installs itself and starts
 3. Click **Add**, set the **trigger key**, pick the game in **Only in app**, tick the macro – done
 4. Ready-made macros: open **Macro Hub** in the app (button next to the search box) or look in <#macro-sharing>
@@ -40,7 +40,7 @@ Questions → <#faq> · Problems → <#create-ticket> · Rules → <#rules>
 
 ## download
 # ⬇️ Download
-**ComboCrown – installer:** **<https://combocrown.pages.dev>**
+**ComboCrown – installer:** **<https://combocrown.com>**
 `ComboCrown-Setup.exe` – one file, just run it and choose a folder.
 
 Your browser or Windows may warn about the file because the app isn't code-signed: choose **Keep** / **More info → Run anyway**.

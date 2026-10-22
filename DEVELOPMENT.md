@@ -34,8 +34,9 @@ Release channels: branch `main` = stable, branch `beta` = test builds (own regis
   + licence) is not in the repository - take it from the last setup zip.
 - Website: `site/` (one page, EN/CS/PL/DE in the page script). After a stable release build the stable packages,
   then `deploy_site.py --dist DIR` puts the page + `ComboCrown-Setup.exe/.zip` (under `/download/`) on
-  https://combocrown.pages.dev (Cloudflare Pages project `combocrown`, wrangler logged in). The older addresses
-  macromanager.pages.dev and macro-manager.vavr0smacromanager.workers.dev only redirect there (`tools/site_redirect.js`).
+  https://combocrown.com (Cloudflare Pages project `combocrown` with the custom domain, wrangler logged in;
+  `site/functions/_middleware.js` sends combocrown.pages.dev and www there). The older addresses macromanager.pages.dev
+  and macro-manager.vavr0smacromanager.workers.dev redirect there too (`tools/site_redirect.js`).
   `--dry DIR` only assembles the folder for a local preview.
 
 ## Third-party credits

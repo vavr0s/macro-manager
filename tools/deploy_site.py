@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deploys the website (site/) to Cloudflare Pages (project combocrown, https://combocrown.pages.dev)
+"""Deploys the website (site/) to Cloudflare Pages (project combocrown, https://combocrown.com)
 together with the stable setup packages. (The older addresses macromanager.pages.dev and the Worker
 macro-manager.vavr0smacromanager.workers.dev only redirect here - tools/site_redirect.js.)
 usage: deploy_site.py --dist C:\\claude\\dist [--dry DIR]
@@ -25,6 +25,8 @@ out = dry or os.path.join(work, 'public')
 if os.path.exists(out):
     shutil.rmtree(out)
 shutil.copytree(os.path.join(ROOT, 'site'), out)
+if not dry:                                              # Pages Functions sit next to the published folder
+    shutil.move(os.path.join(out, 'functions'), os.path.join(work, 'functions'))
 os.makedirs(os.path.join(out, 'download'))
 for f in (exe, zipf):
     if os.path.exists(f):
