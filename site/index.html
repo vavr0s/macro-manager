@@ -70,6 +70,9 @@ nav a:hover { color: var(--text); }
 section { padding: 72px 0; }
 section.alt { background: var(--bg2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 h2 { font-size: clamp(28px, 3.6vw, 38px); margin: 0 0 12px; text-align: center; }
+h1, h2, h3, summary { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+code, .meta a { white-space: nowrap; }
 p.sub { text-align: center; color: var(--muted); max-width: 680px; margin: 0 auto 44px; font-size: 18px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
@@ -163,7 +166,7 @@ footer a:hover { color: var(--text); }
       </a>
       <a class="btn btn-discord" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord-white.svg" alt="" width="24" height="18"><span data-i="join_discord">Join Discord</span></a>
     </div>
-    <div class="meta"><span data-i="version">Version</span> {{VERSION}} · Windows 10 / 11 · {{SIZE}} MB · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
+    <div class="meta"><span data-i="version">Version</span>&nbsp;{{VERSION}} · Windows&nbsp;10&nbsp;/&nbsp;11 · {{SIZE}}&nbsp;MB · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
     <img class="shot" src="/img/hub.png" alt="ComboCrown with the Macro Hub panel" width="1285" height="601">
   </div>
 </div>
@@ -249,7 +252,7 @@ footer a:hover { color: var(--text); }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 20h16"/></svg>
         <span data-i="download">Download for Windows</span>
       </a>
-      <div class="meta"><span data-i="version">Version</span> {{VERSION}} · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
+      <div class="meta"><span data-i="version">Version</span>&nbsp;{{VERSION}} · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
     </div>
   </div>
 </section>
@@ -412,11 +415,23 @@ const NAMES = { en: "English", cs: "Čeština", pl: "Polski", de: "Deutsch" };
 const EN = {};
 document.querySelectorAll("[data-i]").forEach(el => { EN[el.dataset.i] = el.innerHTML; });
 
+// line breaks: names and "number unit" stay on one line, a dash or arrow never starts a line,
+// and (Czech / Polish typography) a one-letter word never ends one
+const NB = " ";
+const KEEP = ["G HUB", "Windows 10 / 11", "AutoHotkey v2", "Macro Hub", "Ctrl + XButton1"];
+function wrapFix(v, l) {
+  for (const k of KEEP) v = v.split(k).join(k.replace(/ /g, NB));
+  v = v.replace(/(\d) (ms|MB|px|%)/g, "$1" + NB + "$2").replace(/ ([–→]) /g, NB + "$1 ");
+  if (l === "cs" || l === "pl")
+    for (let i = 0; i < 2; i++) v = v.replace(/(^|[\s(„>])([aikosuvzwAIKOSUVZW]) /g, "$1$2" + NB);
+  return v;
+}
+
 function setLang(l) {
   if (!NAMES[l]) l = "en";
   const d = T[l] || {};
   document.querySelectorAll("[data-i]").forEach(el => {
-    const v = d[el.dataset.i] ?? EN[el.dataset.i];
+    const v = wrapFix(d[el.dataset.i] ?? EN[el.dataset.i], l);
     if (el.hasAttribute("data-html") || v.includes("<")) el.innerHTML = v; else el.textContent = v;
   });
   document.documentElement.lang = l;
