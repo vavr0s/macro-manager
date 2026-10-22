@@ -1,7 +1,7 @@
 {
-  "version": "1.23.2",
+  "version": "1.23.3",
   "url": "https://raw.githubusercontent.com/vavr0s/macro-manager/beta/Macro%20Manager.ahk",
-  "sha256": "884642627ab78d36bb8301de05db4053bfb27cbd75f8219ee145193a24cf9849",
+  "sha256": "18545d0447aa277ca81ecce88ed4c0814079d6a60612a685345676a424b44e75",
   "notes": "BETA build - for testing.\n- Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.\n- New look of the logo and the app icon: just the crown, without the lettering.\n- The support link in Help is now a Join Discord button, the same as on the website.",
   "notes_cs": "BETA verze \u2013 k testov\u00e1n\u00ed.\n- Macro Manager se te\u010f jmenuje ComboCrown. Makra, profily i nastaven\u00ed z\u016fst\u00e1vaj\u00ed, jak jsou, a z\u00e1stupci dostanou nov\u00fd n\u00e1zev sami.\n- Nov\u00fd vzhled loga a ikony aplikace: jen koruna, bez n\u00e1pisu.\n- Odkaz na podporu v N\u00e1pov\u011bd\u011b je te\u010f tla\u010d\u00edtko P\u0159idej se na Discord, stejn\u00e9 jako na webu.",
   "notes_pl": "Wersja BETA \u2013 do test\u00f3w.\n- Macro Manager nazywa si\u0119 teraz ComboCrown. Makra, profile i ustawienia zostaj\u0105 bez zmian, a skr\u00f3ty same dostan\u0105 now\u0105 nazw\u0119.\n- Nowy wygl\u0105d logo i ikony aplikacji: sama korona, bez napisu.\n- Link do pomocy w Pomocy to teraz przycisk Do\u0142\u0105cz do Discorda, taki sam jak na stronie.",

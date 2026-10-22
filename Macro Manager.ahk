@@ -99,7 +99,7 @@ DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: sup
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b12"    ; bump when the embedded logo/icon change
-AppVersion := "1.23.2"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.23.3"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -2771,8 +2771,12 @@ SetAppIdentity() {
     lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
     old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
     for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions
-        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk))
-            try FileMove(dir "\" old, dir "\" lnk)             ; the shortcut (and so the notifications) get the new name
+        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk)) {   ; the shortcut (and so the notifications) get the new name
+            tgt := "", args := ""
+            try FileGetShortcut(dir "\" old, &tgt, , &args)
+            if InStr(tgt " " args, A_ScriptDir "\")             ; only a shortcut of this install (not of another copy)
+                try FileMove(dir "\" old, dir "\" lnk)
+        }
         if FileExist(dir "\" lnk)
             SetLnkAppId(dir "\" lnk, id)
     }

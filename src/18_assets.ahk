@@ -71,8 +71,12 @@ SetAppIdentity() {
     lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
     old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
     for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions
-        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk))
-            try FileMove(dir "\" old, dir "\" lnk)             ; the shortcut (and so the notifications) get the new name
+        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk)) {   ; the shortcut (and so the notifications) get the new name
+            tgt := "", args := ""
+            try FileGetShortcut(dir "\" old, &tgt, , &args)
+            if InStr(tgt " " args, A_ScriptDir "\")             ; only a shortcut of this install (not of another copy)
+                try FileMove(dir "\" old, dir "\" lnk)
+        }
         if FileExist(dir "\" lnk)
             SetLnkAppId(dir "\" lnk, id)
     }
