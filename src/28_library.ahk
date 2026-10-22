@@ -147,7 +147,7 @@ LibPlace() {
     LibFit(B - T)
 }
 
-; the main window got taller / shorter (FitList): the list of the panel too, the parts below it move
+; the main window has another height (for example after the language changed): the list of the panel too, the parts below it move
 LibFit(h) {
     global LibH
     d := h - LibH

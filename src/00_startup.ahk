@@ -293,7 +293,7 @@ try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is rel
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
 Main.Show()
-FitList()                            ; the list as tall as the macros of the profile need (now that the window has its size)
+FitCols()                            ; (now that the window has its size: the last column fits, no horizontal scroll bar)
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(() => LibCheckUpdates(true), -8000)   ; new versions of macros downloaded from Macro Hub (also when the
