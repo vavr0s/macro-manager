@@ -29,7 +29,8 @@ Release channels: branch `main` = stable, branch `beta` = test builds (own regis
   + licence) is not in the repository - take it from the last setup zip.
 - Website: `site/` (one page, EN/CS/PL/DE in the page script). After a stable release build the stable packages,
   then `deploy_site.py --dist DIR` puts the page + `MacroManager-Setup.exe/.zip` (under `/download/`) on
-  https://macro-manager.vavr0smacromanager.workers.dev (Cloudflare Worker with static assets, wrangler logged in).
+  https://macromanager.pages.dev (Cloudflare Pages project `macromanager`, wrangler logged in). The first address
+  macro-manager.vavr0smacromanager.workers.dev only redirects there (`tools/site_redirect.js`).
   `--dry DIR` only assembles the folder for a local preview.
 
 ## Third-party credits

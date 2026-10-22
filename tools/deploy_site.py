@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Deploys the website (site/) to Cloudflare (Worker with static assets, macro-manager.vavr0smacromanager.workers.dev)
-together with the stable setup packages.
+"""Deploys the website (site/) to Cloudflare Pages (project macromanager, https://macromanager.pages.dev)
+together with the stable setup packages. (The first address, the Worker macro-manager.vavr0smacromanager.workers.dev,
+only redirects here - tools/site_redirect.js.)
 usage: deploy_site.py --dist C:\\claude\\dist [--dry DIR]
 The version comes from version.json on the main branch; the packages in --dist must be that version
 (package.py prints it). --dry only assembles the folder (for a local preview) and does not deploy.
 Runs wrangler from its own temp folder, never from server/ (that would pick up the library Worker's config)."""
 import json, os, shutil, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NAME = 'macro-manager'
+NAME = 'macromanager'
 args = sys.argv[1:]
 dist = args[args.index('--dist') + 1]
 dry = args[args.index('--dry') + 1] if '--dry' in args else None
@@ -33,8 +34,7 @@ open(page, 'w', encoding='utf-8', newline='\n').write(s)
 print(f'site {ver} ({size} MB) -> {out}')
 try:
     if not dry:
-        open(os.path.join(work, 'wrangler.toml'), 'w', newline='\n').write(
-            f'name = "{NAME}"\ncompatibility_date = "2026-10-01"\n\n[assets]\ndirectory = "public"\n')
-        subprocess.check_call('npx wrangler deploy', shell=True, cwd=work)
+        subprocess.check_call(f'npx wrangler pages deploy public --project-name {NAME} --branch main --commit-dirty=true',
+                              shell=True, cwd=work)
 finally:
     shutil.rmtree(work, ignore_errors=True)
