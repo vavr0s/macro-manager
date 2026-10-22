@@ -1,8 +1,8 @@
 #Requires AutoHotkey v2.0
-;@Ahk2Exe-SetName Macro Manager
-;@Ahk2Exe-SetDescription Macro Manager
-;@Ahk2Exe-SetProductName Macro Manager
-;@Ahk2Exe-SetInternalName Macro Manager
+;@Ahk2Exe-SetName ComboCrown
+;@Ahk2Exe-SetDescription ComboCrown
+;@Ahk2Exe-SetProductName ComboCrown
+;@Ahk2Exe-SetInternalName ComboCrown
 ;@Ahk2Exe-SetOrigFilename Macro Manager.exe
 ;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion 1.0.0
@@ -94,10 +94,10 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: support)
+DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: support)
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "11"    ; bump when the embedded logo/icon change
+AssetVersion := "12"    ; bump when the embedded logo/icon change
 AppVersion := "1.23"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
@@ -159,7 +159,7 @@ LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (Li
 LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
-SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
+SetAppIdentity()        ; notifications / taskbar: "ComboCrown" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
@@ -176,12 +176,12 @@ RegisterUninstall()
 Load()
 
 ; ============ main window ============
-Main := Gui(, "Macro Manager")
+Main := Gui(, "ComboCrown")
 Main.SetFont("s9", "Segoe UI")
 try {
     Main.AddPicture("x10 y8 w820 h72", LogoWideFile)      ; black rounded banner with the logo
     Main.SetFont("s16 bold cD0AE6B", "Segoe UI")
-    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "Macro Manager")
+    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "ComboCrown")
     Roles[ttl.Hwnd] := "skip"
     Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     lbl := Main.AddText("x600 y50 w105 Right BackgroundTrans", _T("Dark mode"))
@@ -213,7 +213,7 @@ try {
 }
 try {
     TraySetIcon(IconFile)
-    A_IconTip := "Macro Manager v" AppVersion
+    A_IconTip := "ComboCrown v" AppVersion
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header

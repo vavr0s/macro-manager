@@ -33,10 +33,10 @@ jobs:
               tail = "Update from the beta app (green arrow). Feedback → #beta-feedback"
               color, content = 0x2FD26D, (f"<@&{os.environ['BETA_ROLE']}>" if os.environ.get("BETA_ROLE") else "")
           else:
-              title = f"🚀 Macro Manager {v['version']} is out!"
+              title = f"🚀 ComboCrown {v['version']} is out!"
               tail = "Update from the app (green arrow) or download the installer in #download."
               color, content = 0xD0AE6B, ""
-          body = {"username": "Macro Manager", "content": content,
+          body = {"username": "ComboCrown", "content": content,
                   "allowed_mentions": {"parse": [], "roles": [os.environ["BETA_ROLE"]] if beta and os.environ.get("BETA_ROLE") else []},
                   "embeds": [{"title": title, "description": (notes + "\n\n" if notes else "") + tail, "color": color}]}
           req = urllib.request.Request(hook, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "User-Agent": "MacroManager-Announce"})

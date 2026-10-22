@@ -104,8 +104,8 @@
   "en": "Delete",
   "ctx": [
    "bDel := AddBtn(Main, \"x+8 yp w130 h36\", _T(\"Delete\"), OnDelBtn, \"btndanger\")",
-   "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
-   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
+   "if (ThemedAsk(\"ComboCrown\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
+   "if (ThemedAsk(\"ComboCrown\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]",
    "LibBtn[\"del\"] := AddBtn(g, \"x+8 yp w\" (W - 370) \" h32\", _T(\"Delete\"), (*) => LibDelete(), \"btndanger\")",
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc"
   ],
@@ -171,7 +171,7 @@
   "en": "Uninstall",
   "ctx": [
    "bUninst := AddBtn(Main, \"x740 yp w90 h28\", _T(\"Uninstall\"), (*) => UninstallApp(), \"btnghost\")",
-   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
+   "if (ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnp"
   ],
   "max_chars": 12
  },
@@ -223,15 +223,15 @@
  "Cancel": {
   "en": "Cancel",
   "ctx": [
-   "if (ThemedAsk(\"Macro Manager\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
-   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"",
-   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
+   "if (ThemedAsk(\"ComboCrown\", \"\", msg, [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\")",
+   "&& ThemedAsk(\"ComboCrown\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btn",
+   "if (ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnp",
+   "r := ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Only in `\"{1}`\"\", CurProfile), \"one\", \"btn\"], [_T(\"All profiles\"), \"all\", \"btnprimary\"]], false)",
    "AddBtn(g, \"x555 y518 w95 h34\", _T(\"Cancel\"), (*) => (FinishRec(), g.Destroy()))",
    ", [[_T(\"Turn on anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]) != \"yes\") {",
    "AddBtn(g, \"x384 y\" btnY \" w100 h32\", _T(\"Cancel\"), Close, \"btnprimary\")",
-   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary",
+   "if (ThemedAsk(\"ComboCrown\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]",
    "AddBtn(p, \"x216 y\" (y + 10) \" w90 h32\", _T(\"Cancel\"), Close)",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Browse for the .exe\"), \"browse\", \"btn\"], [_T(\"Running applications\"), \"list\", \"btnprimary\"]], false)",
    "AddBtn(p, \"x300 y230 w90 h30\", _T(\"Cancel\"), Close)",
@@ -407,42 +407,42 @@
  "Import anyway?": {
   "en": "Import anyway?",
   "ctx": [
-   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
+   "&& ThemedAsk(\"ComboCrown\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btn"
   ]
  },
  "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.": {
   "en": "This script has no \"#Requires AutoHotkey v2\" line.\nIt will be run with AutoHotkey v2 - v1 scripts won't work.",
   "ctx": [
-   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
+   "&& ThemedAsk(\"ComboCrown\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btn"
   ]
  },
  "Import anyway": {
   "en": "Import anyway",
   "ctx": [
-   "&& ThemedAsk(\"Macro Manager\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \""
+   "&& ThemedAsk(\"ComboCrown\", _T(\"Import anyway?\"), _T(\"This script has no `\"#Requires AutoHotkey v2`\" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work.\"), [[_T(\"Import anyway\"), \"yes\", \"btn\"], [_T(\"Cancel\"), \"\", \"btn"
   ]
  },
- "Macro Manager setup": {
-  "en": "Macro Manager setup",
+ "ComboCrown setup": {
+  "en": "ComboCrown setup",
   "ctx": [
-   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)",
-   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)",
-   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)",
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
-   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"))"
+   "r := ThemedAsk(_T(\"ComboCrown setup\"), _T(\"ComboCrown is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)",
+   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"ComboCrown setup\"), true)",
+   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"ComboCrown setup\"), true)",
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"ComboCrown setup\"))"
   ]
  },
- "Macro Manager is already installed": {
-  "en": "Macro Manager is already installed",
+ "ComboCrown is already installed": {
+  "en": "ComboCrown is already installed",
   "ctx": [
-   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
+   "r := ThemedAsk(_T(\"ComboCrown setup\"), _T(\"ComboCrown is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
   ]
  },
  "Installed in:\n{1}\n\nUpdate it with this file and start it, or just start the installed copy?": {
   "en": "Installed in:\n{1}\n\nUpdate it with this file and start it, or just start the installed copy?",
   "ctx": [
-   "r := ThemedAsk(_T(\"Macro Manager setup\"), _T(\"Macro Manager is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
+   "r := ThemedAsk(_T(\"ComboCrown setup\"), _T(\"ComboCrown is already installed\"), _T(\"Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?\", prev)"
   ]
  },
  "Just start": {
@@ -460,130 +460,130 @@
  "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}": {
   "en": "Couldn't update the installed copy (is it running?). Starting the installed version.\n\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)"
+   "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"ComboCrown setup\"), true)"
   ]
  },
- "Choose where to install Macro Manager.\nA 'MacroManager' folder will be created there.": {
-  "en": "Choose where to install Macro Manager.\nA 'MacroManager' folder will be created there.",
+ "Choose where to install ComboCrown.\nA 'MacroManager' folder will be created there.": {
+  "en": "Choose where to install ComboCrown.\nA 'MacroManager' folder will be created there.",
   "ctx": [
-   "dir := DirSelect(\"*\" A_ProgramFiles, 1, _T(\"Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there.\"))"
+   "dir := DirSelect(\"*\" A_ProgramFiles, 1, _T(\"Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there.\"))"
   ]
  },
  "Installation failed:\n{1}": {
   "en": "Installation failed:\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"Macro Manager setup\"), true)"
+   "ThemedNote(_T(\"Installation failed:`n{1}\", e.Message), _T(\"ComboCrown setup\"), true)"
   ]
  },
  "Create a Start Menu shortcut?": {
   "en": "Create a Start Menu shortcut?",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Skip": {
   "en": "Skip",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Create": {
   "en": "Create",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Start Menu shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")",
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Create a Desktop shortcut?": {
   "en": "Create a Desktop shortcut?",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
+   "if (ThemedAsk(_T(\"ComboCrown setup\"), \"\", _T(\"Create a Desktop shortcut?\"), [[_T(\"Skip\"), \"\", \"btn\"], [_T(\"Create\"), \"yes\", \"btnprimary\"]], false) = \"yes\")"
   ]
  },
  "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config": {
   "en": "Installed to:\n{1}\n\nYour macros and settings are stored in:\n{1}\\config",
   "ctx": [
-   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"Macro Manager setup\"))"
+   "ThemedNote(_T(\"Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\\config\", target), _T(\"ComboCrown setup\"))"
   ]
  },
  "This doesn't look like an installed copy, nothing was removed.": {
   "en": "This doesn't look like an installed copy, nothing was removed.",
   "ctx": [
-   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), true)"
+   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall ComboCrown\"), true)"
   ]
  },
- "Uninstall Macro Manager": {
-  "en": "Uninstall Macro Manager",
+ "Uninstall ComboCrown": {
+  "en": "Uninstall ComboCrown",
   "ctx": [
-   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall Macro Manager\"), true)",
-   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\",",
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
-   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall Macro Manager\"), true)",
-   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall Macro Manager\"))",
-   "ThemedNote(_T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"))"
+   "ThemedNote(_T(\"This doesn't look like an installed copy, nothing was removed.\"), _T(\"Uninstall ComboCrown\"), true)",
+   "if (ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnp",
+   "r := ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't",
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall ComboCrown\"), true)",
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall ComboCrown\"))",
+   "ThemedNote(_T(\"ComboCrown has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall ComboCrown\"))"
   ]
  },
- "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": {
-  "en": "Uninstall Macro Manager?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}",
+ "Uninstall ComboCrown?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}": {
+  "en": "Uninstall ComboCrown?\n\nThis permanently deletes the whole folder, including all macros and settings:\n{1}",
   "ctx": [
-   "if (ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\","
+   "if (ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}\", dir), [[_T(\"Uninstall\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnp"
   ]
  },
  "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...": {
   "en": "Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...",
   "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+   "r := ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't"
   ],
   "max_chars": 300
  },
  "Don't save": {
   "en": "Don't save",
   "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do"
+   "r := ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't"
   ],
   "max_chars": 40
  },
  "Create backup...": {
   "en": "Create backup...",
   "ctx": [
-   "r := ThemedAsk(_T(\"Uninstall Macro Manager\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Do",
+   "r := ThemedAsk(_T(\"Uninstall ComboCrown\"), \"\", _T(\"Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore...\"), [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Don't",
    ", [[_T(\"Cancel\"), \"\", \"btn\"], [_T(\"Restore...\"), \"restore\", \"btn\"], [_T(\"Create backup...\"), \"create\", \"btnprimary\"]], false)"
   ]
  },
  "Create backup": {
   "en": "Create backup",
   "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+   "path := FileSelect(\"S16\", A_Desktop \"\\ComboCrown backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))",
+   "path := FileSelect(\"S16\", A_Desktop \"\\ComboCrown backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))"
   ]
  },
- "Macro Manager backup (*.mmbackup)": {
-  "en": "Macro Manager backup (*.mmbackup)",
+ "ComboCrown backup (*.mmbackup)": {
+  "en": "ComboCrown backup (*.mmbackup)",
   "ctx": [
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
-   "path := FileSelect(\"S16\", A_Desktop \"\\Macro Manager backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
-   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))"
+   "path := FileSelect(\"S16\", A_Desktop \"\\ComboCrown backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))",
+   "path := FileSelect(\"S16\", A_Desktop \"\\ComboCrown backup \" FormatTime(, \"yyyy-MM-dd\") \".mmbackup\", _T(\"Create backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))",
+   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))"
   ]
  },
  "The backup could not be saved:\n{1}": {
   "en": "The backup could not be saved:\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall Macro Manager\"), true)",
+   "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), _T(\"Uninstall ComboCrown\"), true)",
    "ThemedNote(_T(\"The backup could not be saved:`n{1}\", e.Message), , true)"
   ]
  },
  "Backup saved to:\n{1}": {
   "en": "Backup saved to:\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall Macro Manager\"))",
+   "ThemedNote(_T(\"Backup saved to:`n{1}\", path), _T(\"Uninstall ComboCrown\"))",
    "ThemedNote(_T(\"Backup saved to:`n{1}\", path))"
   ]
  },
- "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.": {
-  "en": "Macro Manager has been uninstalled.\nThe folder will be removed in a moment.",
+ "ComboCrown has been uninstalled.\nThe folder will be removed in a moment.": {
+  "en": "ComboCrown has been uninstalled.\nThe folder will be removed in a moment.",
   "ctx": [
-   "ThemedNote(_T(\"Macro Manager has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall Macro Manager\"))"
+   "ThemedNote(_T(\"ComboCrown has been uninstalled.`nThe folder will be removed in a moment.\"), _T(\"Uninstall ComboCrown\"))"
   ]
  },
  "New macro": {
@@ -793,7 +793,7 @@
  "This macro is in several profiles ({1}).": {
   "en": "This macro is in several profiles ({1}).",
   "ctx": [
-   "r := ThemedAsk(\"Macro Manager\", _T(\"This macro is in several profiles ({1}).\", ProfLabel(pv[\"v\"]))"
+   "r := ThemedAsk(\"ComboCrown\", _T(\"This macro is in several profiles ({1}).\", ProfLabel(pv[\"v\"]))"
   ]
  },
  "Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.": {
@@ -914,13 +914,13 @@
  "Same trigger key": {
   "en": "Same trigger key",
   "ctx": [
-   "if (ThemedAsk(\"Macro Manager\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
+   "if (ThemedAsk(\"ComboCrown\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
   ]
  },
  "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.": {
   "en": "Macro \"{1}\" uses the same trigger key ({2}) as the active macro \"{3}\". Only one of them will work.",
   "ctx": [
-   "if (ThemedAsk(\"Macro Manager\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
+   "if (ThemedAsk(\"ComboCrown\", _T(\"Same trigger key\"), _T(\"Macro `\"{1}`\" uses the same trigger key ({2}) as the active macro `\"{3}`\". Only one of them will work.\", m[\"name\"], m[\"hotkey\"], other[\"name\"])"
   ]
  },
  "Turn on anyway": {
@@ -1149,7 +1149,7 @@
  "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.": {
   "en": "Delete profile \"{1}\"?\n\nMacros that belong only to this profile are moved to the first remaining profile.",
   "ctx": [
-   "if (ThemedAsk(\"Macro Manager\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary"
+   "if (ThemedAsk(\"ComboCrown\", \"\", _T(\"Delete profile `\"{1}`\"?`n`nMacros that belong only to this profile are moved to the first remaining profile.\", CurProfile), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Cancel\"), \"\", \"btnprimary\"]]"
   ]
  },
  "Profiles of this macro": {
@@ -1248,7 +1248,7 @@
    "ThemedNote(_T(\"You have the latest version (v{1}).\", AppVersion), _T(\"Updates\"))",
    "ThemedNote(_T(\"The download failed. Try again later.\"), _T(\"Updates\"), true)",
    "ThemedNote(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 1",
-   "ThemedNote(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), true)",
+   "ThemedNote(_T(\"The downloaded file is not a valid ComboCrown script. Nothing was changed.\"), _T(\"Updates\"), true)",
    "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)",
    "ThemedNote(_T(\"Could not replace the app file: {1}\", \"AutoHotkey v2 not found\"), _T(\"Updates\"), true)",
    "ThemedNote(_T(\"Could not replace the app file: {1}\", e.Message), _T(\"Updates\"), true)",
@@ -1267,16 +1267,16 @@
    "msg := (UpdInfo[\"notes\"] != \"\" ? UpdInfo[\"notes\"] \"`n`n\" : \"\") Trim(_T(\"`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed.\"), \"`n\")"
   ]
  },
- "Macro Manager update": {
-  "en": "Macro Manager update",
+ "ComboCrown update": {
+  "en": "ComboCrown update",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
+   "if (ThemedAsk(_T(\"ComboCrown update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
   ]
  },
  "Version {1} is available (you have v{2}).": {
   "en": "Version {1} is available (you have v{2}).",
   "ctx": [
-   "if (ThemedAsk(_T(\"Macro Manager update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
+   "if (ThemedAsk(_T(\"ComboCrown update\"), _T(\"Version {1} is available (you have v{2}).\", UpdInfo[\"ver\"], AppVersion), msg"
   ]
  },
  "Later": {
@@ -1310,10 +1310,10 @@
    "ThemedNote(_T(\"The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)\", SubStr(sha, 1, 1"
   ]
  },
- "The downloaded file is not a valid Macro Manager script. Nothing was changed.": {
-  "en": "The downloaded file is not a valid Macro Manager script. Nothing was changed.",
+ "The downloaded file is not a valid ComboCrown script. Nothing was changed.": {
+  "en": "The downloaded file is not a valid ComboCrown script. Nothing was changed.",
   "ctx": [
-   "ThemedNote(_T(\"The downloaded file is not a valid Macro Manager script. Nothing was changed.\"), _T(\"Updates\"), true)"
+   "ThemedNote(_T(\"The downloaded file is not a valid ComboCrown script. Nothing was changed.\"), _T(\"Updates\"), true)"
   ]
  },
  "Could not replace the app file: {1}": {
@@ -1331,7 +1331,7 @@
   ]
  },
  "hlp_start": {
-  "en": "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.\n\n- Tick a macro in the list to turn it on, untick to turn it off.\n- The switch All macros in the banner turns every macro on or off at once.\n- Dark mode switches the look of the app.\n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.\n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.\n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.\n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.\n- The app always runs as administrator, so macros also work in games that run elevated.\n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.",
+  "en": "ComboCrown runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.\n\n- Tick a macro in the list to turn it on, untick to turn it off.\n- The switch All macros in the banner turns every macro on or off at once.\n- Dark mode switches the look of the app.\n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.\n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.\n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.\n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.\n- The app always runs as administrator, so macros also work in games that run elevated.\n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1355,13 +1355,13 @@
   ]
  },
  "hlp_script": {
-  "en": "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.\n\n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.\n- It must be AutoHotkey v2 code (v1 scripts will not work).\n- Trigger key and application filter are not used, your script does that itself.\n- Imported .ahk files that were not made by Macro Manager become Script macros.\n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.",
+  "en": "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.\n\n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.\n- It must be AutoHotkey v2 code (v1 scripts will not work).\n- Trigger key and application filter are not used, your script does that itself.\n- Imported .ahk files that were not made by ComboCrown become Script macros.\n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
  },
  "hlp_keys": {
-  "en": "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...\nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.\n\nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.\nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.\n\nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.\n\nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).\nThe same works by typing it in the fields: a,Shift+4,d",
+  "en": "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...\nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.\n\nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.\nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); ComboCrown then sees them as ordinary keys, so click the trigger box and press the side button.\n\nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.\n\nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).\nThe same works by typing it in the fields: a,Shift+4,d",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1379,7 +1379,7 @@
   ]
  },
  "hlp_order": {
-  "en": "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).\n\nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).\nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.\nExport all... writes every macro to a folder, one file each.\n\nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\\backup-before-restore.mmbackup.\n\nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.",
+  "en": "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).\n\nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).\nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by ComboCrown come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.\nExport all... writes every macro to a folder, one file each.\n\nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\\backup-before-restore.mmbackup.\n\nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1466,14 +1466,14 @@
  "Restore from backup": {
   "en": "Restore from backup",
   "ctx": [
-   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"Macro Manager backup (*.mmbackup)\"))",
+   "path := FileSelect(1, A_Desktop, _T(\"Restore from backup\"), _T(\"ComboCrown backup (*.mmbackup)\"))",
    "if (ThemedAsk(_T(\"Restore from backup\"), _T(\"Restore this backup?\")"
   ]
  },
- "This is not a Macro Manager backup file:\n{1}": {
-  "en": "This is not a Macro Manager backup file:\n{1}",
+ "This is not a ComboCrown backup file:\n{1}": {
+  "en": "This is not a ComboCrown backup file:\n{1}",
   "ctx": [
-   "ThemedNote(_T(\"This is not a Macro Manager backup file:`n{1}\", path), , true)"
+   "ThemedNote(_T(\"This is not a ComboCrown backup file:`n{1}\", path), , true)"
   ]
  },
  "Restore this backup?": {
@@ -1884,7 +1884,7 @@
  "{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.": {
   "en": "{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.",
   "ctx": [
-   ": _T(\"{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.\", fresh.Length), \"Macro Manager\", 0x24)"
+   ": _T(\"{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.\", fresh.Length), \"ComboCrown\", 0x24)"
   ]
  },
  "New version of \"{1}\" by {2}": {

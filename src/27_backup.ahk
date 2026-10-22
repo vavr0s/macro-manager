@@ -13,7 +13,7 @@ OnBackupBtn(*) {
 
 CreateBackup() {
     Save()
-    path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+    path := FileSelect("S16", A_Desktop "\ComboCrown backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("ComboCrown backup (*.mmbackup)"))
     if (path = "")
         return
     if !RegExMatch(path, "i)\.mmbackup$")
@@ -26,7 +26,7 @@ CreateBackup() {
 }
 
 WriteBackup(path) {
-    t := "; Macro Manager backup - restore it with the Backup... button in the app (or drop this file onto its window)`n"
+    t := "; ComboCrown backup - restore it with the Backup... button in the app (or drop this file onto its window)`n"
     t .= "; version=" AppVersion " date=" FormatTime(, "yyyy-MM-dd HH:mm") " macros=" Macros.Length "`n"
     t .= "[[macros.ini]]`n" StrReplace(FileRead(IniFile), "`r", "") "`n"
     for m in Macros {
@@ -69,19 +69,19 @@ ReadBackup(path) {
             buf .= (cur = "macros.ini") ? line "`r`n" : line
     }
     if (!InStr(res["ini"], "[main]") || !RegExMatch(res["ini"], "m)^count=\d+"))
-        throw Error("not a Macro Manager backup")
+        throw Error("not a ComboCrown backup")
     return res
 }
 
 RestoreBackup(path := "") {
     if (path = "") {
-        path := FileSelect(1, A_Desktop, _T("Restore from backup"), _T("Macro Manager backup (*.mmbackup)"))
+        path := FileSelect(1, A_Desktop, _T("Restore from backup"), _T("ComboCrown backup (*.mmbackup)"))
         if (path = "")
             return
     }
     try b := ReadBackup(path)
     catch {
-        ThemedNote(_T("This is not a Macro Manager backup file:`n{1}", path), , true)
+        ThemedNote(_T("This is not a ComboCrown backup file:`n{1}", path), , true)
         return
     }
     if (ThemedAsk(_T("Restore from backup"), _T("Restore this backup?")

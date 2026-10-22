@@ -142,7 +142,7 @@ EditMacro(idx) {
     Detach() {
         if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
             return true
-        r := ThemedAsk("Macro Manager", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
+        r := ThemedAsk("ComboCrown", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
             , _T("Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.", CurProfile)
             , [[_T("Cancel"), "", "btn"], [_T("Only in `"{1}`"", CurProfile), "one", "btn"], [_T("All profiles"), "all", "btnprimary"]], false)
         if (r = "")

@@ -17,6 +17,7 @@ EnsureAssets() {
             for old in ["badge_main.png", "badge_dk.png", "badge_lt.png", "discord.png", "discord_hov.png"]    ; pictures of older versions (the "!" and the Discord button are drawn now)
                 try FileDelete(AssetsDir "\" old)
             WriteText(verFile, AssetVersion)
+            RebrandExe()                                                     ; new icon: the program file shows it too
         }
     }
 }
@@ -43,7 +44,7 @@ SetWinIcon(hwnd) {
 MakeShortcut(lnk, target, icon) {
     try {
         lp := LaunchParts(target)
-        FileCreateShortcut(lp[1], lnk, target, lp[2], "Macro Manager", icon)
+        FileCreateShortcut(lp[1], lnk, target, lp[2], "ComboCrown", icon)
         SetLnkAppId(lnk, AppId())
     }
 }
@@ -63,14 +64,37 @@ SetAppIdentity() {
         try IcoToPng(IconFile, png)
     k := "HKCU\Software\Classes\AppUserModelId\" id
     try {
-        RegWrite(UpdBranch = "beta" ? "Macro Manager (beta)" : "Macro Manager", "REG_SZ", k, "DisplayName")
+        RegWrite(UpdBranch = "beta" ? "ComboCrown (beta)" : "ComboCrown", "REG_SZ", k, "DisplayName")
         if FileExist(png)
             RegWrite(png, "REG_SZ", k, "IconUri")
     }
-    lnk := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"
-    for dir in [A_Programs, A_Desktop]                         ; shortcuts made by older versions
+    lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
+    old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
+    for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions
+        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk))
+            try FileMove(dir "\" old, dir "\" lnk)             ; the shortcut (and so the notifications) get the new name
         if FileExist(dir "\" lnk)
             SetLnkAppId(dir "\" lnk, id)
+    }
+}
+
+; the branded interpreter of an installed copy gets the current name and icon too (installed by an older version).
+; The running .exe can't be overwritten, but it can be moved aside: patched copy -> its place, old one -> .bak
+RebrandExe() {
+    exe := A_ScriptDir "\Macro Manager.exe"
+    if (A_AhkPath != exe)
+        return
+    try {
+        FileCopy(exe, exe ".new", 1)
+        if !PatchExe(exe ".new", IconFile)
+            throw Error("patch")
+        FileMove(exe, exe ".bak", 1)
+        FileMove(exe ".new", exe)
+    } catch {
+        try FileDelete(exe ".new")
+        if !FileExist(exe)
+            try FileMove(exe ".bak", exe)
+    }
 }
 
 ; the largest picture of the app icon as a PNG file (the icon keeps its big sizes as PNG inside)
