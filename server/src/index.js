@@ -80,6 +80,28 @@ async function modLog(env, origin, m, data, title, color, extra = []) {
              { name: 'ID', value: String(m.id), inline: true }, ...extra] }] });
 }
 
+// ---- app updates through this server (GitHub's API allows 60 questions an hour per internet address) ----
+// The newest commit of a branch comes from the git protocol (no API limit), kept 60 s; files are read at that
+// commit, so they are never an old cached copy. The app checks the SHA-256 from version.json anyway.
+const REPO = 'vavr0s/macro-manager';
+async function branchHead(branch) {
+  const key = new Request(`https://macro-hub.cache/head/${branch}`);
+  const hit = await caches.default.match(key);
+  if (hit) return hit.text();
+  const r = await fetch(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, { headers: { 'User-Agent': 'MacroManagerHub' } });
+  if (!r.ok) return '';
+  const m = (await r.text()).match(new RegExp(`([0-9a-f]{40}) refs/heads/${branch}\\b`));
+  if (!m) return '';
+  await caches.default.put(key, new Response(m[1], { headers: { 'Cache-Control': 'max-age=60' } }));
+  return m[1];
+}
+async function repoFile(branch, file) {
+  const sha = await branchHead(branch);
+  if (!sha) return null;
+  const r = await fetch(`https://raw.githubusercontent.com/${REPO}/${sha}/${encodeURIComponent(file)}`, { cf: { cacheTtl: 86400, cacheEverything: true } });
+  return r.ok ? r : null;
+}
+
 // text of a player for the public channel: no Discord formatting, no clickable links
 function plain(s) {
   return String(s).replace(/https?:\/\/\S+|www\.\S+|discord\.gg\/\S+/gi, '[link]').replace(/[\\*_~`|>\[\]()#@<:-]/g, c => '\\' + c);
@@ -125,6 +147,15 @@ export default {
     const url = new URL(req.url);
     const parts = url.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
     const later = p => ctx.waitUntil(p);                          // Discord messages: after the answer
+
+    // ---- app updates: /v1/app/version?branch=main|beta (version.json), /v1/app/file?branch= (Macro Manager.ahk) ----
+    if (parts[0] === 'v1' && parts[1] === 'app' && req.method === 'GET' && (parts[2] === 'version' || parts[2] === 'file')) {
+      const branch = url.searchParams.get('branch') === 'beta' ? 'beta' : 'main';
+      const r = await repoFile(branch, parts[2] === 'version' ? 'version.json' : 'Macro Manager.ahk');
+      if (!r) return fail('unavailable', 502);
+      return new Response(r.body, { headers: { 'Content-Type': parts[2] === 'version' ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store' } });
+    }
 
     // ---- moderation links from #mod-log: GET = the question, POST (its button) = done ----
     if (parts[0] === 'v1' && parts[1] === 'admin' && !parts[2]) {

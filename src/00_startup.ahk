@@ -148,6 +148,7 @@ Rec := {ih: 0, mode: "", cb: 0, down: [], chord: [], toks: [], mpend: [], btn: 0
 MouseToks := ["RButton", "MButton", "XButton1", "XButton2", "WheelUp", "WheelDown", "WheelLeft", "WheelRight"]
 Procs := Map()          ; macro -> PID of running imported script
 LibApi := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/macros"     ; macro library (server/)
+UpdServer := "https://macro-manager-library.vavr0smacromanager.workers.dev/v1/app"     ; app updates through the same server
 LibId := ""             ; random id of this install for the library (macros.ini [main] libid)
 LibAuthor := ""         ; nickname last used for sharing (macros.ini [main] libauthor)
 LibGui := 0, LibOpen := false, LibBusy := false, LibW := 440, LibH := 0
@@ -297,6 +298,6 @@ FitCols()                            ; (now that the window has its size: the la
 SetTimer(RedrawList, -300)
 SetTimer(() => AutoCheck(), -4000)
 SetTimer(() => LibCheckUpdates(true), -8000)   ; new versions of macros downloaded from Macro Hub (also when the
-SetTimer(() => LibCheckUpdates(true), 300000)   ; window is opened and when Macro Hub is opened)
+SetTimer(() => LibCheckUpdates(true), 900000)   ; window is opened and when Macro Hub is opened)
 SetTimer(AutoCheck, 60000)         ; background check (at most every 2 minutes, see AutoCheck)
 return

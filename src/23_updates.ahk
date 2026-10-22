@@ -155,7 +155,12 @@ QueryUpdate() {
     if (UpdEtag != "")
         hdr["If-None-Match"] := UpdEtag
     st := 0, info := ""
-    if (A_TickCount >= apiPause)
+    ; first the Macro Hub server: it reads GitHub for everybody (GitHub's API allows only 60 questions an hour per
+    ; internet address - a few apps behind one connection used them up); GitHub itself when the server can't answer
+    r := HttpSend(UpdServer "/version?branch=" UpdBranch, Map("Cache-Control", "no-cache"))
+    if (r && r["status"] = 200 && InStr(r["text"], '"sha256"'))
+        info := r["text"]
+    if (info = "" && A_TickCount >= apiPause)
         info := HttpReq("https://api.github.com/repos/" UpdRepo "/contents/version.json?ref=" UpdBranch, hdr, &st, &et)
     if (st = 403 || st = 429)
         apiPause := A_TickCount + 1800000          ; 30 minutes (the limit resets within the hour)
@@ -163,7 +168,7 @@ QueryUpdate() {
         info := UpdBody
     else if (st = 200 && info != "")
         UpdEtag := et, UpdBody := info
-    else
+    else if (info = "")
         info := HttpGet(UpdateUrl "?t=" A_TickCount)      ; API unavailable or rate limited: use the (cached) raw file
     if (!RegExMatch(info, '"version"\s*:\s*"([^"]+)"', &mv)
         || !RegExMatch(info, '"url"\s*:\s*"([^"]+)"', &mu)
@@ -324,8 +329,12 @@ InstallUpdate() {
     url := UpdInfo["url"], sha := UpdInfo["sha"]
     tmp := A_Temp "\MacroManager-update.ahk"
     try FileDelete tmp
-    if !GhDownload("Macro%20Manager.ahk", tmp)
-        try Download(url "?t=" A_TickCount, tmp)
+    try Download(UpdServer "/file?branch=" UpdBranch "&t=" A_TickCount, tmp)           ; the Macro Hub server (no GitHub limit) ...
+    if (!FileExist(tmp) || Sha256(tmp) != sha) {
+        try FileDelete tmp
+        if !GhDownload("Macro%20Manager.ahk", tmp)                   ; ... else GitHub directly
+            try Download(url "?t=" A_TickCount, tmp)
+    }
     if !FileExist(tmp) {
         ThemedNote(_T("The download failed. Try again later."), _T("Updates"), true)
         return
