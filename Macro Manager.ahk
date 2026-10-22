@@ -95,13 +95,11 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-DiscordFile := AssetsDir "\discord.png"
-DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
 DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: support)
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b11"    ; bump when the embedded logo/icon change
-AppVersion := "1.22.16"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.23.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +109,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- The macro library is now called Macro Hub.`n- Macros downloaded from Macro Hub show a download arrow instead of the share icon and can't be shared again as they are. Once you change one, you can share your own version. The same macro can't be in Macro Hub twice.`n- Update your shared macros: when you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay, and Macro Hub shows the date of the update.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed and take the new version or keep yours.`n- Macro Hub shows what a macro does (keys, delays, sequence) before you download it, and macros checked by the moderator have a gold tick and come first.`n- Macro Hub is better protected against fake ratings and reports, and links in shared descriptions are not posted to Discord.`n- Updates of the app come through the Macro Hub server, so a new version shows up right away also when several PCs share one internet connection (GitHub limits how often it can be asked).`n- Macros downloaded from Macro Hub with an older version of the app are recognised too, so they also get new-version notices. The app checks for new versions every 15 minutes, when its window opens and when Macro Hub opens.`n- Without internet, Macro Hub shows No connection and tries again by itself. Sharing tells you right away that it needs the internet, and an update of your shared macro made offline is sent automatically once you are online again.`n- Windows notifications of the app show Macro Manager with its icon instead of AutoHotkey, and Windows shows vavr0s as its publisher.`n- Macro Hub search also finds the author: every word must be in the name, the game or the author name.`n- No more line across the check boxes when the list is scrolled.`n- The share icon turns gold for every macro you have already shared, also for macros shared before this version or from another PC with your backup.`n- The close button (×) of the Macro Hub panel works."
+ReleaseNotes := "BETA build - for testing.`n- The support link in Help is now a Join Discord button, the same as on the new website."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Knihovna maker se teď jmenuje Macro Hub.`n- Makra stažená z Macro Hubu mají místo ikony sdílení šipku stažení a znovu je sdílet tak, jak jsou, nejde. Jakmile makro upravíš, můžeš sdílet svou verzi. Stejné makro nemůže být v Macro Hubu dvakrát.`n- Aktualizace sdílených maker: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu. Hodnocení i počet stažení zůstanou a Macro Hub ukáže datum aktualizace.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou.`n- Macro Hub ukazuje, co makro dělá (klávesy, prodlevy, sekvenci), ještě před stažením, a makra zkontrolovaná moderátorem mají zlatou fajfku a jsou na začátku.`n- Macro Hub je lépe chráněný proti falešným hodnocením a nahlášením a odkazy z popisů sdílených maker se na Discord neposílají.`n- Aktualizace aplikace chodí přes server Macro Hubu, takže se nová verze ukáže hned, i když je víc počítačů na jednom internetovém připojení (GitHub omezuje, jak často se ho lze ptát).`n- I makra stažená z Macro Hubu starší verzí aplikace se teď rozpoznají, takže i u nich přijde upozornění na novou verzi. Aplikace kontroluje nové verze každých 15 minut, při otevření okna a při otevření Macro Hubu.`n- Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Sdílení hned řekne, že potřebuje internet, a aktualizace sdíleného makra udělaná offline se odešle sama, jakmile budeš zase online.`n- Windows oznámení aplikace ukazují Macro Manager s jeho ikonou místo AutoHotkey a jako vydavatele Windows uvádí vavr0s.`n- Hledání v Macro Hubu najde i autora: každé slovo musí být v názvu, hře nebo jménu autora.`n- Při posouvání seznamu už se přes zaškrtávátka nedělá čára.`n- Ikona sdílení zezlátne u každého makra, které už jsi sdílel, i u maker sdílených před touto verzí nebo z jiného PC s tvou zálohou.`n- Křížek (×) panelu Macro Hubu ho teď zavře.", "pl", "Wersja BETA – do testów.`n- Biblioteka makr nazywa się teraz Macro Hub.`n- Makra pobrane z Macro Hub mają zamiast ikony udostępniania strzałkę pobierania i nie można ich ponownie udostępnić bez zmian. Gdy zmienisz makro, możesz udostępnić swoją wersję. To samo makro nie może być w Macro Hub dwa razy.`n- Aktualizacja udostępnionych makr: gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je w Macro Hub. Oceny i liczba pobrań zostają, a Macro Hub pokazuje datę aktualizacji.`n- Gdy autor zaktualizuje pobrane przez Ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zrobi się zielona. Kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją.`n- Macro Hub pokazuje, co makro robi (klawisze, opóźnienia, sekwencję), zanim je pobierzesz, a makra sprawdzone przez moderatora mają złoty znaczek i są na początku.`n- Macro Hub jest lepiej chroniony przed fałszywymi ocenami i zgłoszeniami, a linki z opisów udostępnionych makr nie są wysyłane na Discord.`n- Aktualizacje aplikacji przychodzą przez serwer Macro Hub, więc nowa wersja pojawia się od razu także wtedy, gdy kilka komputerów korzysta z jednego połączenia internetowego (GitHub ogranicza liczbę zapytań).`n- Makra pobrane z Macro Hub starszą wersją aplikacji też są teraz rozpoznawane, więc i one dostają powiadomienia o nowej wersji. Aplikacja sprawdza nowe wersje co 15 minut, przy otwarciu okna i przy otwarciu Macro Hub.`n- Bez internetu Macro Hub pokazuje Brak połączenia i sam próbuje ponownie. Udostępnianie od razu informuje, że potrzebuje internetu, a aktualizacja udostępnionego makra zrobiona offline zostanie wysłana sama, gdy znów będziesz online.`n- Powiadomienia Windows aplikacji pokazują Macro Manager z jego ikoną zamiast AutoHotkey, a jako wydawcę Windows pokazuje vavr0s.`n- Wyszukiwanie w Macro Hub znajduje też autora: każde słowo musi być w nazwie, grze lub nazwie autora.`n- Przy przewijaniu listy nie pojawia się już linia na polach wyboru.`n- Ikona udostępniania staje się złota przy każdym makrze, które już udostępniłeś, także przy makrach udostępnionych przed tą wersją lub z innego PC z Twoją kopią zapasową.`n- Przycisk zamykania (×) panelu Macro Hub działa.", "de", "BETA-Version – zum Testen.`n- Die Makro-Bibliothek heißt jetzt Macro Hub.`n- Aus dem Macro Hub geladene Makros zeigen statt des Teilen-Symbols einen Download-Pfeil und können so, wie sie sind, nicht erneut geteilt werden. Sobald du eines änderst, kannst du deine eigene Version teilen. Dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Geteilte Makros aktualisieren: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben, und der Macro Hub zeigt das Datum der Aktualisierung.`n- Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, bekommst du einen Hinweis und sein Pfeil in der Liste wird grün. Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten.`n- Der Macro Hub zeigt vor dem Herunterladen, was ein Makro tut (Tasten, Verzögerungen, Sequenz), und vom Moderator geprüfte Makros haben einen goldenen Haken und stehen oben.`n- Der Macro Hub ist besser gegen gefälschte Bewertungen und Meldungen geschützt, und Links aus Beschreibungen geteilter Makros werden nicht an Discord gesendet.`n- Updates der App kommen über den Macro-Hub-Server, sodass eine neue Version sofort erscheint, auch wenn mehrere PCs eine Internetverbindung teilen (GitHub begrenzt, wie oft man fragen kann).`n- Auch Makros, die mit einer älteren App-Version aus dem Macro Hub geladen wurden, werden jetzt erkannt und bekommen Hinweise auf neue Versionen. Die App prüft alle 15 Minuten, beim Öffnen des Fensters und beim Öffnen des Macro Hub auf neue Versionen.`n- Ohne Internet zeigt der Macro Hub Keine Verbindung und versucht es von selbst erneut. Beim Teilen erfährst du sofort, dass es das Internet braucht, und eine offline gemachte Aktualisierung deines geteilten Makros wird automatisch gesendet, sobald du wieder online bist.`n- Windows-Benachrichtigungen der App zeigen Macro Manager mit seinem Symbol statt AutoHotkey, und Windows zeigt vavr0s als Herausgeber.`n- Die Suche im Macro Hub findet auch den Autor: jedes Wort muss im Namen, im Spiel oder im Autorennamen vorkommen.`n- Beim Scrollen der Liste erscheint keine Linie mehr über den Kontrollkästchen.`n- Das Teilen-Symbol wird bei jedem Makro golden, das du schon geteilt hast, auch bei Makros, die vor dieser Version oder von einem anderen PC mit deiner Sicherung geteilt wurden.`n- Die Schließen-Schaltfläche (×) der Macro-Hub-Leiste funktioniert.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na novém webu.", "pl", "Wersja BETA – do testów.`n- Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na nowej stronie.", "de", "BETA-Version – zum Testen.`n- Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der neuen Website.")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -2706,7 +2704,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(FlagFile("de"))) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -2714,11 +2712,9 @@ EnsureAssets() {
             B64ToFile(LogoWideB64(), LogoWideFile)
             B64ToFile(CbDarkB64(), CbDarkFile)
             B64ToFile(CbLightB64(), CbLightFile)
-            B64ToFile(DiscordB64(), DiscordFile)
-            B64ToFile(DiscordHovB64(), DiscordHovFile)
             for c in LangOrder
                 B64ToFile(FlagB64(c), FlagFile(c))
-            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png"]    ; pictures of older versions (the "!" is drawn now)
+            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png", "discord.png", "discord_hov.png"]    ; pictures of older versions (the "!" and the Discord button are drawn now)
                 try FileDelete(AssetsDir "\" old)
             WriteText(verFile, AssetVersion)
         }
@@ -2886,6 +2882,8 @@ RoleColors(role, hover := false) {
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         case "libhead":                                                    ; title strip of the library panel
             return ["000000", "D0AE6B"]
+        case "btndiscord":                                                 ; Discord Blurple (help banner)
+            return hover ? ["4752C4", "FFFFFF"] : ["5865F2", "FFFFFF"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
@@ -2951,7 +2949,7 @@ DrawBtn(wParam, lParam, *) {
     } else {
         disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
         col := RoleColors(disabled && role = "btnprimary" ? "btn" : role, lk.hover)     ; a disabled gold button looks plain
-        under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
+        under := (role = "btnbanner" || role = "btndiscord" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
         ; the button itself may be smaller than the control (room for the "!" badge of the help button)
         fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
         fw := w - fx - Round(lk.pad[3] * s), fh := hh - fy - Round(lk.pad[4] * s)
@@ -2977,7 +2975,19 @@ DrawBtn(wParam, lParam, *) {
         DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
         DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
         NumPut("Int", fx, "Int", fy, "Int", fx + fw, "Int", fy + fh, r)
-        if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
+        if (role = "btndiscord") {                              ; Discord symbol + text, centred together
+            sz := Buffer(8, 0)
+            DllCall("GetTextExtentPoint32W", "Ptr", mdc, "WStr", txt, "Int", StrLen(txt), "Ptr", sz)
+            ih := Round(fh * 0.4), iw := ih * 126.644 / 96, gap := Round(8 * s)
+            x0 := Round(fx + (fw - iw - gap - NumGet(sz, 0, "Int")) / 2)
+            if GdipOn() {
+                gr := GrOn(mdc)
+                DrawDiscord(gr, x0, fy + (fh - ih) / 2, ih, col[2])
+                DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+            }
+            NumPut("Int", Round(x0 + iw + gap), r)
+            DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824)
+        } else if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
             DllCall("TextOutW", "Ptr", mdc, "Int", fx + gx, "Int", fy + gy, "WStr", txt, "Int", 1)   ; icon (?, arrow, ×): the drawn shape itself centred
         else
             DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
@@ -3018,6 +3028,26 @@ DrawBadge(gr, cx, cy, ro, ring) {
     FillRound(gr, cx - bw / 2, cy - ri * 0.62, bw, ri * 0.82, bw, "1B1B1F")
     dr := Max(0.9, ri * 0.19)                                   ; its dot
     FillRound(gr, cx - dr, cy + ri * 0.50 - dr, 2 * dr, 2 * dr, 2 * dr, "1B1B1F")
+}
+
+; the official Discord symbol (vector, from discord.com/branding), h pixels tall, top-left at x, y
+DrawDiscord(gr, x, y, h, hex) {
+    static shape := [[81.15, 0, 79.91, 2.2, 78.8, 4.47, 77.79, 6.79, 68.19, 5.35, 58.42, 5.35, 48.8, 6.79, 47.81, 4.47, 46.67, 2.2, 45.44, 0, 36.42, 1.54, 27.63, 4.24, 19.3, 8.06, 2.78, 32.53, -1.69, 56.37, 0.53, 79.89, 10.2, 87.03, 21.04, 92.49, 32.58, 95.97, 35.18, 92.49, 37.48, 88.78, 39.45, 84.91, 35.71, 83.52, 32.1, 81.78, 28.64, 79.76, 29.55, 79.1, 30.43, 78.42, 31.29, 77.76, 51.57, 87.31, 75.06, 87.31, 95.37, 77.76, 96.23, 78.47, 97.11, 79.15, 98.02, 79.76, 94.56, 81.81, 90.95, 83.52, 87.19, 84.94, 89.16, 88.8, 91.45, 92.51, 94.06, 96, 105.6, 92.51, 116.43, 87.08, 126.11, 79.94, 128.73, 52.66, 121.61, 29.02, 107.29, 8.08, 98.98, 4.27, 90.19, 1.57, 81.18, 0.05, 81.18, 0.05, 81.15, 0, 81.15, 0],
+        [42.28, 65.41, 36.04, 65.41, 30.86, 59.76, 30.86, 52.76, 30.86, 45.76, 35.84, 40.08, 42.26, 40.08, 48.67, 40.08, 53.77, 45.79, 53.67, 52.76, 53.57, 59.73, 48.64, 65.41, 42.28, 65.41],
+        [84.36, 65.41, 78.09, 65.41, 72.97, 59.76, 72.97, 52.76, 72.97, 45.76, 77.94, 40.08, 84.36, 40.08, 90.77, 40.08, 95.85, 45.79, 95.75, 52.76, 95.65, 59.73, 90.72, 65.41, 84.36, 65.41]]
+    k := h / 96
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)        ; alternate fill: the eyes stay holes
+    for sub in shape {
+        pts := Buffer(sub.Length * 4)
+        for i, v in sub
+            NumPut("Float", (i & 1 ? x : y) + v * k, pts, (i - 1) * 4)
+        DllCall("gdiplus\GdipAddPathBeziers", "Ptr", pa, "Ptr", pts, "Int", sub.Length // 2)
+        DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    }
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" hex), "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
 }
 
 ; the badge as its own control (help window, release notes dialog)
@@ -4361,21 +4391,15 @@ OpenHelp(*) {
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", _T("Help"))
     HelpGui := g
     g.SetFont("s9", "Segoe UI")
+    dc := 0
     try {
         g.AddPicture("x10 y8 w640 h72", LogoFile)
         g.SetFont("s16 bold cD0AE6B", "Segoe UI")
-        ttl := g.AddText("x100 y29 w400 BackgroundTrans", _T("Help"))
+        ttl := g.AddText("x100 y29 w300 BackgroundTrans", _T("Help"))
         Roles[ttl.Hwnd] := "skip"
-        g.SetFont("s10 norm cD8D8DC", "Segoe UI")
-        sup := g.AddText("x330 y36 w250 h24 Right BackgroundTrans", _T("For support click here") " " Chr(0x2192))
-        Roles[sup.Hwnd] := "skip"
-        sup.OnEvent("Click", OpenDiscord)
-        dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
-        Roles[dc.Hwnd] := "skip"
-        dc.OnEvent("Click", OpenDiscord)
-        hov := false
-        SetTimer(DcHover, 40)
-        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the link (else Windows resets it)
+        g.SetFont("s10 norm", "Segoe UI Semibold")
+        dc := AddBtn(g, "x416 y27 w218 h36", _T("Join Discord"), OpenDiscord, "btndiscord")    ; support: like the button on the website
+        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the button (else Windows resets it)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -4406,40 +4430,14 @@ OpenHelp(*) {
             SetHelpBadge(false)
         }
     }
-    ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
-    DcHover() {
-        if !IsSet(g) || !WinExist("ahk_id " g.Hwnd) {
-            SetTimer(DcHover, 0)
-            return
-        }
-        CoordMode("Mouse", "Screen")             ; (the default is relative to the active window - then never "on")
-        MouseGetPos(&mx, &my)
-        on := false
-        if true {
-            WinGetClientPos(&cx, &cy, , , "ahk_id " g.Hwnd)
-            for c in [sup, dc] {
-                c.GetPos(&px, &py, &pw, &ph)
-                if (mx - cx >= px && mx - cx < px + pw && my - cy >= py && my - cy < py + ph)
-                    on := true
-            }
-        }
-        if on
-            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
-        if (on = hov)
-            return
-        hov := on
-        sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
-        dc.Value := on ? DiscordHovFile : DiscordFile
-    }
     HelpCur(wp, *) {
-        if hov {
+        if (dc && wp = dc.Hwnd) {
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
             return 1
         }
     }
     HelpClose(*) {
         global HelpGui
-        SetTimer(DcHover, 0)
         OnMessage(0x20, HelpCur, 0)
         HelpGui := 0
         g.Destroy()
@@ -7229,319 +7227,6 @@ FlagB64(c) {
     return "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"
 }
 
-DiscordB64() {
-    return "
-(Join
-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
-)"
-}
-
-DiscordHovB64() {
-    return "
-(Join
-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
-AAAAAElFTkSuQmCC
-)"
-}
-
 ; ===== TRANSLATIONS (generated by i18n/gen_tables.py - edit the JSON files, not this block) =====
 TrCs() {
     m := Map()
@@ -7750,7 +7435,7 @@ TrCs() {
     m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).`n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
     m["Help"] := "Nápověda"
-    m["For support click here"] := "Podpora: klikni sem"
+    m["Join Discord"] := "Přidej se na Discord"
     m["Close"] := "Zavřít"
     m["Set a trigger key first: {1}"] := "Nejdřív nastav spouštěcí klávesu: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Přetažení makra ven se nezdařilo:`n{1}"
@@ -8054,7 +7739,7 @@ TrPl() {
     m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy, różnych profili lub różnego Naciśnięcia (krótkie / podwójne / przytrzymanie).`n- Makra utworzone przed Dokładnymi opóźnieniami zachowują dawny sposób odmierzania. Gdy włączysz im Dokładne opóźnienia, mogą grać szybciej - wtedy lekko zwiększ opóźnienia.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
     m["Help"] := "Pomoc"
-    m["For support click here"] := "Po pomoc kliknij tutaj"
+    m["Join Discord"] := "Dołącz do Discorda"
     m["Close"] := "Zamknij"
     m["Set a trigger key first: {1}"] := "Najpierw ustaw klawisz wyzwalający: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Przeciągnięcie makra na zewnątrz nie powiodło się:`n{1}"
@@ -8358,7 +8043,7 @@ TrDe() {
     m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten, unterschiedliche Profile oder unterschiedliches Drücken (kurz / doppelt / lang).`n- Makros, die vor den Genauen Verzögerungen erstellt wurden, behalten ihr altes Timing. Schaltest du sie für eines davon ein, kann es schneller spielen - erhöhe dann seine Verzögerungen etwas.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
     m["Help"] := "Hilfe"
-    m["For support click here"] := "Für Support hier klicken"
+    m["Join Discord"] := "Discord beitreten"
     m["Close"] := "Schließen"
     m["Set a trigger key first: {1}"] := "Lege zuerst eine Auslösetaste fest: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Das Herausziehen des Makros ist fehlgeschlagen:`n{1}"

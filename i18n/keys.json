@@ -1412,13 +1412,13 @@
   "en": "Help",
   "ctx": [
    "g := Gui(\"+Owner\" Main.Hwnd \" +ToolWindow\", _T(\"Help\"))",
-   "ttl := g.AddText(\"x100 y29 w400 BackgroundTrans\", _T(\"Help\"))"
+   "ttl := g.AddText(\"x100 y29 w300 BackgroundTrans\", _T(\"Help\"))"
   ]
  },
- "For support click here": {
-  "en": "For support click here",
+ "Join Discord": {
+  "en": "Join Discord",
   "ctx": [
-   "sup := g.AddText(\"x330 y36 w250 h24 Right BackgroundTrans\", _T(\"For support click here\") \" \" Chr(0x2192))"
+   "dc := AddBtn(g, \"x416 y27 w218 h36\", _T(\"Join Discord\"), OpenDiscord, \"btndiscord\")    ; support: like the button on the website"
   ]
  },
  "Close": {

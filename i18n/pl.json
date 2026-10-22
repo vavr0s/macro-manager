@@ -125,7 +125,6 @@
  "Version {1}": "Wersja {1}",
  "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}": "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:\n\n{1}",
  "Help": "Pomoc",
- "For support click here": "Po pomoc kliknij tutaj",
  "Close": "Zamknij",
  "Set a trigger key first: {1}": "Najpierw ustaw klawisz wyzwalający: {1}",
  "Dragging the macro out failed:\n{1}": "Przeciągnięcie makra na zewnątrz nie powiodło się:\n{1}",
@@ -298,5 +297,6 @@
  "What it does:": "Co robi:",
  "verified": "zweryfikowane",
  "This macro already has several ratings from your internet connection, so another one is not counted.": "To makro ma już kilka ocen z Twojego połączenia internetowego, więc kolejna nie zostanie policzona.",
- "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Zaktualizowałeś to makro przed chwilą. Aplikacja wyśle tę zmianę sama za kilka minut."
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Zaktualizowałeś to makro przed chwilą. Aplikacja wyśle tę zmianę sama za kilka minut.",
+ "Join Discord": "Dołącz do Discorda"
 }

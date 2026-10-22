@@ -61,21 +61,15 @@ OpenHelp(*) {
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", _T("Help"))
     HelpGui := g
     g.SetFont("s9", "Segoe UI")
+    dc := 0
     try {
         g.AddPicture("x10 y8 w640 h72", LogoFile)
         g.SetFont("s16 bold cD0AE6B", "Segoe UI")
-        ttl := g.AddText("x100 y29 w400 BackgroundTrans", _T("Help"))
+        ttl := g.AddText("x100 y29 w300 BackgroundTrans", _T("Help"))
         Roles[ttl.Hwnd] := "skip"
-        g.SetFont("s10 norm cD8D8DC", "Segoe UI")
-        sup := g.AddText("x330 y36 w250 h24 Right BackgroundTrans", _T("For support click here") " " Chr(0x2192))
-        Roles[sup.Hwnd] := "skip"
-        sup.OnEvent("Click", OpenDiscord)
-        dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
-        Roles[dc.Hwnd] := "skip"
-        dc.OnEvent("Click", OpenDiscord)
-        hov := false
-        SetTimer(DcHover, 40)
-        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the link (else Windows resets it)
+        g.SetFont("s10 norm", "Segoe UI Semibold")
+        dc := AddBtn(g, "x416 y27 w218 h36", _T("Join Discord"), OpenDiscord, "btndiscord")    ; support: like the button on the website
+        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the button (else Windows resets it)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -106,40 +100,14 @@ OpenHelp(*) {
             SetHelpBadge(false)
         }
     }
-    ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
-    DcHover() {
-        if !IsSet(g) || !WinExist("ahk_id " g.Hwnd) {
-            SetTimer(DcHover, 0)
-            return
-        }
-        CoordMode("Mouse", "Screen")             ; (the default is relative to the active window - then never "on")
-        MouseGetPos(&mx, &my)
-        on := false
-        if true {
-            WinGetClientPos(&cx, &cy, , , "ahk_id " g.Hwnd)
-            for c in [sup, dc] {
-                c.GetPos(&px, &py, &pw, &ph)
-                if (mx - cx >= px && mx - cx < px + pw && my - cy >= py && my - cy < py + ph)
-                    on := true
-            }
-        }
-        if on
-            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
-        if (on = hov)
-            return
-        hov := on
-        sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
-        dc.Value := on ? DiscordHovFile : DiscordFile
-    }
     HelpCur(wp, *) {
-        if hov {
+        if (dc && wp = dc.Hwnd) {
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
             return 1
         }
     }
     HelpClose(*) {
         global HelpGui
-        SetTimer(DcHover, 0)
         OnMessage(0x20, HelpCur, 0)
         HelpGui := 0
         g.Destroy()

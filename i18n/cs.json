@@ -137,7 +137,6 @@
  "hlp_tips": "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.\n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.\n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).\n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).\n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.\n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.\n- Nastavení a skripty jsou ve složce config vedle aplikace.",
  "Could not open Discord. The link was copied to the clipboard - paste it into your browser:\n\n{1}": "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:\n\n{1}",
  "Help": "Nápověda",
- "For support click here": "Podpora: klikni sem",
  "Close": "Zavřít",
  "Set a trigger key first: {1}": "Nejdřív nastav spouštěcí klávesu: {1}",
  "Dragging the macro out failed:\n{1}": "Přetažení makra ven se nezdařilo:\n{1}",
@@ -298,5 +297,6 @@
  "What it does:": "Co dělá:",
  "verified": "ověřeno",
  "This macro already has several ratings from your internet connection, so another one is not counted.": "Toto makro už má z tvého internetového připojení několik hodnocení, další se proto nezapočítá.",
- "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Toto makro jsi aktualizoval před chvílí. Aplikace tuto změnu odešle sama za pár minut."
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Toto makro jsi aktualizoval před chvílí. Aplikace tuto změnu odešle sama za pár minut.",
+ "Join Discord": "Přidej se na Discord"
 }

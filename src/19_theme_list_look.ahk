@@ -63,6 +63,8 @@ RoleColors(role, hover := false) {
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         case "libhead":                                                    ; title strip of the library panel
             return ["000000", "D0AE6B"]
+        case "btndiscord":                                                 ; Discord Blurple (help banner)
+            return hover ? ["4752C4", "FFFFFF"] : ["5865F2", "FFFFFF"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
@@ -128,7 +130,7 @@ DrawBtn(wParam, lParam, *) {
     } else {
         disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
         col := RoleColors(disabled && role = "btnprimary" ? "btn" : role, lk.hover)     ; a disabled gold button looks plain
-        under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
+        under := (role = "btnbanner" || role = "btndiscord" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
         ; the button itself may be smaller than the control (room for the "!" badge of the help button)
         fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
         fw := w - fx - Round(lk.pad[3] * s), fh := hh - fy - Round(lk.pad[4] * s)
@@ -154,7 +156,19 @@ DrawBtn(wParam, lParam, *) {
         DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
         DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
         NumPut("Int", fx, "Int", fy, "Int", fx + fw, "Int", fy + fh, r)
-        if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
+        if (role = "btndiscord") {                              ; Discord symbol + text, centred together
+            sz := Buffer(8, 0)
+            DllCall("GetTextExtentPoint32W", "Ptr", mdc, "WStr", txt, "Int", StrLen(txt), "Ptr", sz)
+            ih := Round(fh * 0.4), iw := ih * 126.644 / 96, gap := Round(8 * s)
+            x0 := Round(fx + (fw - iw - gap - NumGet(sz, 0, "Int")) / 2)
+            if GdipOn() {
+                gr := GrOn(mdc)
+                DrawDiscord(gr, x0, fy + (fh - ih) / 2, ih, col[2])
+                DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+            }
+            NumPut("Int", Round(x0 + iw + gap), r)
+            DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824)
+        } else if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
             DllCall("TextOutW", "Ptr", mdc, "Int", fx + gx, "Int", fy + gy, "WStr", txt, "Int", 1)   ; icon (?, arrow, ×): the drawn shape itself centred
         else
             DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
@@ -195,6 +209,26 @@ DrawBadge(gr, cx, cy, ro, ring) {
     FillRound(gr, cx - bw / 2, cy - ri * 0.62, bw, ri * 0.82, bw, "1B1B1F")
     dr := Max(0.9, ri * 0.19)                                   ; its dot
     FillRound(gr, cx - dr, cy + ri * 0.50 - dr, 2 * dr, 2 * dr, 2 * dr, "1B1B1F")
+}
+
+; the official Discord symbol (vector, from discord.com/branding), h pixels tall, top-left at x, y
+DrawDiscord(gr, x, y, h, hex) {
+    static shape := [[81.15, 0, 79.91, 2.2, 78.8, 4.47, 77.79, 6.79, 68.19, 5.35, 58.42, 5.35, 48.8, 6.79, 47.81, 4.47, 46.67, 2.2, 45.44, 0, 36.42, 1.54, 27.63, 4.24, 19.3, 8.06, 2.78, 32.53, -1.69, 56.37, 0.53, 79.89, 10.2, 87.03, 21.04, 92.49, 32.58, 95.97, 35.18, 92.49, 37.48, 88.78, 39.45, 84.91, 35.71, 83.52, 32.1, 81.78, 28.64, 79.76, 29.55, 79.1, 30.43, 78.42, 31.29, 77.76, 51.57, 87.31, 75.06, 87.31, 95.37, 77.76, 96.23, 78.47, 97.11, 79.15, 98.02, 79.76, 94.56, 81.81, 90.95, 83.52, 87.19, 84.94, 89.16, 88.8, 91.45, 92.51, 94.06, 96, 105.6, 92.51, 116.43, 87.08, 126.11, 79.94, 128.73, 52.66, 121.61, 29.02, 107.29, 8.08, 98.98, 4.27, 90.19, 1.57, 81.18, 0.05, 81.18, 0.05, 81.15, 0, 81.15, 0],
+        [42.28, 65.41, 36.04, 65.41, 30.86, 59.76, 30.86, 52.76, 30.86, 45.76, 35.84, 40.08, 42.26, 40.08, 48.67, 40.08, 53.77, 45.79, 53.67, 52.76, 53.57, 59.73, 48.64, 65.41, 42.28, 65.41],
+        [84.36, 65.41, 78.09, 65.41, 72.97, 59.76, 72.97, 52.76, 72.97, 45.76, 77.94, 40.08, 84.36, 40.08, 90.77, 40.08, 95.85, 45.79, 95.75, 52.76, 95.65, 59.73, 90.72, 65.41, 84.36, 65.41]]
+    k := h / 96
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)        ; alternate fill: the eyes stay holes
+    for sub in shape {
+        pts := Buffer(sub.Length * 4)
+        for i, v in sub
+            NumPut("Float", (i & 1 ? x : y) + v * k, pts, (i - 1) * 4)
+        DllCall("gdiplus\GdipAddPathBeziers", "Ptr", pa, "Ptr", pts, "Int", sub.Length // 2)
+        DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    }
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" hex), "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
 }
 
 ; the badge as its own control (help window, release notes dialog)
