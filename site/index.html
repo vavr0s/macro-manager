@@ -83,6 +83,9 @@ code { background: #000; color: var(--gold-hi); padding: 1px 6px; border-radius:
 ul.ticks { list-style: none; padding: 0; margin: 0 0 8px; }
 ul.ticks li { position: relative; padding-left: 30px; margin-bottom: 12px; }
 ul.ticks li::before { content: "✔"; position: absolute; left: 0; color: var(--gold); }
+/* not allowed: a red cross made of two rounded bars, same size and spot as the tick */
+ul.ticks li.no::before, ul.ticks li.no::after { content: ""; position: absolute; left: 2px; top: .8em; width: 15px; height: 2.6px; border-radius: 2px; background: #E5605A; transform: rotate(45deg); }
+ul.ticks li.no::after { transform: rotate(-45deg); }
 
 /* install steps */
 .steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
@@ -221,7 +224,7 @@ footer a:hover { color: var(--text); }
         <li data-i="hub_2">See exactly what a macro does – keys, delays, sequence – before you download it.</li>
         <li data-i="hub_3">Rate macros with stars. Macros checked by the moderator have a gold tick.</li>
         <li data-i="hub_4">Share your own macro with one click. When an author improves a macro you downloaded, the app tells you and shows what changed.</li>
-        <li data-i="hub_5">Farm and AFK macros are not allowed – players can report them.</li>
+        <li class="no" data-i="hub_5">Farm and AFK macros are not allowed – players can report them.</li>
       </ul>
     </div>
     <img class="panel" src="/img/hub_panel.png" alt="Macro Hub panel" width="442" height="601" loading="lazy">
