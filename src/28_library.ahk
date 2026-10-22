@@ -660,6 +660,8 @@ LibRate(n, *) {
     if !it
         return
     j := LibCall("POST", "/" it["id"] "/rate", Map("stars", n))
+    if (j.Has("error") && j["error"] = "too_many")
+        return ThemedNote(_T("This macro already has several ratings from your internet connection, so another one is not counted."), _T("Macro Hub"), true)
     if j.Has("error")
         return LibFail(j)
     it["rating"] := j["rating"], it["count"] := j["count"], it["my"] := j["my"]
@@ -773,6 +775,13 @@ LibOfferUpdate(m) {
 ; quiet = sent by itself later (it was asked for while offline): no messages, only a short notice when done
 LibUpdateShared(m, quiet := false) {
     j := LibCall("PUT", "/" m["libshare"], Map("data", LibData(m)))
+    if (j.Has("error") && j["error"] = "too_many") {            ; updated a moment ago: sent again by itself in a while
+        m["libpend"] := 1
+        Save()
+        if !quiet
+            ThemedNote(_T("You updated this macro a moment ago. The app sends this change by itself in a few minutes."), _T("Macro Hub"))
+        return
+    }
     if (j.Has("error") && j["error"] = "network") {             ; no internet: kept, sent when online again
         m["libpend"] := 1
         Save()

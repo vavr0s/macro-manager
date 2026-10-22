@@ -296,5 +296,7 @@
  "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": "Brak połączenia z Macro Hub. Udostępnianie wymaga internetu - spróbuj ponownie, gdy będziesz online.",
  "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": "Brak połączenia z Macro Hub. Twoja zmiana jest zachowana - aplikacja wyśle aktualizację sama, gdy tylko znów będziesz online.",
  "What it does:": "Co robi:",
- "verified": "zweryfikowane"
+ "verified": "zweryfikowane",
+ "This macro already has several ratings from your internet connection, so another one is not counted.": "To makro ma już kilka ocen z Twojego połączenia internetowego, więc kolejna nie zostanie policzona.",
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Zaktualizowałeś to makro przed chwilą. Aplikacja wyśle tę zmianę sama za kilka minut."
 }

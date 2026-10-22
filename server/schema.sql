@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS macros (
   updated    INTEGER NOT NULL DEFAULT 0,  -- unix seconds of the author's last update (0 = never)
   version    INTEGER NOT NULL DEFAULT 1   -- +1 with every update (apps compare it with what they downloaded)
 );
--- databases made before these columns: migrations/0002_game.sql, 0003_versions.sql
+-- databases made before these columns: migrations/0002_game.sql ... 0005_ip.sql
 CREATE INDEX IF NOT EXISTS macros_owner ON macros(owner);
-CREATE TABLE IF NOT EXISTS ratings   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, stars INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));
-CREATE TABLE IF NOT EXISTS reports   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, reason TEXT NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (macro_id, voter));
+CREATE TABLE IF NOT EXISTS ratings   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, stars INTEGER NOT NULL, ip TEXT NOT NULL DEFAULT '', PRIMARY KEY (macro_id, voter));
+CREATE TABLE IF NOT EXISTS reports   (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, reason TEXT NOT NULL, created INTEGER NOT NULL, ip TEXT NOT NULL DEFAULT '', PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS downloads (macro_id INTEGER NOT NULL, voter TEXT NOT NULL, PRIMARY KEY (macro_id, voter));
 CREATE TABLE IF NOT EXISTS uploads   (owner TEXT NOT NULL, ip TEXT NOT NULL, created INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS macro_versions (macro_id INTEGER NOT NULL, version INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY (macro_id, version));

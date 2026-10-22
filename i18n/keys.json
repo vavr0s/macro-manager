@@ -25,8 +25,10 @@
    "bLib := AddBtn(Main, \"x660 y92 w170 h26\", _T(\"Macro Hub\") \"  \" Chr(0x25B8), ToggleLibrary)    ; shared macros (panel on the right)",
    "g := Gui(\"-Caption +Border +Owner\" Main.Hwnd, _T(\"Macro Hub\"))",
    "hd := g.AddText(\"x8 y8 w\" (W - 16) \" h48 +0xD\", \"   \" _T(\"Macro Hub\"))",
+   "return ThemedNote(_T(\"This macro already has several ratings from your internet connection, so another one is not counted.\"), _T(\"Macro Hub\"), true)",
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Delete from Macro Hub?\"), _T(\"`\"{1}`\" will be removed from Macro Hub for everyone, with its ratings. Your own copy in the list stays.\", it[\"name\"]), [[_T(\"Delete\"), \"yes\", \"btndanger\"], [_T(\"Canc",
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
+   "ThemedNote(_T(\"You updated this macro a moment ago. The app sends this change by itself in a few minutes.\"), _T(\"Macro Hub\"))",
    "ThemedNote(_T(\"No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.\"), _T(\"Macro Hub\"), true)",
    "return ThemedNote(_T(\"This macro is already in Macro Hub as `\"{1}`\" by {2}. Change it first - for example a delay or a key - and then share your own version.\", j[\"name\"], j[\"author\"]), _T(\"Macro Hub\"), true)",
    "return ThemedNote(_T(\"`\"{1}`\" is no longer in Macro Hub. Share it again with the share icon.\", m[\"name\"]), _T(\"Macro Hub\"), true)",
@@ -56,7 +58,7 @@
   "ctx": [
    "hdrNames := [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")]",
    "LV := Main.AddListView(\"x10 y154 w820 r13 -Hdr -E0x200 Checked Multi\", [_T(\"Name\"), _T(\"Key\"), _T(\"Application\"), _T(\"Type\"), _T(\"Share\")])",
-   "lv := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
+   "apps := p.AddListView(\"x10 y32 w380 r11 -Hdr -E0x200 -Multi\", [_T(\"Application\")])"
   ]
  },
  "Type": {
@@ -1728,6 +1730,12 @@
    "base := CleanName(base) = \"\" ? _T(\"Downloaded macro\") : CleanName(base)"
   ]
  },
+ "This macro already has several ratings from your internet connection, so another one is not counted.": {
+  "en": "This macro already has several ratings from your internet connection, so another one is not counted.",
+  "ctx": [
+   "return ThemedNote(_T(\"This macro already has several ratings from your internet connection, so another one is not counted.\"), _T(\"Macro Hub\"), true)"
+  ]
+ },
  "Thank you for rating!": {
   "en": "Thank you for rating!",
   "ctx": [
@@ -1841,6 +1849,12 @@
   "ctx": [
    "if (ThemedAsk(_T(\"Macro Hub\"), _T(\"Update in Macro Hub?\"), _T(\"`\"{1}`\" is shared in Macro Hub. Update it there with your changes? Its ratings and downloads stay, and Macro Hub shows it as updated. Players who downloaded it get a n",
    "AddBtn(g, \"x424 y\" btnY \" w120 h32\", _T(\"Update\"), Pick.Bind(\"update\"), \"btnprimary\")"
+  ]
+ },
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": {
+  "en": "You updated this macro a moment ago. The app sends this change by itself in a few minutes.",
+  "ctx": [
+   "ThemedNote(_T(\"You updated this macro a moment ago. The app sends this change by itself in a few minutes.\"), _T(\"Macro Hub\"))"
   ]
  },
  "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": {

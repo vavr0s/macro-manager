@@ -296,5 +296,7 @@
  "No connection to Macro Hub. Sharing needs the internet - try again when you are online.": "Macro Hub není dostupný. Sdílení potřebuje internet - zkus to znovu, až budeš online.",
  "No connection to Macro Hub. Your change is kept - the app sends the update by itself as soon as you are online again.": "Macro Hub není dostupný. Tvoje změna zůstává uložená - aplikace aktualizaci odešle sama, jakmile budeš zase online.",
  "What it does:": "Co dělá:",
- "verified": "ověřeno"
+ "verified": "ověřeno",
+ "This macro already has several ratings from your internet connection, so another one is not counted.": "Toto makro už má z tvého internetového připojení několik hodnocení, další se proto nezapočítá.",
+ "You updated this macro a moment ago. The app sends this change by itself in a few minutes.": "Toto makro jsi aktualizoval před chvílí. Aplikace tuto změnu odešle sama za pár minut."
 }

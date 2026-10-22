@@ -470,11 +470,11 @@ OnLvDraw(ctrl, lp) {
         bg := DarkOn ? 0x1F2127 : 0xFFFFFF
         fg := DarkOn ? 0xECECEF : 0x1B1B1F
     }
-    bgr := ((bg & 0xFF) << 16) | (bg & 0xFF00) | (bg >> 16)
+    bgc := ((bg & 0xFF) << 16) | (bg & 0xFF00) | (bg >> 16)
     fgr := ((fg & 0xFF) << 16) | (fg & 0xFF00) | (fg >> 16)
     r := Buffer(16)
     NumPut("Int", x0, "Int", top, "Int", x1, "Int", bot, r)
-    br := DllCall("CreateSolidBrush", "UInt", bgr, "Ptr")
+    br := DllCall("CreateSolidBrush", "UInt", bgc, "Ptr")
     DllCall("FillRect", "Ptr", hdc, "Ptr", r, "Ptr", br)
     DllCall("DeleteObject", "Ptr", br)
     tx := x0 + 8

@@ -3,7 +3,8 @@
 // Answers are JSON with every non-ASCII letter as \uXXXX, so the app reads them right whatever the charset.
 
 const PAGE = 50;
-const REPORTS_TO_HIDE = 3;
+const REPORTS_TO_HIDE = 3;           // reports from this many different internet addresses hide a macro
+const RATINGS_PER_IP = 3;            // ratings of one macro from one internet address (several players on one network)
 const UPLOADS_PER_DAY = 10;          // per install
 const UPLOADS_PER_DAY_IP = 30;       // per internet address
 const LIMITS = { name: 40, descr: 300, author: 24, reason: 200, game: 30 };
@@ -77,6 +78,11 @@ async function modLog(env, origin, m, data, title, color, extra = []) {
     description: '```\n' + describe(data).replace(/`/g, "'") + '\n```' + links,
     fields: [{ name: 'Author', value: m.author, inline: true }, { name: 'Game', value: m.game || '-', inline: true },
              { name: 'ID', value: String(m.id), inline: true }, ...extra] }] });
+}
+
+// text of a player for the public channel: no Discord formatting, no clickable links
+function plain(s) {
+  return String(s).replace(/https?:\/\/\S+|www\.\S+|discord\.gg\/\S+/gi, '[link]').replace(/[\\*_~`|>\[\]()#@<:-]/g, c => '\\' + c);
 }
 
 function page(text) {
@@ -245,8 +251,8 @@ background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</butt
       ]);
       const row = { id: r.id, name, author, game };
       later(modLog(env, url.origin, row, data, '🆕 New macro', 0x2FD26D, descr ? [{ name: 'Description', value: descr.slice(0, 300) }] : []));
-      later(hook(env.HUB_WEBHOOK, { embeds: [{ title: `🆕 ${name}`, color: 0xD0AE6B,
-        description: (descr ? descr.slice(0, 300) + '\n\n' : '') + `by **${author}** · ${game} · key ${data.hotkey || '-'}`,
+      later(hook(env.HUB_WEBHOOK, { embeds: [{ title: `🆕 ${name.replace(/https?:\/\/\S+/gi, '[link]')}`, color: 0xD0AE6B,
+        description: (descr ? plain(descr.slice(0, 300)) + '\n\n' : '') + `by **${plain(author)}** · ${plain(game)} · key ${plain(data.hotkey || '-')}`,
         footer: { text: 'Get it in Macro Manager → Macro Hub' } }] }));
       return json({ id: r.id });
     }
@@ -277,6 +283,7 @@ background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</butt
       if (bad) return fail(bad);
       const s = JSON.stringify(data);
       if (s === m.data) return json({ id, version: m.version, updated: m.updated, unchanged: 1 });
+      if (now() - m.updated < 30) return fail('too_many', 429);       // (each update is a message in #mod-log)
       const dup = await db.prepare('SELECT id, name, author, owner FROM macros WHERE data = ?1 AND id <> ?2 LIMIT 1').bind(s, id).first();
       if (dup) return json({ error: 'duplicate', id: dup.id, name: dup.name, author: dup.author, mine: dup.owner === voter ? 1 : 0 }, 409);
       const t = now();
@@ -297,8 +304,14 @@ background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</butt
       try { b = await req.json(); } catch { return fail('bad_json'); }
       if (!int(b.stars, 1, 5)) return fail('bad_stars');
       if (m.owner === voter) return fail('own_macro', 403);
+      const ip = await sha('ip:' + (req.headers.get('CF-Connecting-IP') || ''));
+      const mine = await db.prepare('SELECT 1 FROM ratings WHERE macro_id = ?1 AND voter = ?2').bind(id, voter).first();
+      if (!mine) {                                                 // a new rating (changing one's own is always fine)
+        const c = await db.prepare('SELECT COUNT(*) AS n FROM ratings WHERE macro_id = ?1 AND ip = ?2').bind(id, ip).first();
+        if (c.n >= RATINGS_PER_IP) return fail('too_many', 429);
+      }
       await db.batch([
-        db.prepare('INSERT INTO ratings (macro_id, voter, stars) VALUES (?1, ?2, ?3) ON CONFLICT DO UPDATE SET stars = ?3').bind(id, voter, b.stars),
+        db.prepare('INSERT INTO ratings (macro_id, voter, stars, ip) VALUES (?1, ?2, ?3, ?4) ON CONFLICT DO UPDATE SET stars = ?3').bind(id, voter, b.stars, ip),
         db.prepare(`UPDATE macros SET rating_sum = (SELECT SUM(stars) FROM ratings WHERE macro_id = ?1),
                     rating_cnt = (SELECT COUNT(*) FROM ratings WHERE macro_id = ?1) WHERE id = ?1`).bind(id),
       ]);
@@ -312,11 +325,14 @@ background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</butt
       try { b = await req.json(); } catch { return fail('bad_json'); }
       const reason = clean(b.reason, LIMITS.reason);
       if (reason === null) return fail('bad_text');
-      const r = await db.prepare('INSERT OR IGNORE INTO reports (macro_id, voter, reason, created) VALUES (?1, ?2, ?3, ?4)')
-        .bind(id, voter, reason, now()).run();
+      const ip = await sha('ip:' + (req.headers.get('CF-Connecting-IP') || ''));
+      const r = await db.prepare('INSERT OR IGNORE INTO reports (macro_id, voter, reason, created, ip) VALUES (?1, ?2, ?3, ?4, ?5)')
+        .bind(id, voter, reason, now(), ip).run();
       if (r.meta.changes) {
+        // hidden only after reports from REPORTS_TO_HIDE different addresses (made-up installs on one PC don't count)
         await db.prepare(`UPDATE macros SET reports = reports + 1,
-                          hidden = CASE WHEN hidden = 0 AND reports + 1 >= ?2 THEN 1 ELSE hidden END WHERE id = ?1`)
+                          hidden = CASE WHEN hidden = 0 AND (SELECT COUNT(DISTINCT ip) FROM reports WHERE macro_id = ?1) >= ?2
+                                   THEN 1 ELSE hidden END WHERE id = ?1`)
           .bind(id, REPORTS_TO_HIDE).run();
         const n = await db.prepare('SELECT * FROM macros WHERE id = ?1').bind(id).first();
         later(modLog(env, url.origin, n, JSON.parse(n.data), n.hidden === 1 && m.hidden !== 1 ? '🚫 Hidden after reports' : '⚠️ Reported',
