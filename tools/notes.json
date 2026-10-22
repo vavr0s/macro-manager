@@ -1,34 +1,26 @@
 {
   "en": [
-    "New: Macro Hub, a shared library of macros. Open it with the Macro Hub button and it docks to the main window. You can browse other players' macros or your own, filter by game, search by name, game or author, sort, and see what a macro does (keys, delays, sequence) before you download it. Downloading adds the macro to your active profile.",
-    "Share a macro with the share icon in its row (you pick its game). When you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay.",
-    "When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed, then take the new version or keep yours.",
-    "Rate macros with stars and report bad ones. Macros checked by the moderator have a gold tick and come first. Downloaded macros can't be shared again unchanged, and the same macro can't be in Macro Hub twice.",
-    "Without internet, Macro Hub shows No connection and tries again by itself. Changes made offline are sent once you are back online.",
-    "App updates now come through the Macro Hub server, so a new version shows up reliably even when several PCs share one internet connection."
+    "Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.",
+    "New look of the logo and the app icon: just the crown, without the lettering.",
+    "The support link in Help is now a Join Discord button, the same as on the website.",
+    "New website: https://combocrown.pages.dev"
   ],
   "cs": [
-    "Novinka: Macro Hub, sdílená knihovna maker. Otevře se tlačítkem Macro Hub a připojí se k hlavnímu oknu. Můžeš procházet makra ostatních hráčů nebo svoje, filtrovat podle hry, hledat podle názvu, hry nebo autora, řadit a ještě před stažením vidět, co makro dělá (klávesy, prodlevy, sekvenci). Stažené makro se přidá do aktivního profilu.",
-    "Makro nasdílíš ikonou sdílení v jeho řádku (vybereš, ke které hře patří). Když sdílené makro upravíš, aplikace se zeptá, jestli ho aktualizovat i v Macro Hubu. Hodnocení i počet stažení zůstanou.",
-    "Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Po kliknutí uvidíš, co se změnilo, a buď převezmeš novou verzi, nebo si necháš svou.",
-    "Makra můžeš hodnotit hvězdičkami a špatná nahlásit. Makra zkontrolovaná moderátorem mají zlatou fajfku a jsou na začátku. Stažené makro nejde znovu sdílet beze změny a stejné makro nemůže být v Macro Hubu dvakrát.",
-    "Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Změny udělané offline se odešlou, jakmile budeš zase online.",
-    "Aktualizace aplikace teď chodí přes server Macro Hubu, takže se nová verze spolehlivě ukáže, i když je víc počítačů na jednom připojení."
+    "Macro Manager se teď jmenuje ComboCrown. Makra, profily i nastavení zůstávají, jak jsou, a zástupci dostanou nový název sami.",
+    "Nový vzhled loga a ikony aplikace: jen koruna, bez nápisu.",
+    "Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na webu.",
+    "Nový web: https://combocrown.pages.dev"
   ],
   "pl": [
-    "Nowość: Macro Hub, wspólna biblioteka makr. Otwierasz go przyciskiem Macro Hub i dokuje się do głównego okna. Możesz przeglądać makra innych graczy lub swoje, filtrować według gry, szukać po nazwie, grze lub autorze, sortować i jeszcze przed pobraniem zobaczyć, co makro robi (klawisze, opóźnienia, sekwencja). Pobrane makro trafia do aktywnego profilu.",
-    "Makro udostępnisz ikoną udostępniania w jego wierszu (wybierasz, do jakiej gry należy). Gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je także w Macro Hub. Oceny i liczba pobrań zostają.",
-    "Gdy autor zaktualizuje pobrane przez ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zmieni kolor na zielony. Kliknij ją, aby zobaczyć zmiany, i przyjmij nową wersję albo zostaw swoją.",
-    "Makra możesz oceniać gwiazdkami i zgłaszać złe. Makra sprawdzone przez moderatora mają złoty znaczek i są na początku. Pobranego makra nie można ponownie udostępnić bez zmian, a to samo makro nie może być w Macro Hub dwa razy.",
-    "Bez internetu Macro Hub pokazuje napis Brak połączenia i sam próbuje ponownie. Zmiany zrobione offline zostaną wysłane, gdy znów będziesz online.",
-    "Aktualizacje aplikacji przychodzą teraz przez serwer Macro Hub, więc nowa wersja pojawia się niezawodnie, nawet gdy kilka komputerów korzysta z jednego łącza."
+    "Macro Manager nazywa się teraz ComboCrown. Makra, profile i ustawienia zostają bez zmian, a skróty same dostaną nową nazwę.",
+    "Nowy wygląd logo i ikony aplikacji: sama korona, bez napisu.",
+    "Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na stronie.",
+    "Nowa strona: https://combocrown.pages.dev"
   ],
   "de": [
-    "Neu: Macro Hub, eine gemeinsame Makro-Bibliothek. Du öffnest ihn mit der Schaltfläche Macro Hub, er dockt am Hauptfenster an. Du kannst Makros anderer Spieler oder deine eigenen durchsuchen, nach Spiel filtern, nach Name, Spiel oder Autor suchen, sortieren und schon vor dem Herunterladen sehen, was ein Makro tut (Tasten, Pausen, Ablauf). Heruntergeladene Makros landen im aktiven Profil.",
-    "Ein Makro teilst du mit dem Teilen-Symbol in seiner Zeile (du wählst das Spiel). Änderst du ein geteiltes Makro, fragt die App, ob es auch im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben erhalten.",
-    "Aktualisiert der Autor ein Makro, das du heruntergeladen hast, bekommst du eine Meldung und sein Pfeil in der Liste wird grün. Klick darauf, um die Änderungen zu sehen, und übernimm die neue Version oder behalte deine.",
-    "Makros kannst du mit Sternen bewerten und schlechte melden. Vom Moderator geprüfte Makros haben einen goldenen Haken und stehen oben. Heruntergeladene Makros lassen sich unverändert nicht erneut teilen, und dasselbe Makro kann nicht zweimal im Macro Hub sein.",
-    "Ohne Internet zeigt Macro Hub Keine Verbindung an und versucht es selbst erneut. Offline gemachte Änderungen werden gesendet, sobald du wieder online bist.",
-    "App-Updates kommen jetzt über den Macro-Hub-Server, sodass eine neue Version zuverlässig erscheint, auch wenn sich mehrere PCs eine Internetverbindung teilen."
+    "Macro Manager heißt jetzt ComboCrown. Deine Makros, Profile und Einstellungen bleiben, wie sie sind, und deine Verknüpfungen bekommen den neuen Namen von selbst.",
+    "Neues Logo und App-Symbol: nur die Krone, ohne Schriftzug.",
+    "Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der Website.",
+    "Neue Website: https://combocrown.pages.dev"
   ]
 }

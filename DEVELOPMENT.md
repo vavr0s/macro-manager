@@ -3,6 +3,11 @@
 The app is distributed (and updates itself) as one file, `Macro Manager.ahk` in the repository root.
 That file is **built** - do not edit it directly.
 
+The app is called **ComboCrown** (since 1.24; before: Macro Manager). Only the visible name changed: file names
+(`Macro Manager.ahk/.exe`), the repository, registry keys (`MacroManager`), app ids and existing install folders
+keep the old name, so older installs keep updating. New installs go to a `ComboCrown` folder; old shortcuts are
+renamed on start (`SetAppIdentity`) and the installed `.exe` gets the new name and icon (`RebrandExe`).
+
 - `src/*.ahk` - the source, split by topic. `tools/build.py` joins the files in name order into one script
   (`00_startup.ahk` holds the auto-execute part and must stay first).
 - `src/90_embedded_images.ahk` - icon, logo, flags... as base64.
@@ -24,9 +29,14 @@ Release channels: branch `main` = stable, branch `beta` = test builds (own regis
   `set_notes.py X.Y.n --beta` (version + notes into the app and `version.json`, with the SHA-256).
 - Stable: `build.py "Macro Manager.ahk"`, then `set_notes.py X.Y --src`.
 - Setup packages: `package.py "Macro Manager.ahk" --runtime DIR --out DIR [--ahk2exe Ahk2Exe.exe]` writes
-  `MacroManager[-Beta]-Setup.zip` and, with Ahk2Exe (Windows), the one-file installer `.exe`
+  `ComboCrown[-Beta]-Setup.zip` and, with Ahk2Exe (Windows), the one-file installer `.exe`
   (`tools/setup/installer_stub.ahk`). The runtime folder (`runtime64`/`runtime32` = renamed AutoHotkey 2.0.19
   + licence) is not in the repository - take it from the last setup zip.
+- Website: `site/` (one page, EN/CS/PL/DE in the page script). After a stable release build the stable packages,
+  then `deploy_site.py --dist DIR` puts the page + `ComboCrown-Setup.exe/.zip` (under `/download/`) on
+  https://combocrown.pages.dev (Cloudflare Pages project `combocrown`, wrangler logged in). The older addresses
+  macromanager.pages.dev and macro-manager.vavr0smacromanager.workers.dev only redirect there (`tools/site_redirect.js`).
+  `--dry DIR` only assembles the folder for a local preview.
 
 ## Third-party credits
 

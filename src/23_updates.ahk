@@ -317,7 +317,7 @@ OnUpdIcon(*) {
             }
         }
         msg := (UpdInfo["notes"] != "" ? UpdInfo["notes"] "`n`n" : "") Trim(_T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."), "`n")
-        if (ThemedAsk(_T("Macro Manager update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
+        if (ThemedAsk(_T("ComboCrown update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
             , [[_T("Later"), "", "btn"], [_T("Update now"), "yes", "btnprimary"]], false) = "yes")
             InstallUpdate()
     } finally {
@@ -351,7 +351,7 @@ InstallUpdate() {
     try txt := FileRead(tmp, "UTF-8")
     if (!InStr(txt, "#Requires AutoHotkey v2") || !InStr(txt, "AppVersion")) {
         try FileDelete tmp
-        ThemedNote(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), true)
+        ThemedNote(_T("The downloaded file is not a valid ComboCrown script. Nothing was changed."), _T("Updates"), true)
         return
     }
     if A_IsCompiled {

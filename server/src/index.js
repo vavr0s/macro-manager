@@ -1,4 +1,4 @@
-// Macro Manager library - Cloudflare Worker + D1.
+// ComboCrown (formerly Macro Manager) library - Cloudflare Worker + D1.
 // The app sends its random install id in the X-MM-Install header; only its SHA-256 is stored.
 // Answers are JSON with every non-ASCII letter as \uXXXX, so the app reads them right whatever the charset.
 
@@ -284,7 +284,7 @@ background:${act === 'verify' ? '#d0ae6b' : '#c0392b'};color:#111">${what}</butt
       later(modLog(env, url.origin, row, data, '🆕 New macro', 0x2FD26D, descr ? [{ name: 'Description', value: descr.slice(0, 300) }] : []));
       later(hook(env.HUB_WEBHOOK, { embeds: [{ title: `🆕 ${name.replace(/https?:\/\/\S+/gi, '[link]')}`, color: 0xD0AE6B,
         description: (descr ? plain(descr.slice(0, 300)) + '\n\n' : '') + `by **${plain(author)}** · ${plain(game)} · key ${plain(data.hotkey || '-')}`,
-        footer: { text: 'Get it in Macro Manager → Macro Hub' } }] }));
+        footer: { text: 'Get it in ComboCrown → Macro Hub' } }] }));
       return json({ id: r.id });
     }
 

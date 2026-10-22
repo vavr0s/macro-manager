@@ -182,7 +182,7 @@ ImportOne(path) {
     m["enabled"] := 0
 
     if (meta.Has("type") && (meta["type"] = "move" || meta["type"] = "seq")) {
-        ; file exported by Macro Manager -> editable native macro
+        ; file exported by ComboCrown -> editable native macro
         m["type"] := meta["type"]
         for k in ["app", "dirs", "actions", "seq", "tkey", "press"]
             if meta.Has(k)
@@ -195,7 +195,7 @@ ImportOne(path) {
     } else {
         ; any other script -> runs as its own process while the macro is on
         if (!InStr(text, "#Requires AutoHotkey v2")
-            && ThemedAsk("Macro Manager", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+            && ThemedAsk("ComboCrown", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
             return false
         m["type"] := "script"
         m["trusted"] := 0                           ; someone else's code: asked before it runs for the first time

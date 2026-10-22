@@ -848,7 +848,7 @@ LibCheckUpdates(force := false) {
     RedrawList()
     if fresh.Length
         TrayTip(fresh.Length = 1 ? _T("`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes.", fresh[1]["name"])
-            : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "Macro Manager", 0x24)
+            : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "ComboCrown", 0x24)
 }
 
 ; macros downloaded before the app remembered where they came from (or shared from another install): asked once,

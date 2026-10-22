@@ -1,4 +1,4 @@
-; Macro Manager setup .exe - compiled by tools/package.py with Ahk2Exe (base = the bundled AutoHotkey64).
+; ComboCrown setup .exe - compiled by tools/package.py with Ahk2Exe (base = the bundled AutoHotkey64).
 ; It unpacks the app script + runtime into a temp folder, runs the same setup dialog as the .bat and cleans up.
 #Requires AutoHotkey v2.0
 #NoTrayIcon
@@ -19,10 +19,10 @@ if !A_IsAdmin {
 dir := A_Temp "\MacroManagerSetup-" A_TickCount
 try {
     DirCreate dir "\runtime64"
-    FileInstall "pkg\Macro Manager.ahk", dir "\Macro Manager.ahk", 1
-    FileInstall "pkg\runtime64\Macro Manager Setup.exe", dir "\runtime64\Macro Manager Setup.exe", 1
+    FileInstall "pkg\ComboCrown.ahk", dir "\ComboCrown.ahk", 1
+    FileInstall "pkg\runtime64\ComboCrown Setup.exe", dir "\runtime64\ComboCrown Setup.exe", 1
     FileInstall "pkg\runtime64\AutoHotkey-license.txt", dir "\runtime64\AutoHotkey-license.txt", 1
-    RunWait '"' dir '\runtime64\Macro Manager Setup.exe" "' dir '\Macro Manager.ahk"', dir
+    RunWait '"' dir '\runtime64\ComboCrown Setup.exe" "' dir '\ComboCrown.ahk"', dir
 } catch as e {
     MsgBox "Setup failed:`n" e.Message, "{NAME}", "Icon!"
 }

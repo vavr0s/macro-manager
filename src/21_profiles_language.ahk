@@ -201,7 +201,7 @@ DeleteProfile(*) {
         ThemedNote(_T("You can't delete the last profile."), , true)
         return
     }
-    if (ThemedAsk("Macro Manager", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+    if (ThemedAsk("ComboCrown", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     old := CurProfile
     rest := []

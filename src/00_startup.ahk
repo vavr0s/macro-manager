@@ -1,8 +1,8 @@
 #Requires AutoHotkey v2.0
-;@Ahk2Exe-SetName Macro Manager
-;@Ahk2Exe-SetDescription Macro Manager
-;@Ahk2Exe-SetProductName Macro Manager
-;@Ahk2Exe-SetInternalName Macro Manager
+;@Ahk2Exe-SetName ComboCrown
+;@Ahk2Exe-SetDescription ComboCrown
+;@Ahk2Exe-SetProductName ComboCrown
+;@Ahk2Exe-SetInternalName ComboCrown
 ;@Ahk2Exe-SetOrigFilename Macro Manager.exe
 ;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion 1.0.0
@@ -94,13 +94,11 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-DiscordFile := AssetsDir "\discord.png"
-DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
-DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: support)
+DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: support)
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.23"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "12"    ; bump when the embedded logo/icon change
+AppVersion := "1.24"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -110,9 +108,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "- New: Macro Hub, a shared library of macros. Open it with the Macro Hub button and it docks to the main window. You can browse other players' macros or your own, filter by game, search by name, game or author, sort, and see what a macro does (keys, delays, sequence) before you download it. Downloading adds the macro to your active profile.`n- Share a macro with the share icon in its row (you pick its game). When you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed, then take the new version or keep yours.`n- Rate macros with stars and report bad ones. Macros checked by the moderator have a gold tick and come first. Downloaded macros can't be shared again unchanged, and the same macro can't be in Macro Hub twice.`n- Without internet, Macro Hub shows No connection and tries again by itself. Changes made offline are sent once you are back online.`n- App updates now come through the Macro Hub server, so a new version shows up reliably even when several PCs share one internet connection."
+ReleaseNotes := "- Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.`n- New look of the logo and the app icon: just the crown, without the lettering.`n- The support link in Help is now a Join Discord button, the same as on the website.`n- New website: https://combocrown.pages.dev"
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "- Novinka: Macro Hub, sdílená knihovna maker. Otevře se tlačítkem Macro Hub a připojí se k hlavnímu oknu. Můžeš procházet makra ostatních hráčů nebo svoje, filtrovat podle hry, hledat podle názvu, hry nebo autora, řadit a ještě před stažením vidět, co makro dělá (klávesy, prodlevy, sekvenci). Stažené makro se přidá do aktivního profilu.`n- Makro nasdílíš ikonou sdílení v jeho řádku (vybereš, ke které hře patří). Když sdílené makro upravíš, aplikace se zeptá, jestli ho aktualizovat i v Macro Hubu. Hodnocení i počet stažení zůstanou.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Po kliknutí uvidíš, co se změnilo, a buď převezmeš novou verzi, nebo si necháš svou.`n- Makra můžeš hodnotit hvězdičkami a špatná nahlásit. Makra zkontrolovaná moderátorem mají zlatou fajfku a jsou na začátku. Stažené makro nejde znovu sdílet beze změny a stejné makro nemůže být v Macro Hubu dvakrát.`n- Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Změny udělané offline se odešlou, jakmile budeš zase online.`n- Aktualizace aplikace teď chodí přes server Macro Hubu, takže se nová verze spolehlivě ukáže, i když je víc počítačů na jednom připojení.", "pl", "- Nowość: Macro Hub, wspólna biblioteka makr. Otwierasz go przyciskiem Macro Hub i dokuje się do głównego okna. Możesz przeglądać makra innych graczy lub swoje, filtrować według gry, szukać po nazwie, grze lub autorze, sortować i jeszcze przed pobraniem zobaczyć, co makro robi (klawisze, opóźnienia, sekwencja). Pobrane makro trafia do aktywnego profilu.`n- Makro udostępnisz ikoną udostępniania w jego wierszu (wybierasz, do jakiej gry należy). Gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je także w Macro Hub. Oceny i liczba pobrań zostają.`n- Gdy autor zaktualizuje pobrane przez ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zmieni kolor na zielony. Kliknij ją, aby zobaczyć zmiany, i przyjmij nową wersję albo zostaw swoją.`n- Makra możesz oceniać gwiazdkami i zgłaszać złe. Makra sprawdzone przez moderatora mają złoty znaczek i są na początku. Pobranego makra nie można ponownie udostępnić bez zmian, a to samo makro nie może być w Macro Hub dwa razy.`n- Bez internetu Macro Hub pokazuje napis Brak połączenia i sam próbuje ponownie. Zmiany zrobione offline zostaną wysłane, gdy znów będziesz online.`n- Aktualizacje aplikacji przychodzą teraz przez serwer Macro Hub, więc nowa wersja pojawia się niezawodnie, nawet gdy kilka komputerów korzysta z jednego łącza.", "de", "- Neu: Macro Hub, eine gemeinsame Makro-Bibliothek. Du öffnest ihn mit der Schaltfläche Macro Hub, er dockt am Hauptfenster an. Du kannst Makros anderer Spieler oder deine eigenen durchsuchen, nach Spiel filtern, nach Name, Spiel oder Autor suchen, sortieren und schon vor dem Herunterladen sehen, was ein Makro tut (Tasten, Pausen, Ablauf). Heruntergeladene Makros landen im aktiven Profil.`n- Ein Makro teilst du mit dem Teilen-Symbol in seiner Zeile (du wählst das Spiel). Änderst du ein geteiltes Makro, fragt die App, ob es auch im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben erhalten.`n- Aktualisiert der Autor ein Makro, das du heruntergeladen hast, bekommst du eine Meldung und sein Pfeil in der Liste wird grün. Klick darauf, um die Änderungen zu sehen, und übernimm die neue Version oder behalte deine.`n- Makros kannst du mit Sternen bewerten und schlechte melden. Vom Moderator geprüfte Makros haben einen goldenen Haken und stehen oben. Heruntergeladene Makros lassen sich unverändert nicht erneut teilen, und dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Ohne Internet zeigt Macro Hub Keine Verbindung an und versucht es selbst erneut. Offline gemachte Änderungen werden gesendet, sobald du wieder online bist.`n- App-Updates kommen jetzt über den Macro-Hub-Server, sodass eine neue Version zuverlässig erscheint, auch wenn sich mehrere PCs eine Internetverbindung teilen.")
+ReleaseNotesL := Map("cs", "- Macro Manager se teď jmenuje ComboCrown. Makra, profily i nastavení zůstávají, jak jsou, a zástupci dostanou nový název sami.`n- Nový vzhled loga a ikony aplikace: jen koruna, bez nápisu.`n- Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na webu.`n- Nový web: https://combocrown.pages.dev", "pl", "- Macro Manager nazywa się teraz ComboCrown. Makra, profile i ustawienia zostają bez zmian, a skróty same dostaną nową nazwę.`n- Nowy wygląd logo i ikony aplikacji: sama korona, bez napisu.`n- Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na stronie.`n- Nowa strona: https://combocrown.pages.dev", "de", "- Macro Manager heißt jetzt ComboCrown. Deine Makros, Profile und Einstellungen bleiben, wie sie sind, und deine Verknüpfungen bekommen den neuen Namen von selbst.`n- Neues Logo und App-Symbol: nur die Krone, ohne Schriftzug.`n- Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der Website.`n- Neue Website: https://combocrown.pages.dev")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -161,7 +159,7 @@ LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (Li
 LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
-SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
+SetAppIdentity()        ; notifications / taskbar: "ComboCrown" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
@@ -178,12 +176,12 @@ RegisterUninstall()
 Load()
 
 ; ============ main window ============
-Main := Gui(, "Macro Manager")
+Main := Gui(, "ComboCrown")
 Main.SetFont("s9", "Segoe UI")
 try {
     Main.AddPicture("x10 y8 w820 h72", LogoWideFile)      ; black rounded banner with the logo
     Main.SetFont("s16 bold cD0AE6B", "Segoe UI")
-    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "Macro Manager")
+    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "ComboCrown")
     Roles[ttl.Hwnd] := "skip"
     Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     lbl := Main.AddText("x600 y50 w105 Right BackgroundTrans", _T("Dark mode"))
@@ -215,7 +213,7 @@ try {
 }
 try {
     TraySetIcon(IconFile)
-    A_IconTip := "Macro Manager v" AppVersion
+    A_IconTip := "ComboCrown v" AppVersion
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header

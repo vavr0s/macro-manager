@@ -111,7 +111,7 @@ ThemedAsk(title, heading, body, buttons, warn := true) {
 }
 
 ; message with an OK button
-ThemedNote(text, title := "Macro Manager", warn := false, heading := "") {
+ThemedNote(text, title := "ComboCrown", warn := false, heading := "") {
     ThemedAsk(title, heading, text, [[_T("OK"), "ok", "btnprimary"]], warn)
 }
 

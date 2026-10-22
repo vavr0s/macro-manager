@@ -1,6 +1,6 @@
 ; ============ third-party credits ============
 ; Some features follow ideas and small techniques from these MIT-licensed projects (the code here is written
-; for Macro Manager, nothing is copied as a library):
+; for ComboCrown, nothing is copied as a library):
 ;   - press modes short tap / double tap / long press (RunPress) .... evilC/TapHoldManager
 ;       Copyright (c) 2018 Clive Galway
 ;   - exact pauses (StepWait) ....................................... thqby/ahk2_lib (HighPrecisionSleep)

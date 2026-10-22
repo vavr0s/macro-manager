@@ -60,7 +60,7 @@ ExportCode(m) {
     code := StrReplace(code, "@APP@", app)
     code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
-    code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
+    code .= "`n`n; ===== ComboCrown metadata (used when importing this file) =====`n"
     for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey", "press", "exact"]
         code .= "; MM:" k "=" m[k] "`n"
     return code

@@ -22,21 +22,21 @@ sub('UpdBranch := "main" ', 'UpdBranch := "beta" ')
 sub(r'^AssetVersion := "(\d+)" ', r'AssetVersion := "b\1" ', regex=True)
 
 # window title, "(beta)" under the logo, tray tip, version label
-sub('Main := Gui(, "Macro Manager")', 'Main := Gui(, "Macro Manager (beta)")')
-sub(r'(^Main := Gui\(, "Macro Manager \(beta\)"\)\n(?:.*\n)*?    Roles\[ttl\.Hwnd\] := "skip"\n)',
+sub('Main := Gui(, "ComboCrown")', 'Main := Gui(, "ComboCrown (beta)")')
+sub(r'(^Main := Gui\(, "ComboCrown \(beta\)"\)\n(?:.*\n)*?    Roles\[ttl\.Hwnd\] := "skip"\n)',
     r'\1    Main.SetFont("s10 bold cD0AE6B", "Segoe UI")\n'
     r'    btl := Main.AddText("x102 y56 w200 BackgroundTrans", "(beta)")\n'
     r'    Roles[btl.Hwnd] := "skip"\n', regex=True)
-sub('A_IconTip := "Macro Manager v" AppVersion', 'A_IconTip := "Macro Manager BETA v" AppVersion')
+sub('A_IconTip := "ComboCrown v" AppVersion', 'A_IconTip := "ComboCrown BETA v" AppVersion')
 sub('verTxt := AddHint(Main, "x740 y+4 w90 Center", "v" AppVersion)',
     'verTxt := AddHint(Main, "x726 y+4 w104 Center", "beta v" AppVersion)')
 
 # own install: registry keys, folder, shortcuts, Apps & features entry (installs next to the stable app)
 sub('"HKCU\\Software\\MacroManager"', '"HKCU\\Software\\MacroManagerBeta"', 5)
 sub('Uninstall\\MacroManager"', 'Uninstall\\MacroManagerBeta"', 2)
-sub('"\\MacroManager"', '"\\MacroManagerBeta"')
-sub('\\Macro Manager.lnk"', '\\Macro Manager Beta.lnk"', 4)
-sub('RegWrite("Macro Manager", "REG_SZ", k, "DisplayName")', 'RegWrite("Macro Manager (beta)", "REG_SZ", k, "DisplayName")')
+sub('"\\ComboCrown"', '"\\ComboCrownBeta"')
+sub('\\ComboCrown.lnk"', '\\ComboCrown Beta.lnk"', 4)
+sub('RegWrite("ComboCrown", "REG_SZ", k, "DisplayName")', 'RegWrite("ComboCrown (beta)", "REG_SZ", k, "DisplayName")')
 
 # white icon
 icon = open(os.path.join(ROOT, 'tools', 'beta_icon.b64'), encoding='utf-8').read().rstrip('\n')

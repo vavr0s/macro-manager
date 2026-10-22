@@ -152,7 +152,7 @@ EnableMacro(m, viaKey := false) {
     }
     other := KeyClash(m)
     if (other && !viaKey) {
-        if (ThemedAsk("Macro Manager", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
+        if (ThemedAsk("ComboCrown", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
             , [[_T("Turn on anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
             Save()                                  ; keeps a "trusted" that was just given
             return
@@ -329,7 +329,7 @@ RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) :
 
 ; one key, several press modes: waits only as long as needed to tell them apart.
 ; long press = still held after HoldMs; double tap = pressed again within DblMs after release; short tap = neither.
-; (approach of evilC/TapHoldManager, MIT - rewritten for Macro Manager)
+; (approach of evilC/TapHoldManager, MIT - rewritten for ComboCrown)
 RunPress(set, trig) {
     if AltGrFake(trig)
         return

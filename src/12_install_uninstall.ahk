@@ -1,13 +1,13 @@
 ; ============ installer ============
 ; Installs "Macro Manager.ahk" + "Macro Manager.exe" (a copy of the AutoHotkey interpreter with our icon and name,
-; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey).
+; so Explorer, the taskbar and Task Manager show ComboCrown instead of AutoHotkey).
 Bootstrap() {
     reg := "HKCU\Software\MacroManager"
     prev := RegRead(reg, "InstallDir", "")
     if (prev != "")
         InitLang(prev "\config\macros.ini")             ; an existing install keeps its language
     if (prev != "" && FileExist(prev "\config\.installed") && FindInstalled(prev) != "") {
-        r := ThemedAsk(_T("Macro Manager setup"), _T("Macro Manager is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
+        r := ThemedAsk(_T("ComboCrown setup"), _T("ComboCrown is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
             , [[_T("Just start"), "start", "btn"], [_T("Update and start"), "update", "btnprimary"]], false)
         if (r = "")
             return
@@ -15,17 +15,17 @@ Bootstrap() {
             try {
                 InstallProgram(prev)
             } catch as e {
-                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), true)
+                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("ComboCrown setup"), true)
             }
         }
         LaunchInstalled(prev)
         return
     }
 
-    dir := DirSelect("*" A_ProgramFiles, 1, _T("Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."))
+    dir := DirSelect("*" A_ProgramFiles, 1, _T("Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there."))
     if (dir = "")
         return
-    target := RTrim(dir, "\") "\MacroManager"
+    target := RTrim(dir, "\") "\ComboCrown"
     compiled := false
     try {
         DirCreate(target "\config\assets")
@@ -35,16 +35,16 @@ Bootstrap() {
         FileAppend "installed", target "\config\.installed"
         RegWrite(target, "REG_SZ", reg, "InstallDir")
     } catch as e {
-        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), true)
+        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("ComboCrown setup"), true)
         return
     }
 
     icon := target "\config\assets\app.ico"
-    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
-        MakeShortcut(A_Programs "\Macro Manager.lnk", target, icon)
-    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
-        MakeShortcut(A_Desktop "\Macro Manager.lnk", target, icon)
-    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"))
+    if (ThemedAsk(_T("ComboCrown setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
+        MakeShortcut(A_Programs "\ComboCrown.lnk", target, icon)
+    if (ThemedAsk(_T("ComboCrown setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
+        MakeShortcut(A_Desktop "\ComboCrown.lnk", target, icon)
+    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("ComboCrown setup"))
     LaunchInstalled(target)
 }
 
@@ -85,7 +85,7 @@ FindInstalled(dir) {
     return ""
 }
 
-; the AutoHotkey v2 interpreter (a compiled Macro Manager can't use its own A_AhkPath for scripts)
+; the AutoHotkey v2 interpreter (a compiled ComboCrown can't use its own A_AhkPath for scripts)
 AhkExe() {
     if !A_IsCompiled
         return A_AhkPath
@@ -118,7 +118,7 @@ LaunchInstalled(dir) {
 
 ; ============ branded interpreter copy ============
 ; "Macro Manager.exe" = copy of AutoHotkey64.exe with our icon + version info (name, company),
-; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey.
+; so Explorer, the taskbar and Task Manager show ComboCrown instead of AutoHotkey.
 PatchExe(exe, ico) {
     h := 0
     try {
@@ -248,9 +248,9 @@ BuildVersionInfo() {
     fixed := Buffer(52, 0)
     NumPut("UInt", 0xFEEF04BD, "UInt", 0x10000, "UInt", 0x10000, "UInt", 0, "UInt", 0x10000, "UInt", 0, "UInt", 0x3F
          , "UInt", 0, "UInt", 0x40004, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 0, fixed)
-    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "Macro Manager")
-        , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "Macro Manager")
-        , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "Macro Manager")
+    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "ComboCrown")
+        , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "ComboCrown")
+        , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "ComboCrown")
         , VerString("ProductVersion", "1.0.0.0"))
     st := BufPad4(VerNode("040904B0", "", 1, 0, strs))
     sfi := BufPad4(VerNode("StringFileInfo", "", 1, 0, st))
@@ -269,24 +269,43 @@ RegisterUninstall() {
     if !A_IsCompiled
         try RegWrite(A_AhkPath, "REG_SZ", "HKCU\Software\MacroManager", "AhkPath")
     try {
-        RegWrite("Macro Manager", "REG_SZ", k, "DisplayName")
-        RegWrite("Macro Manager", "REG_SZ", k, "Publisher")
+        RegWrite("ComboCrown", "REG_SZ", k, "DisplayName")
+        RegWrite("vavr0s", "REG_SZ", k, "Publisher")
         RegWrite(cmd, "REG_SZ", k, "UninstallString")
         RegWrite(A_ScriptDir, "REG_SZ", k, "InstallLocation")
         RegWrite(FileExist(IconFile) ? IconFile : (A_IsCompiled ? A_ScriptFullPath : A_AhkPath), "REG_SZ", k, "DisplayIcon")
         RegWrite(1, "REG_DWORD", k, "NoModify")
         RegWrite(1, "REG_DWORD", k, "NoRepair")
         RegWrite(A_ScriptDir, "REG_SZ", "HKCU\Software\MacroManager", "InstallDir")
+    } catch as e
+        DiagLog("RegisterUninstall", e)
+    if (InStr(RegRead(k, "DisplayName", ""), "ComboCrown") != 1)
+        DiagLog("RegisterUninstall", Error("written but reads back as " RegRead(k, "DisplayName", "?"), , k))
+}
+
+; problems that are not worth a message box (config\diag.log, the newest 50 lines are kept)
+DiagLog(where, e) {
+    try {
+        f := ConfigDir "\diag.log"
+        old := FileExist(f) ? FileRead(f) : ""
+        lines := StrSplit(Trim(old, "`n"), "`n")
+        while (lines.Length > 49)
+            lines.RemoveAt(1)
+        t := ""
+        for l in lines
+            t .= l "`n"
+        t .= FormatTime(, "yyyy-MM-dd HH:mm:ss") " v" AppVersion " " where ": " e.Message (e.Extra != "" ? " (" e.Extra ")" : "") " [" e.What "] admin=" A_IsAdmin "`n"
+        WriteText(f, t)
     }
 }
 
 UninstallApp(fromArg := false) {
     dir := A_ScriptDir
     if (StrLen(dir) <= 3 || !FileExist(dir "\config\.installed")) {
-        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), true)
+        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall ComboCrown"), true)
         return false
     }
-    if (ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
+    if (ThemedAsk(_T("Uninstall ComboCrown"), "", _T("Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
         if fromArg
             LaunchInstalled(dir)
         return false
@@ -295,14 +314,14 @@ UninstallApp(fromArg := false) {
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
+        r := ThemedAsk(_T("Uninstall ComboCrown"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
         if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
         if (r = "yes") {
-            path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+            path := FileSelect("S16", A_Desktop "\ComboCrown backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("ComboCrown backup (*.mmbackup)"))
             if (path = "") {
                 if fromArg
                     LaunchInstalled(dir)
@@ -314,12 +333,12 @@ UninstallApp(fromArg := false) {
                 Save()                                  ; the settings in memory are the newest
                 WriteBackup(path)
             } catch as e {
-                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall Macro Manager"), true)
+                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall ComboCrown"), true)
                 if fromArg
                     LaunchInstalled(dir)
                 return false                            ; nothing deleted without the backup the user asked for
             }
-            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall Macro Manager"))
+            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall ComboCrown"))
         }
     }
     ; stop imported scripts started by the manager
@@ -329,9 +348,9 @@ UninstallApp(fromArg := false) {
     try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager")
     try RegDeleteKey("HKCU\Software\MacroManager")
     try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\" AppId())     ; name + icon of its notifications
-    try FileDelete(A_Programs "\Macro Manager.lnk")
-    try FileDelete(A_Desktop "\Macro Manager.lnk")
-    ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))
+    try FileDelete(A_Programs "\ComboCrown.lnk")
+    try FileDelete(A_Desktop "\ComboCrown.lnk")
+    ThemedNote(_T("ComboCrown has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall ComboCrown"))
     ; a separate hidden process deletes the folder after this app has exited
     Run(A_ComSpec ' /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "' dir '"', A_Temp, "Hide")
     ExitApp

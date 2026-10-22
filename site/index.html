@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComboCrown – game macros for any mouse and keyboard</title>
+<meta name="description" content="Free Windows app for game macros: key sequences, combos and rotations with any mouse and keyboard, no vendor software needed. With Macro Hub for sharing macros.">
+<meta property="og:title" content="ComboCrown by vavr0s (formerly Macro Manager)">
+<meta property="og:description" content="Free game macros for any mouse and keyboard. Sequences, combos, profiles and Macro Hub.">
+<meta property="og:image" content="/img/hub.png">
+<meta name="theme-color" content="#15161A">
+<link rel="icon" href="/favicon.ico">
+<style>
+:root {
+  --bg: #0F1013; --bg2: #15161A; --card: #1F2127; --line: #2A2D35;
+  --gold: #D0AE6B; --gold-hi: #E3C486; --text: #ECECEF; --muted: #A9ADB8; --dark-text: #141414;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif; }
+a { color: var(--gold); text-decoration: none; }
+a:hover { color: var(--gold-hi); }
+img { max-width: 100%; display: block; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+
+/* top bar */
+header { position: sticky; top: 0; z-index: 10; background: rgba(15,16,19,.88); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 700; font-size: 18px; }
+.brand img { width: 36px; height: 36px; border-radius: 8px; }
+nav { display: flex; gap: 22px; margin-left: auto; }
+nav a { color: var(--muted); font-size: 15px; }
+nav a:hover { color: var(--text); }
+.lang { position: relative; }
+.lang button { display: flex; align-items: center; gap: 8px; background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 14px; cursor: pointer; }
+.lang button img { width: 20px; height: 14px; object-fit: cover; border-radius: 2px; }
+.lang ul { display: none; position: absolute; right: 0; top: 40px; margin: 0; padding: 6px; list-style: none; background: var(--card); border: 1px solid var(--line); border-radius: 8px; min-width: 150px; }
+.lang.open ul { display: block; }
+.lang li button { width: 100%; border: 0; background: none; }
+.lang li button:hover { background: var(--line); }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 10px; font-weight: 600; font-size: 17px; border: 1px solid transparent; transition: background .15s, border-color .15s; }
+.btn-gold { background: var(--gold); color: var(--dark-text); }
+.btn-gold:hover { background: var(--gold-hi); color: var(--dark-text); }
+.btn-dark { background: var(--card); color: var(--text); border-color: var(--line); }
+.btn-dark:hover { border-color: var(--gold); color: var(--text); }
+.btn img { width: 24px; height: auto; }
+@font-face { font-family: "gg sans"; src: url(/fonts/ggsans-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+.btn-discord { background: #5865F2; color: #fff; font-family: "gg sans", "Segoe UI", sans-serif; }
+.btn-discord:hover { background: #4752C4; color: #fff; }
+.btn svg { width: 20px; height: 20px; }
+
+/* hero */
+.hero { position: relative; padding: 72px 0 40px; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: -200px 0 auto; height: 700px; background: radial-gradient(ellipse at 50% 30%, rgba(208,174,107,.16), transparent 60%); pointer-events: none; }
+.hero .wrap { position: relative; text-align: center; }
+.hero h1 { font-size: clamp(34px, 5.4vw, 58px); line-height: 1.12; margin: 0 auto 18px; max-width: 900px; letter-spacing: -.5px; }
+.hero h1 span { color: var(--gold); }
+.hero p.lead { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 auto 32px; }
+.cta { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.meta { margin-top: 14px; color: var(--muted); font-size: 14px; }
+.meta a { color: var(--muted); text-decoration: underline; }
+.shot { margin: 52px auto 0; width: 100%; max-width: 1060px; height: auto; border-radius: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px var(--line); }
+
+/* sections */
+section { padding: 72px 0; }
+section.alt { background: var(--bg2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+h2 { font-size: clamp(28px, 3.6vw, 38px); margin: 0 0 12px; text-align: center; }
+p.sub { text-align: center; color: var(--muted); max-width: 680px; margin: 0 auto 44px; font-size: 18px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+.card .ico { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; background: rgba(208,174,107,.12); color: var(--gold); margin-bottom: 14px; }
+.card .ico svg { width: 22px; height: 22px; }
+.card h3 { margin: 0 0 6px; font-size: 18px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+code { background: #000; color: var(--gold-hi); padding: 1px 6px; border-radius: 4px; font: 14px Consolas, monospace; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.split h2, .split p.sub { text-align: left; margin-left: 0; }
+.split img.panel { justify-self: center; max-width: 442px; width: 100%; height: auto; }
+.split img { border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px var(--line); }
+ul.ticks { list-style: none; padding: 0; margin: 0 0 8px; }
+ul.ticks li { position: relative; padding-left: 30px; margin-bottom: 12px; }
+ul.ticks li::before { content: "✔"; position: absolute; left: 0; color: var(--gold); }
+/* not allowed: a red cross made of two rounded bars, same size and spot as the tick */
+ul.ticks li.no::before, ul.ticks li.no::after { content: ""; position: absolute; left: 2px; top: .8em; width: 15px; height: 2.6px; border-radius: 2px; background: #E5605A; transform: rotate(45deg); }
+ul.ticks li.no::after { transform: rotate(-45deg); }
+
+/* install steps */
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+.steps .card { position: relative; padding-top: 58px; }
+.steps .card::before { counter-increment: s; content: counter(s); position: absolute; top: 18px; left: 24px; width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: var(--dark-text); font-weight: 700; display: grid; place-items: center; }
+.center { text-align: center; margin-top: 36px; }
+
+/* faq */
+.faq { max-width: 820px; margin: 0 auto; }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+summary { cursor: pointer; padding: 16px 20px; font-weight: 600; list-style: none; position: relative; padding-right: 48px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; position: absolute; right: 20px; top: 12px; font-size: 22px; color: var(--gold); }
+details[open] summary::after { content: "–"; }
+details p { margin: 0; padding: 0 20px 18px; color: var(--muted); }
+
+/* discord band */
+.band { background: linear-gradient(135deg, #1d1e3a, #15161A); border: 1px solid var(--line); border-radius: 16px; padding: 40px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+.band > img { width: 80px; height: auto; }
+.band div { flex: 1; min-width: 240px; }
+.band h2 { text-align: left; margin-bottom: 6px; }
+.band p { margin: 0; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding: 28px 0 36px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; }
+footer .links { margin-left: auto; display: flex; gap: 20px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
+
+@media (max-width: 860px) {
+  nav { display: none; }
+  .lang { margin-left: auto; }
+  .split { grid-template-columns: 1fr; }
+  .hero { padding-top: 48px; }
+  section { padding: 56px 0; }
+  .band { padding: 28px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="/img/logo.png" alt="">ComboCrown</a>
+    <nav>
+      <a href="#features" data-i="nav_features">Features</a>
+      <a href="#hub">Macro Hub</a>
+      <a href="#install" data-i="nav_install">Install</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="lang" id="lang">
+      <button type="button" id="langBtn" aria-haspopup="true"><img id="langFlag" src="/img/flag_en.png" alt=""><span id="langName">English</span> ▾</button>
+      <ul>
+        <li><button type="button" data-lang="en"><img src="/img/flag_en.png" alt="">English</button></li>
+        <li><button type="button" data-lang="cs"><img src="/img/flag_cs.png" alt="">Čeština</button></li>
+        <li><button type="button" data-lang="pl"><img src="/img/flag_pl.png" alt="">Polski</button></li>
+        <li><button type="button" data-lang="de"><img src="/img/flag_de.png" alt="">Deutsch</button></li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap">
+    <h1 data-i="hero_title" data-html>Game macros for <span>any mouse and keyboard</span></h1>
+    <p class="lead" data-i="hero_lead">Combos, rotations and key sequences that play while you hold a key – without G HUB, Synapse or any other vendor software. Free, for Windows.</p>
+    <div class="cta">
+      <a class="btn btn-gold" href="/download/ComboCrown-Setup.exe" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 20h16"/></svg>
+        <span data-i="download">Download for Windows</span>
+      </a>
+      <a class="btn btn-discord" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord-white.svg" alt="" width="24" height="18"><span data-i="join_discord">Join Discord</span></a>
+    </div>
+    <div class="meta"><span data-i="version">Version</span> {{VERSION}} · Windows 10 / 11 · {{SIZE}} MB · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
+    <img class="shot" src="/img/hub.png" alt="ComboCrown with the Macro Hub panel" width="1285" height="601">
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <h2 data-i="feat_title">Everything a macro needs</h2>
+    <p class="sub" data-i="feat_sub">Set it up once, tick it and play. Macros only run while you hold their key.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/></svg></div>
+        <h3 data-i="f1_t">Any mouse, any keyboard</h3>
+        <p data-i="f1_p">Start a macro with any key, the side or middle mouse button, the wheel, or a combination like Ctrl+XButton1.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
+        <h3 data-i="f2_t">Sequences with exact delays</h3>
+        <p data-i="f2_p" data-html>Write steps like <code>tap 1 600</code> or record them live. Delays are kept to about a millisecond.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l-4 5 4 5M17 7l4 5-4 5M3 12h18"/></svg></div>
+        <h3 data-i="f3_t">Move + actions</h3>
+        <p data-i="f3_p">Made for games where you keep moving and cast in between: movement and skills alternate in a cycle with the delays you set.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3 data-i="f4_t">Tap, double tap, long press</h3>
+        <p data-i="f4_p">Up to three macros on one key. Play once per press or repeat while the key is held – it stops the moment you let go.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M7 9l3 3-3 3"/></svg></div>
+        <h3 data-i="f5_t">Only in your game</h3>
+        <p data-i="f5_p">A macro can work only while the chosen game is in front, so it never fires in chat, Discord or your browser.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 4a4 4 0 010 8M22 21c0-3-2-5-4-5.6"/></svg></div>
+        <h3 data-i="f6_t">Profiles and toggle keys</h3>
+        <p data-i="f6_p">One set of macros per game or character. Toggle keys turn a single macro or all of them on and off without opening the window.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/></svg></div>
+        <h3 data-i="f7_t">Scripts and export</h3>
+        <p data-i="f7_p">Need more? Paste your own AutoHotkey v2 script. Any macro can be exported as an .ahk file – just drag it out of the list.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></div>
+        <h3 data-i="f8_t">Updates and backup</h3>
+        <p data-i="f8_p">New versions install with one click and keep your macros. Back up everything into one file and restore it on a new PC.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="hub" class="alt">
+  <div class="wrap split">
+    <div>
+      <h2>Macro Hub</h2>
+      <p class="sub" data-i="hub_sub">Macros shared by players, right inside the app.</p>
+      <ul class="ticks">
+        <li data-i="hub_1">Search by name, game or author, filter by game and sort by rating, newest or downloads.</li>
+        <li data-i="hub_2">See exactly what a macro does – keys, delays, sequence – before you download it.</li>
+        <li data-i="hub_3">Rate macros with stars. Macros checked by the moderator have a gold tick.</li>
+        <li data-i="hub_4">Share your own macro with one click. When an author improves a macro you downloaded, the app tells you and shows what changed.</li>
+        <li class="no" data-i="hub_5">Farm and AFK macros are not allowed – players can report them.</li>
+      </ul>
+    </div>
+    <img class="panel" src="/img/hub_panel.png" alt="Macro Hub panel" width="442" height="601" loading="lazy">
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2 data-i="inst_title">Install in a minute</h2>
+    <p class="sub" data-i="inst_sub">Nothing else to install – everything the app needs is included.</p>
+    <div class="steps">
+      <div class="card"><h3 data-i="s1_t">Download</h3><p data-i="s1_p">Get ComboCrown-Setup.exe with the button below.</p></div>
+      <div class="card"><h3 data-i="s2_t">Run it</h3><p data-i="s2_p">Windows may say “Windows protected your PC”, because the app isn't signed. Click More info → Run anyway.</p></div>
+      <div class="card"><h3 data-i="s3_t">Allow administrator</h3><p data-i="s3_p">The app runs as administrator so macros also work in games that run as administrator. Pick a folder and shortcuts.</p></div>
+      <div class="card"><h3 data-i="s4_t">Play</h3><p data-i="s4_p">Add a macro, tick it and hold its key in the game. The app updates itself from now on.</p></div>
+    </div>
+    <div class="center">
+      <a class="btn btn-gold" href="/download/ComboCrown-Setup.exe" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 10l6 6 6-6M4 20h16"/></svg>
+        <span data-i="download">Download for Windows</span>
+      </a>
+      <div class="meta"><span data-i="version">Version</span> {{VERSION}} · <a href="/download/ComboCrown-Setup.zip" data-i="zip">ZIP package</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="alt">
+  <div class="wrap faq">
+    <h2 data-i="faq_title">Questions</h2>
+    <p class="sub"></p>
+    <details><summary data-i="q0">Is this the former Macro Manager?</summary><p data-i="a0">Yes. Macro Manager was renamed to ComboCrown in version 1.24. If you have it installed, just update – your macros and settings stay.</p></details>
+    <details><summary data-i="q1">Is it really free?</summary><p data-i="a1">Yes. No account, no ads, no paid features.</p></details>
+    <details><summary data-i="q2">Do I need AutoHotkey or other software?</summary><p data-i="a2">No. Everything is included in the installer. You also don't need the software of your mouse or keyboard.</p></details>
+    <details><summary data-i="q3">Can I get banned for using macros?</summary><p data-i="a3">ComboCrown presses keys just like you would. Whether macros are allowed depends on your game or server – check its rules. You use macros at your own risk.</p></details>
+    <details><summary data-i="q4">My antivirus or Windows warns about the file.</summary><p data-i="a4">The app isn't signed and is built with AutoHotkey, which some antivirus programs flag by mistake. The whole source code is public on GitHub.</p></details>
+    <details><summary data-i="q5">Where are my macros stored?</summary><p data-i="a5">On your PC, in the config folder next to the app. Macro Hub only gets the macros you decide to share.</p></details>
+    <details><summary data-i="q6">My mouse has more side buttons. Can I use them?</summary><p data-i="a6">Windows knows five mouse buttons. Set the extra ones in your mouse software to keys like F13–F24 and use those as triggers.</p></details>
+    <details><summary data-i="q7">How do I uninstall it?</summary><p data-i="a7">With the Uninstall button in the app or in Windows Settings → Apps. It offers to export your macros first.</p></details>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="band">
+      <img src="/img/discord.svg" alt="Discord" width="80" height="61">
+      <div>
+        <h2 data-i="dc_title">Join the community</h2>
+        <p data-i="dc_p">Help, bug reports, ideas and beta versions – on our Discord (in English).</p>
+      </div>
+      <a class="btn btn-discord" href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener"><img src="/img/discord-white.svg" alt="" width="24" height="18"><span data-i="join_discord">Join Discord</span></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 vavr0s</span>
+    <span data-i="foot_note">Not affiliated with any game publisher. Runs on AutoHotkey (GPL v2).</span>
+    <div class="links">
+      <a href="https://discord.gg/NJUn6AmBSH" target="_blank" rel="noopener">Discord</a>
+      <a href="https://github.com/vavr0s/macro-manager" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const T = {
+  cs: {
+    nav_features: "Funkce", nav_install: "Instalace",
+    hero_title: "Herní makra pro <span>jakoukoli myš a klávesnici</span>",
+    hero_lead: "Komba, rotace a sekvence kláves, které hrají, dokud držíš klávesu – bez G HUBu, Synapse nebo jiného softwaru výrobce. Zdarma, pro Windows.",
+    download: "Stáhnout pro Windows", join_discord: "Přidej se na Discord", version: "Verze", zip: "ZIP balíček",
+    feat_title: "Všechno, co makro potřebuje", feat_sub: "Jednou nastavíš, zaškrtneš a hraješ. Makra běží jen dokud držíš jejich klávesu.",
+    f1_t: "Jakákoli myš i klávesnice", f1_p: "Makro spustíš jakoukoli klávesou, bočním nebo prostředním tlačítkem myši, kolečkem nebo kombinací jako Ctrl+XButton1.",
+    f2_t: "Sekvence s přesnými prodlevami", f2_p: "Kroky napíšeš jako <code>tap 1 600</code> nebo je nahraješ naživo. Prodlevy sedí zhruba na milisekundu.",
+    f3_t: "Pohyb + akce", f3_p: "Pro hry, kde se pořád hýbeš a mezitím kouzlíš: pohyb a skilly se střídají v cyklu s prodlevami, které nastavíš.",
+    f4_t: "Ťuknutí, dvojklik, dlouhý stisk", f4_p: "Až tři makra na jedné klávese. Přehraje se jednou na stisk, nebo se opakuje, dokud klávesu držíš – a skončí, jakmile pustíš.",
+    f5_t: "Jen ve tvé hře", f5_p: "Makro může fungovat jen když je vybraná hra v popředí, takže se nikdy nespustí v chatu, Discordu ani prohlížeči.",
+    f6_t: "Profily a přepínací klávesy", f6_p: "Sada maker pro každou hru nebo postavu. Přepínací klávesy zapnou a vypnou jedno makro nebo všechna, aniž bys otevíral okno.",
+    f7_t: "Skripty a export", f7_p: "Potřebuješ víc? Vlož vlastní skript v AutoHotkey v2. Každé makro jde vyexportovat jako soubor .ahk – stačí ho vytáhnout ze seznamu.",
+    f8_t: "Aktualizace a záloha", f8_p: "Nové verze se nainstalují jedním kliknutím a makra zůstanou. Všechno zazálohuješ do jednoho souboru a obnovíš na novém PC.",
+    hub_sub: "Makra sdílená hráči, přímo v aplikaci.",
+    hub_1: "Hledej podle názvu, hry nebo autora, filtruj podle hry a řaď podle hodnocení, novosti nebo stažení.",
+    hub_2: "Ještě před stažením uvidíš, co přesně makro dělá – klávesy, prodlevy, sekvenci.",
+    hub_3: "Makra hodnotíš hvězdičkami. Makra zkontrolovaná moderátorem mají zlatou fajfku.",
+    hub_4: "Své makro nasdílíš jedním kliknutím. Když autor vylepší makro, které sis stáhl, aplikace ti to řekne a ukáže, co se změnilo.",
+    hub_5: "Farmicí a AFK makra nejsou povolená – hráči je můžou nahlásit.",
+    inst_title: "Nainstalováno za minutu", inst_sub: "Nic dalšího instalovat nemusíš – všechno, co aplikace potřebuje, je v balíčku.",
+    s1_t: "Stáhni", s1_p: "Tlačítkem níže stáhneš ComboCrown-Setup.exe.",
+    s2_t: "Spusť", s2_p: "Windows může napsat „Systém Windows ochránil váš počítač“, protože aplikace není podepsaná. Klikni na Další informace → Přesto spustit.",
+    s3_t: "Povol správce", s3_p: "Aplikace běží jako správce, aby makra fungovala i ve hrách spuštěných jako správce. Vyber složku a zástupce.",
+    s4_t: "Hraj", s4_p: "Přidej makro, zaškrtni ho a ve hře drž jeho klávesu. Od teď se aplikace aktualizuje sama.",
+    faq_title: "Otázky",
+    q0: "Je to bývalý Macro Manager?", a0: "Ano. Macro Manager se ve verzi 1.24 přejmenoval na ComboCrown. Pokud ho máš nainstalovaný, stačí aktualizovat – makra i nastavení zůstanou.",
+    q1: "Je to opravdu zdarma?", a1: "Ano. Žádný účet, žádné reklamy, žádné placené funkce.",
+    q2: "Potřebuju AutoHotkey nebo jiný software?", a2: "Ne. Všechno je v instalačce. Nepotřebuješ ani software své myši nebo klávesnice.",
+    q3: "Můžu dostat ban za makra?", a3: "ComboCrown mačká klávesy stejně jako ty. Jestli jsou makra povolená, záleží na tvé hře nebo serveru – podívej se do jejich pravidel. Makra používáš na vlastní riziko.",
+    q4: "Antivir nebo Windows na soubor upozorňuje.", a4: "Aplikace není podepsaná a je postavená na AutoHotkey, které některé antiviry omylem označují. Celý zdrojový kód je veřejně na GitHubu.",
+    q5: "Kde jsou moje makra uložená?", a5: "U tebe v PC, ve složce config vedle aplikace. Do Macro Hubu jdou jen makra, která se rozhodneš sdílet.",
+    q6: "Moje myš má víc bočních tlačítek. Můžu je použít?", a6: "Windows zná pět tlačítek myši. Ta další nastav v softwaru myši na klávesy jako F13–F24 a ty použij jako spouštěč.",
+    q7: "Jak aplikaci odinstaluju?", a7: "Tlačítkem Odinstalovat v aplikaci nebo v Nastavení Windows → Aplikace. Předtím ti nabídne export maker.",
+    dc_title: "Přidej se ke komunitě", dc_p: "Pomoc, hlášení chyb, nápady a beta verze – na našem Discordu (v angličtině).",
+    foot_note: "Nesouvisí s žádným vydavatelem her. Běží na AutoHotkey (GPL v2)."
+  },
+  pl: {
+    nav_features: "Funkcje", nav_install: "Instalacja",
+    hero_title: "Makra do gier dla <span>każdej myszy i klawiatury</span>",
+    hero_lead: "Combosy, rotacje i sekwencje klawiszy, które grają, dopóki trzymasz klawisz – bez G HUB, Synapse ani innego oprogramowania producenta. Za darmo, dla Windows.",
+    download: "Pobierz dla Windows", join_discord: "Dołącz do Discorda", version: "Wersja", zip: "Paczka ZIP",
+    feat_title: "Wszystko, czego potrzebuje makro", feat_sub: "Ustawiasz raz, zaznaczasz i grasz. Makra działają tylko, gdy trzymasz ich klawisz.",
+    f1_t: "Każda mysz, każda klawiatura", f1_p: "Uruchom makro dowolnym klawiszem, bocznym lub środkowym przyciskiem myszy, kółkiem albo kombinacją jak Ctrl+XButton1.",
+    f2_t: "Sekwencje z dokładnymi opóźnieniami", f2_p: "Zapisz kroki jak <code>tap 1 600</code> albo nagraj je na żywo. Opóźnienia trzymają się co do milisekundy.",
+    f3_t: "Ruch + akcje", f3_p: "Do gier, w których ciągle się ruszasz i w międzyczasie rzucasz czary: ruch i umiejętności zmieniają się w cyklu z ustawionymi opóźnieniami.",
+    f4_t: "Krótkie, podwójne, długie naciśnięcie", f4_p: "Do trzech makr na jednym klawiszu. Odtwarzaj raz na naciśnięcie albo powtarzaj, dopóki trzymasz klawisz – kończy się, gdy puścisz.",
+    f5_t: "Tylko w twojej grze", f5_p: "Makro może działać tylko wtedy, gdy wybrana gra jest na pierwszym planie, więc nigdy nie odpali się na czacie, Discordzie ani w przeglądarce.",
+    f6_t: "Profile i klawisze przełączania", f6_p: "Zestaw makr na każdą grę lub postać. Klawisze przełączania włączają i wyłączają jedno makro albo wszystkie bez otwierania okna.",
+    f7_t: "Skrypty i eksport", f7_p: "Potrzebujesz więcej? Wklej własny skrypt AutoHotkey v2. Każde makro możesz wyeksportować jako plik .ahk – wystarczy przeciągnąć je z listy.",
+    f8_t: "Aktualizacje i kopia zapasowa", f8_p: "Nowe wersje instalują się jednym kliknięciem, a makra zostają. Zapisz wszystko w jednym pliku i przywróć na nowym PC.",
+    hub_sub: "Makra udostępnione przez graczy, prosto w aplikacji.",
+    hub_1: "Szukaj po nazwie, grze lub autorze, filtruj według gry i sortuj według ocen, nowości lub pobrań.",
+    hub_2: "Zanim pobierzesz makro, zobaczysz dokładnie, co robi – klawisze, opóźnienia, sekwencję.",
+    hub_3: "Oceniaj makra gwiazdkami. Makra sprawdzone przez moderatora mają złoty znaczek.",
+    hub_4: "Udostępnij swoje makro jednym kliknięciem. Gdy autor ulepszy pobrane przez ciebie makro, aplikacja da ci znać i pokaże zmiany.",
+    hub_5: "Makra do farmienia i AFK są zabronione – gracze mogą je zgłaszać.",
+    inst_title: "Instalacja w minutę", inst_sub: "Nie musisz nic więcej instalować – wszystko, czego aplikacja potrzebuje, jest w paczce.",
+    s1_t: "Pobierz", s1_p: "Pobierz ComboCrown-Setup.exe przyciskiem poniżej.",
+    s2_t: "Uruchom", s2_p: "Windows może pokazać „System Windows ochronił ten komputer”, bo aplikacja nie jest podpisana. Kliknij Więcej informacji → Uruchom mimo to.",
+    s3_t: "Zezwól na administratora", s3_p: "Aplikacja działa jako administrator, żeby makra działały też w grach uruchomionych jako administrator. Wybierz folder i skróty.",
+    s4_t: "Graj", s4_p: "Dodaj makro, zaznacz je i trzymaj jego klawisz w grze. Od teraz aplikacja aktualizuje się sama.",
+    faq_title: "Pytania",
+    q0: "Czy to dawny Macro Manager?", a0: "Tak. Macro Manager w wersji 1.24 zmienił nazwę na ComboCrown. Jeśli masz go zainstalowanego, wystarczy zaktualizować – makra i ustawienia zostaną.",
+    q1: "Czy to naprawdę za darmo?", a1: "Tak. Bez konta, bez reklam, bez płatnych funkcji.",
+    q2: "Czy potrzebuję AutoHotkey lub innego programu?", a2: "Nie. Wszystko jest w instalatorze. Nie potrzebujesz też oprogramowania myszy ani klawiatury.",
+    q3: "Czy mogę dostać bana za makra?", a3: "ComboCrown naciska klawisze tak samo jak ty. To, czy makra są dozwolone, zależy od gry lub serwera – sprawdź ich zasady. Używasz makr na własne ryzyko.",
+    q4: "Antywirus lub Windows ostrzega przed plikiem.", a4: "Aplikacja nie jest podpisana i jest zbudowana na AutoHotkey, które niektóre antywirusy oznaczają przez pomyłkę. Cały kod źródłowy jest publicznie na GitHubie.",
+    q5: "Gdzie są zapisane moje makra?", a5: "Na twoim PC, w folderze config obok aplikacji. Do Macro Hub trafiają tylko makra, które sam udostępnisz.",
+    q6: "Moja mysz ma więcej bocznych przycisków. Mogę ich użyć?", a6: "Windows zna pięć przycisków myszy. Dodatkowe ustaw w oprogramowaniu myszy na klawisze jak F13–F24 i użyj ich jako wyzwalaczy.",
+    q7: "Jak odinstalować aplikację?", a7: "Przyciskiem Odinstaluj w aplikacji albo w Ustawieniach Windows → Aplikacje. Najpierw zaproponuje eksport makr.",
+    dc_title: "Dołącz do społeczności", dc_p: "Pomoc, zgłaszanie błędów, pomysły i wersje beta – na naszym Discordzie (po angielsku).",
+    foot_note: "Niezwiązane z żadnym wydawcą gier. Działa na AutoHotkey (GPL v2)."
+  },
+  de: {
+    nav_features: "Funktionen", nav_install: "Installation",
+    hero_title: "Spiel-Makros für <span>jede Maus und Tastatur</span>",
+    hero_lead: "Combos, Rotationen und Tastenfolgen, die laufen, solange du eine Taste hältst – ohne G HUB, Synapse oder andere Hersteller-Software. Kostenlos, für Windows.",
+    download: "Für Windows herunterladen", join_discord: "Discord beitreten", version: "Version", zip: "ZIP-Paket",
+    feat_title: "Alles, was ein Makro braucht", feat_sub: "Einmal einrichten, anhaken und spielen. Makros laufen nur, solange du ihre Taste hältst.",
+    f1_t: "Jede Maus, jede Tastatur", f1_p: "Starte ein Makro mit jeder Taste, der Seiten- oder Mittelmaustaste, dem Mausrad oder einer Kombination wie Ctrl+XButton1.",
+    f2_t: "Abläufe mit genauen Pausen", f2_p: "Schreib Schritte wie <code>tap 1 600</code> oder nimm sie live auf. Pausen stimmen auf etwa eine Millisekunde.",
+    f3_t: "Bewegung + Aktionen", f3_p: "Für Spiele, in denen du dich ständig bewegst und zwischendurch zauberst: Bewegung und Skills wechseln sich im Zyklus mit deinen Pausen ab.",
+    f4_t: "Tippen, Doppeltippen, langes Drücken", f4_p: "Bis zu drei Makros auf einer Taste. Einmal pro Druck abspielen oder wiederholen, solange die Taste gehalten wird – es stoppt, sobald du loslässt.",
+    f5_t: "Nur in deinem Spiel", f5_p: "Ein Makro kann nur laufen, wenn das gewählte Spiel im Vordergrund ist – so löst es nie im Chat, in Discord oder im Browser aus.",
+    f6_t: "Profile und Umschalttasten", f6_p: "Ein Satz Makros pro Spiel oder Charakter. Umschalttasten schalten ein einzelnes Makro oder alle ein und aus, ohne das Fenster zu öffnen.",
+    f7_t: "Skripte und Export", f7_p: "Brauchst du mehr? Füge dein eigenes AutoHotkey-v2-Skript ein. Jedes Makro lässt sich als .ahk-Datei exportieren – einfach aus der Liste ziehen.",
+    f8_t: "Updates und Sicherung", f8_p: "Neue Versionen installieren sich mit einem Klick, deine Makros bleiben. Sichere alles in einer Datei und stelle es auf einem neuen PC wieder her.",
+    hub_sub: "Von Spielern geteilte Makros, direkt in der App.",
+    hub_1: "Suche nach Name, Spiel oder Autor, filtere nach Spiel und sortiere nach Bewertung, Neuheit oder Downloads.",
+    hub_2: "Sieh genau, was ein Makro tut – Tasten, Pausen, Ablauf –, bevor du es herunterlädst.",
+    hub_3: "Bewerte Makros mit Sternen. Vom Moderator geprüfte Makros haben einen goldenen Haken.",
+    hub_4: "Teile dein eigenes Makro mit einem Klick. Verbessert ein Autor ein Makro, das du heruntergeladen hast, sagt dir die App Bescheid und zeigt die Änderungen.",
+    hub_5: "Farm- und AFK-Makros sind nicht erlaubt – Spieler können sie melden.",
+    inst_title: "In einer Minute installiert", inst_sub: "Sonst musst du nichts installieren – alles, was die App braucht, ist dabei.",
+    s1_t: "Herunterladen", s1_p: "Lade ComboCrown-Setup.exe mit dem Button unten herunter.",
+    s2_t: "Starten", s2_p: "Windows zeigt vielleicht „Der Computer wurde durch Windows geschützt“, weil die App nicht signiert ist. Klick auf Weitere Informationen → Trotzdem ausführen.",
+    s3_t: "Administrator erlauben", s3_p: "Die App läuft als Administrator, damit Makros auch in Spielen funktionieren, die als Administrator laufen. Wähle Ordner und Verknüpfungen.",
+    s4_t: "Spielen", s4_p: "Füge ein Makro hinzu, hake es an und halte seine Taste im Spiel. Ab jetzt aktualisiert sich die App selbst.",
+    faq_title: "Fragen",
+    q0: "Ist das der frühere Macro Manager?", a0: "Ja. Macro Manager heißt seit Version 1.24 ComboCrown. Wenn du ihn installiert hast, aktualisiere einfach – deine Makros und Einstellungen bleiben.",
+    q1: "Ist es wirklich kostenlos?", a1: "Ja. Kein Konto, keine Werbung, keine kostenpflichtigen Funktionen.",
+    q2: "Brauche ich AutoHotkey oder andere Software?", a2: "Nein. Alles ist im Installer enthalten. Auch die Software deiner Maus oder Tastatur brauchst du nicht.",
+    q3: "Kann ich für Makros gebannt werden?", a3: "ComboCrown drückt Tasten genau wie du. Ob Makros erlaubt sind, hängt von deinem Spiel oder Server ab – sieh in dessen Regeln nach. Du nutzt Makros auf eigenes Risiko.",
+    q4: "Mein Virenscanner oder Windows warnt vor der Datei.", a4: "Die App ist nicht signiert und basiert auf AutoHotkey, das manche Virenscanner fälschlich melden. Der gesamte Quellcode ist öffentlich auf GitHub.",
+    q5: "Wo werden meine Makros gespeichert?", a5: "Auf deinem PC, im Ordner config neben der App. In den Macro Hub kommen nur Makros, die du selbst teilst.",
+    q6: "Meine Maus hat mehr Seitentasten. Kann ich sie nutzen?", a6: "Windows kennt fünf Maustasten. Belege die weiteren in deiner Maus-Software mit Tasten wie F13–F24 und nutze diese als Auslöser.",
+    q7: "Wie deinstalliere ich die App?", a7: "Mit dem Button Deinstallieren in der App oder in den Windows-Einstellungen → Apps. Vorher bietet sie an, deine Makros zu exportieren.",
+    dc_title: "Werde Teil der Community", dc_p: "Hilfe, Fehlermeldungen, Ideen und Beta-Versionen – auf unserem Discord (auf Englisch).",
+    foot_note: "Mit keinem Spielehersteller verbunden. Läuft mit AutoHotkey (GPL v2)."
+  }
+};
+const NAMES = { en: "English", cs: "Čeština", pl: "Polski", de: "Deutsch" };
+const EN = {};
+document.querySelectorAll("[data-i]").forEach(el => { EN[el.dataset.i] = el.innerHTML; });
+
+function setLang(l) {
+  if (!NAMES[l]) l = "en";
+  const d = T[l] || {};
+  document.querySelectorAll("[data-i]").forEach(el => {
+    const v = d[el.dataset.i] ?? EN[el.dataset.i];
+    if (el.hasAttribute("data-html") || v.includes("<")) el.innerHTML = v; else el.textContent = v;
+  });
+  document.documentElement.lang = l;
+  document.getElementById("langFlag").src = "/img/flag_" + l + ".png";
+  document.getElementById("langName").textContent = NAMES[l];
+  try { localStorage.setItem("lang", l); } catch (e) {}
+}
+
+let start = new URLSearchParams(location.search).get("lang");
+try { start = start || localStorage.getItem("lang"); } catch (e) {}
+if (!start) start = (navigator.languages || [navigator.language]).map(x => (x || "").slice(0, 2).toLowerCase()).find(x => NAMES[x]) || "en";
+setLang(start);
+
+const box = document.getElementById("lang");
+document.getElementById("langBtn").addEventListener("click", e => { e.stopPropagation(); box.classList.toggle("open"); });
+box.querySelectorAll("li button").forEach(b => b.addEventListener("click", () => { setLang(b.dataset.lang); box.classList.remove("open"); }));
+document.addEventListener("click", () => box.classList.remove("open"));
+</script>
+</body>
+</html>

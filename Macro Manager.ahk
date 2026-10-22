@@ -1,9 +1,9 @@
-; Macro Manager - built from src/*.ahk by tools/build.py (edit those files, not this one)
+; ComboCrown (files keep the old name Macro Manager) - built from src/*.ahk by tools/build.py (edit those files, not this one)
 #Requires AutoHotkey v2.0
-;@Ahk2Exe-SetName Macro Manager
-;@Ahk2Exe-SetDescription Macro Manager
-;@Ahk2Exe-SetProductName Macro Manager
-;@Ahk2Exe-SetInternalName Macro Manager
+;@Ahk2Exe-SetName ComboCrown
+;@Ahk2Exe-SetDescription ComboCrown
+;@Ahk2Exe-SetProductName ComboCrown
+;@Ahk2Exe-SetInternalName ComboCrown
 ;@Ahk2Exe-SetOrigFilename Macro Manager.exe
 ;@Ahk2Exe-SetCompanyName vavr0s
 ;@Ahk2Exe-SetVersion 1.0.0
@@ -95,13 +95,11 @@ CbBmp := 0             ; check box bitmap selected into CbDC
 CbSz := 28
 CbDarkFile := AssetsDir "\cb_dark.png"
 CbLightFile := AssetsDir "\cb_light.png"
-DiscordFile := AssetsDir "\discord.png"
-DiscordHovFile := AssetsDir "\discord_hov.png"           ; Discord symbol (help banner)
-DiscordInvite := "NJUn6AmBSH"    ; Macro Manager community server (help banner: support)
+DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: support)
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
-AssetVersion := "11"    ; bump when the embedded logo/icon change
-AppVersion := "1.23"     ; bump on every release (must match version.json in the GitHub repo)
+AssetVersion := "12"    ; bump when the embedded logo/icon change
+AppVersion := "1.24"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -111,9 +109,9 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "- New: Macro Hub, a shared library of macros. Open it with the Macro Hub button and it docks to the main window. You can browse other players' macros or your own, filter by game, search by name, game or author, sort, and see what a macro does (keys, delays, sequence) before you download it. Downloading adds the macro to your active profile.`n- Share a macro with the share icon in its row (you pick its game). When you change a macro you shared, the app asks whether to update it in Macro Hub. Its ratings and downloads stay.`n- When the author updates a macro you downloaded, you get a notice and its arrow in the list turns green. Click it to see what changed, then take the new version or keep yours.`n- Rate macros with stars and report bad ones. Macros checked by the moderator have a gold tick and come first. Downloaded macros can't be shared again unchanged, and the same macro can't be in Macro Hub twice.`n- Without internet, Macro Hub shows No connection and tries again by itself. Changes made offline are sent once you are back online.`n- App updates now come through the Macro Hub server, so a new version shows up reliably even when several PCs share one internet connection."
+ReleaseNotes := "- Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.`n- New look of the logo and the app icon: just the crown, without the lettering.`n- The support link in Help is now a Join Discord button, the same as on the website.`n- New website: https://combocrown.pages.dev"
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "- Novinka: Macro Hub, sdílená knihovna maker. Otevře se tlačítkem Macro Hub a připojí se k hlavnímu oknu. Můžeš procházet makra ostatních hráčů nebo svoje, filtrovat podle hry, hledat podle názvu, hry nebo autora, řadit a ještě před stažením vidět, co makro dělá (klávesy, prodlevy, sekvenci). Stažené makro se přidá do aktivního profilu.`n- Makro nasdílíš ikonou sdílení v jeho řádku (vybereš, ke které hře patří). Když sdílené makro upravíš, aplikace se zeptá, jestli ho aktualizovat i v Macro Hubu. Hodnocení i počet stažení zůstanou.`n- Když autor aktualizuje makro, které sis stáhl, dostaneš upozornění a jeho šipka v seznamu zezelená. Po kliknutí uvidíš, co se změnilo, a buď převezmeš novou verzi, nebo si necháš svou.`n- Makra můžeš hodnotit hvězdičkami a špatná nahlásit. Makra zkontrolovaná moderátorem mají zlatou fajfku a jsou na začátku. Stažené makro nejde znovu sdílet beze změny a stejné makro nemůže být v Macro Hubu dvakrát.`n- Bez internetu ukáže Macro Hub nápis Bez připojení a sám to zkouší znovu. Změny udělané offline se odešlou, jakmile budeš zase online.`n- Aktualizace aplikace teď chodí přes server Macro Hubu, takže se nová verze spolehlivě ukáže, i když je víc počítačů na jednom připojení.", "pl", "- Nowość: Macro Hub, wspólna biblioteka makr. Otwierasz go przyciskiem Macro Hub i dokuje się do głównego okna. Możesz przeglądać makra innych graczy lub swoje, filtrować według gry, szukać po nazwie, grze lub autorze, sortować i jeszcze przed pobraniem zobaczyć, co makro robi (klawisze, opóźnienia, sekwencja). Pobrane makro trafia do aktywnego profilu.`n- Makro udostępnisz ikoną udostępniania w jego wierszu (wybierasz, do jakiej gry należy). Gdy zmienisz udostępnione makro, aplikacja zapyta, czy zaktualizować je także w Macro Hub. Oceny i liczba pobrań zostają.`n- Gdy autor zaktualizuje pobrane przez ciebie makro, dostaniesz powiadomienie, a jego strzałka na liście zmieni kolor na zielony. Kliknij ją, aby zobaczyć zmiany, i przyjmij nową wersję albo zostaw swoją.`n- Makra możesz oceniać gwiazdkami i zgłaszać złe. Makra sprawdzone przez moderatora mają złoty znaczek i są na początku. Pobranego makra nie można ponownie udostępnić bez zmian, a to samo makro nie może być w Macro Hub dwa razy.`n- Bez internetu Macro Hub pokazuje napis Brak połączenia i sam próbuje ponownie. Zmiany zrobione offline zostaną wysłane, gdy znów będziesz online.`n- Aktualizacje aplikacji przychodzą teraz przez serwer Macro Hub, więc nowa wersja pojawia się niezawodnie, nawet gdy kilka komputerów korzysta z jednego łącza.", "de", "- Neu: Macro Hub, eine gemeinsame Makro-Bibliothek. Du öffnest ihn mit der Schaltfläche Macro Hub, er dockt am Hauptfenster an. Du kannst Makros anderer Spieler oder deine eigenen durchsuchen, nach Spiel filtern, nach Name, Spiel oder Autor suchen, sortieren und schon vor dem Herunterladen sehen, was ein Makro tut (Tasten, Pausen, Ablauf). Heruntergeladene Makros landen im aktiven Profil.`n- Ein Makro teilst du mit dem Teilen-Symbol in seiner Zeile (du wählst das Spiel). Änderst du ein geteiltes Makro, fragt die App, ob es auch im Macro Hub aktualisiert werden soll. Bewertungen und Downloads bleiben erhalten.`n- Aktualisiert der Autor ein Makro, das du heruntergeladen hast, bekommst du eine Meldung und sein Pfeil in der Liste wird grün. Klick darauf, um die Änderungen zu sehen, und übernimm die neue Version oder behalte deine.`n- Makros kannst du mit Sternen bewerten und schlechte melden. Vom Moderator geprüfte Makros haben einen goldenen Haken und stehen oben. Heruntergeladene Makros lassen sich unverändert nicht erneut teilen, und dasselbe Makro kann nicht zweimal im Macro Hub sein.`n- Ohne Internet zeigt Macro Hub Keine Verbindung an und versucht es selbst erneut. Offline gemachte Änderungen werden gesendet, sobald du wieder online bist.`n- App-Updates kommen jetzt über den Macro-Hub-Server, sodass eine neue Version zuverlässig erscheint, auch wenn sich mehrere PCs eine Internetverbindung teilen.")
+ReleaseNotesL := Map("cs", "- Macro Manager se teď jmenuje ComboCrown. Makra, profily i nastavení zůstávají, jak jsou, a zástupci dostanou nový název sami.`n- Nový vzhled loga a ikony aplikace: jen koruna, bez nápisu.`n- Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na webu.`n- Nový web: https://combocrown.pages.dev", "pl", "- Macro Manager nazywa się teraz ComboCrown. Makra, profile i ustawienia zostają bez zmian, a skróty same dostaną nową nazwę.`n- Nowy wygląd logo i ikony aplikacji: sama korona, bez napisu.`n- Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na stronie.`n- Nowa strona: https://combocrown.pages.dev", "de", "- Macro Manager heißt jetzt ComboCrown. Deine Makros, Profile und Einstellungen bleiben, wie sie sind, und deine Verknüpfungen bekommen den neuen Namen von selbst.`n- Neues Logo und App-Symbol: nur die Krone, ohne Schriftzug.`n- Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der Website.`n- Neue Website: https://combocrown.pages.dev")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
@@ -162,7 +160,7 @@ LibNew := Map()         ; downloaded macro -> its newer version in Macro Hub (Li
 LibOff := Map(), LibIsOff := false      ; the "No connection" sign of the panel (hwnd -> control) / shown now
 LibLV := 0, LibSearch := 0, LibDesc := 0, LibInfo := 0, LibBtn := Map()
 EnsureAssets()          ; logo + icon are embedded in this file
-SetAppIdentity()        ; notifications / taskbar: "Macro Manager" with its icon (not AutoHotkey)
+SetAppIdentity()        ; notifications / taskbar: "ComboCrown" with its icon (not AutoHotkey)
 
 ; started from Windows "Apps & features" (or manually) with /uninstall
 if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
@@ -179,12 +177,12 @@ RegisterUninstall()
 Load()
 
 ; ============ main window ============
-Main := Gui(, "Macro Manager")
+Main := Gui(, "ComboCrown")
 Main.SetFont("s9", "Segoe UI")
 try {
     Main.AddPicture("x10 y8 w820 h72", LogoWideFile)      ; black rounded banner with the logo
     Main.SetFont("s16 bold cD0AE6B", "Segoe UI")
-    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "Macro Manager")
+    ttl := Main.AddText("x100 y29 w200 BackgroundTrans", "ComboCrown")
     Roles[ttl.Hwnd] := "skip"
     Main.SetFont("s9 norm cC9B27C", "Segoe UI")
     lbl := Main.AddText("x600 y50 w105 Right BackgroundTrans", _T("Dark mode"))
@@ -216,7 +214,7 @@ try {
 }
 try {
     TraySetIcon(IconFile)
-    A_IconTip := "Macro Manager v" AppVersion
+    A_IconTip := "ComboCrown v" AppVersion
 }
 SetWinIcon(Main.Hwnd)
 ; column header strip (flat, themed) - the list itself has no native header
@@ -305,7 +303,7 @@ return
 
 ; ============ third-party credits ============
 ; Some features follow ideas and small techniques from these MIT-licensed projects (the code here is written
-; for Macro Manager, nothing is copied as a library):
+; for ComboCrown, nothing is copied as a library):
 ;   - press modes short tap / double tap / long press (RunPress) .... evilC/TapHoldManager
 ;       Copyright (c) 2018 Clive Galway
 ;   - exact pauses (StepWait) ....................................... thqby/ahk2_lib (HighPrecisionSleep)
@@ -444,7 +442,7 @@ OnDelBtn(*) {
     if !list.Length
         return
     msg := list.Length = 1 ? _T("Delete macro `"{1}`"?", list[1]["name"]) : _T("Delete {1} selected macros?", list.Length)
-    if (ThemedAsk("Macro Manager", "", msg, [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+    if (ThemedAsk("ComboCrown", "", msg, [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     for m in list {
         StopScript(m)
@@ -819,7 +817,7 @@ ImportOne(path) {
     m["enabled"] := 0
 
     if (meta.Has("type") && (meta["type"] = "move" || meta["type"] = "seq")) {
-        ; file exported by Macro Manager -> editable native macro
+        ; file exported by ComboCrown -> editable native macro
         m["type"] := meta["type"]
         for k in ["app", "dirs", "actions", "seq", "tkey", "press"]
             if meta.Has(k)
@@ -832,7 +830,7 @@ ImportOne(path) {
     } else {
         ; any other script -> runs as its own process while the macro is on
         if (!InStr(text, "#Requires AutoHotkey v2")
-            && ThemedAsk("Macro Manager", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+            && ThemedAsk("ComboCrown", _T("Import anyway?"), _T("This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."), [[_T("Import anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
             return false
         m["type"] := "script"
         m["trusted"] := 0                           ; someone else's code: asked before it runs for the first time
@@ -860,14 +858,14 @@ ScriptPath(m) => ScriptsDir "\" m["file"]
 
 ; ============ installer ============
 ; Installs "Macro Manager.ahk" + "Macro Manager.exe" (a copy of the AutoHotkey interpreter with our icon and name,
-; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey).
+; so Explorer, the taskbar and Task Manager show ComboCrown instead of AutoHotkey).
 Bootstrap() {
     reg := "HKCU\Software\MacroManager"
     prev := RegRead(reg, "InstallDir", "")
     if (prev != "")
         InitLang(prev "\config\macros.ini")             ; an existing install keeps its language
     if (prev != "" && FileExist(prev "\config\.installed") && FindInstalled(prev) != "") {
-        r := ThemedAsk(_T("Macro Manager setup"), _T("Macro Manager is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
+        r := ThemedAsk(_T("ComboCrown setup"), _T("ComboCrown is already installed"), _T("Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?", prev)
             , [[_T("Just start"), "start", "btn"], [_T("Update and start"), "update", "btnprimary"]], false)
         if (r = "")
             return
@@ -875,17 +873,17 @@ Bootstrap() {
             try {
                 InstallProgram(prev)
             } catch as e {
-                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("Macro Manager setup"), true)
+                ThemedNote(_T("Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}", e.Message), _T("ComboCrown setup"), true)
             }
         }
         LaunchInstalled(prev)
         return
     }
 
-    dir := DirSelect("*" A_ProgramFiles, 1, _T("Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."))
+    dir := DirSelect("*" A_ProgramFiles, 1, _T("Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there."))
     if (dir = "")
         return
-    target := RTrim(dir, "\") "\MacroManager"
+    target := RTrim(dir, "\") "\ComboCrown"
     compiled := false
     try {
         DirCreate(target "\config\assets")
@@ -895,16 +893,16 @@ Bootstrap() {
         FileAppend "installed", target "\config\.installed"
         RegWrite(target, "REG_SZ", reg, "InstallDir")
     } catch as e {
-        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("Macro Manager setup"), true)
+        ThemedNote(_T("Installation failed:`n{1}", e.Message), _T("ComboCrown setup"), true)
         return
     }
 
     icon := target "\config\assets\app.ico"
-    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
-        MakeShortcut(A_Programs "\Macro Manager.lnk", target, icon)
-    if (ThemedAsk(_T("Macro Manager setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
-        MakeShortcut(A_Desktop "\Macro Manager.lnk", target, icon)
-    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("Macro Manager setup"))
+    if (ThemedAsk(_T("ComboCrown setup"), "", _T("Create a Start Menu shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
+        MakeShortcut(A_Programs "\ComboCrown.lnk", target, icon)
+    if (ThemedAsk(_T("ComboCrown setup"), "", _T("Create a Desktop shortcut?"), [[_T("Skip"), "", "btn"], [_T("Create"), "yes", "btnprimary"]], false) = "yes")
+        MakeShortcut(A_Desktop "\ComboCrown.lnk", target, icon)
+    ThemedNote(_T("Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config", target), _T("ComboCrown setup"))
     LaunchInstalled(target)
 }
 
@@ -945,7 +943,7 @@ FindInstalled(dir) {
     return ""
 }
 
-; the AutoHotkey v2 interpreter (a compiled Macro Manager can't use its own A_AhkPath for scripts)
+; the AutoHotkey v2 interpreter (a compiled ComboCrown can't use its own A_AhkPath for scripts)
 AhkExe() {
     if !A_IsCompiled
         return A_AhkPath
@@ -978,7 +976,7 @@ LaunchInstalled(dir) {
 
 ; ============ branded interpreter copy ============
 ; "Macro Manager.exe" = copy of AutoHotkey64.exe with our icon + version info (name, company),
-; so Explorer, the taskbar and Task Manager show Macro Manager instead of AutoHotkey.
+; so Explorer, the taskbar and Task Manager show ComboCrown instead of AutoHotkey.
 PatchExe(exe, ico) {
     h := 0
     try {
@@ -1108,9 +1106,9 @@ BuildVersionInfo() {
     fixed := Buffer(52, 0)
     NumPut("UInt", 0xFEEF04BD, "UInt", 0x10000, "UInt", 0x10000, "UInt", 0, "UInt", 0x10000, "UInt", 0, "UInt", 0x3F
          , "UInt", 0, "UInt", 0x40004, "UInt", 1, "UInt", 0, "UInt", 0, "UInt", 0, fixed)
-    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "Macro Manager")
-        , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "Macro Manager")
-        , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "Macro Manager")
+    strs := BufCat(VerString("CompanyName", "vavr0s"), VerString("FileDescription", "ComboCrown")
+        , VerString("FileVersion", "1.0.0.0"), VerString("InternalName", "ComboCrown")
+        , VerString("OriginalFilename", "Macro Manager.exe"), VerString("ProductName", "ComboCrown")
         , VerString("ProductVersion", "1.0.0.0"))
     st := BufPad4(VerNode("040904B0", "", 1, 0, strs))
     sfi := BufPad4(VerNode("StringFileInfo", "", 1, 0, st))
@@ -1129,24 +1127,43 @@ RegisterUninstall() {
     if !A_IsCompiled
         try RegWrite(A_AhkPath, "REG_SZ", "HKCU\Software\MacroManager", "AhkPath")
     try {
-        RegWrite("Macro Manager", "REG_SZ", k, "DisplayName")
-        RegWrite("Macro Manager", "REG_SZ", k, "Publisher")
+        RegWrite("ComboCrown", "REG_SZ", k, "DisplayName")
+        RegWrite("vavr0s", "REG_SZ", k, "Publisher")
         RegWrite(cmd, "REG_SZ", k, "UninstallString")
         RegWrite(A_ScriptDir, "REG_SZ", k, "InstallLocation")
         RegWrite(FileExist(IconFile) ? IconFile : (A_IsCompiled ? A_ScriptFullPath : A_AhkPath), "REG_SZ", k, "DisplayIcon")
         RegWrite(1, "REG_DWORD", k, "NoModify")
         RegWrite(1, "REG_DWORD", k, "NoRepair")
         RegWrite(A_ScriptDir, "REG_SZ", "HKCU\Software\MacroManager", "InstallDir")
+    } catch as e
+        DiagLog("RegisterUninstall", e)
+    if (InStr(RegRead(k, "DisplayName", ""), "ComboCrown") != 1)
+        DiagLog("RegisterUninstall", Error("written but reads back as " RegRead(k, "DisplayName", "?"), , k))
+}
+
+; problems that are not worth a message box (config\diag.log, the newest 50 lines are kept)
+DiagLog(where, e) {
+    try {
+        f := ConfigDir "\diag.log"
+        old := FileExist(f) ? FileRead(f) : ""
+        lines := StrSplit(Trim(old, "`n"), "`n")
+        while (lines.Length > 49)
+            lines.RemoveAt(1)
+        t := ""
+        for l in lines
+            t .= l "`n"
+        t .= FormatTime(, "yyyy-MM-dd HH:mm:ss") " v" AppVersion " " where ": " e.Message (e.Extra != "" ? " (" e.Extra ")" : "") " [" e.What "] admin=" A_IsAdmin "`n"
+        WriteText(f, t)
     }
 }
 
 UninstallApp(fromArg := false) {
     dir := A_ScriptDir
     if (StrLen(dir) <= 3 || !FileExist(dir "\config\.installed")) {
-        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall Macro Manager"), true)
+        ThemedNote(_T("This doesn't look like an installed copy, nothing was removed."), _T("Uninstall ComboCrown"), true)
         return false
     }
-    if (ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
+    if (ThemedAsk(_T("Uninstall ComboCrown"), "", _T("Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}", dir), [[_T("Uninstall"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
         if fromArg
             LaunchInstalled(dir)
         return false
@@ -1155,14 +1172,14 @@ UninstallApp(fromArg := false) {
     if (!Macros.Length && FileExist(IniFile))
         try Load()
     if Macros.Length {
-        r := ThemedAsk(_T("Uninstall Macro Manager"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
+        r := ThemedAsk(_T("Uninstall ComboCrown"), "", _T("Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."), [[_T("Cancel"), "", "btn"], [_T("Don't save"), "no", "btn"], [_T("Create backup..."), "yes", "btnprimary"]], false)
         if (r = "") {
             if fromArg
                 LaunchInstalled(dir)
             return false
         }
         if (r = "yes") {
-            path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+            path := FileSelect("S16", A_Desktop "\ComboCrown backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("ComboCrown backup (*.mmbackup)"))
             if (path = "") {
                 if fromArg
                     LaunchInstalled(dir)
@@ -1174,12 +1191,12 @@ UninstallApp(fromArg := false) {
                 Save()                                  ; the settings in memory are the newest
                 WriteBackup(path)
             } catch as e {
-                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall Macro Manager"), true)
+                ThemedNote(_T("The backup could not be saved:`n{1}", e.Message), _T("Uninstall ComboCrown"), true)
                 if fromArg
                     LaunchInstalled(dir)
                 return false                            ; nothing deleted without the backup the user asked for
             }
-            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall Macro Manager"))
+            ThemedNote(_T("Backup saved to:`n{1}", path), _T("Uninstall ComboCrown"))
         }
     }
     ; stop imported scripts started by the manager
@@ -1189,9 +1206,9 @@ UninstallApp(fromArg := false) {
     try RegDeleteKey("HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroManager")
     try RegDeleteKey("HKCU\Software\MacroManager")
     try RegDeleteKey("HKCU\Software\Classes\AppUserModelId\" AppId())     ; name + icon of its notifications
-    try FileDelete(A_Programs "\Macro Manager.lnk")
-    try FileDelete(A_Desktop "\Macro Manager.lnk")
-    ThemedNote(_T("Macro Manager has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall Macro Manager"))
+    try FileDelete(A_Programs "\ComboCrown.lnk")
+    try FileDelete(A_Desktop "\ComboCrown.lnk")
+    ThemedNote(_T("ComboCrown has been uninstalled.`nThe folder will be removed in a moment."), _T("Uninstall ComboCrown"))
     ; a separate hidden process deletes the folder after this app has exited
     Run(A_ComSpec ' /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "' dir '"', A_Temp, "Hide")
     ExitApp
@@ -1259,7 +1276,7 @@ ExportCode(m) {
     code := StrReplace(code, "@APP@", app)
     code := StrReplace(code, "@HOTIF@", app = "" ? "" : '#HotIf WinActive("ahk_exe ' app '")')   ; plain criterion: checked by the hook itself
 
-    code .= "`n`n; ===== Macro Manager metadata (used when importing this file) =====`n"
+    code .= "`n`n; ===== ComboCrown metadata (used when importing this file) =====`n"
     for k in ["type", "hotkey", "app", "dirs", "actions", "g1", "g2", "g3", "ge", "seq", "repeat", "tkey", "press", "exact"]
         code .= "; MM:" k "=" m[k] "`n"
     return code
@@ -1644,7 +1661,7 @@ EditMacro(idx) {
     Detach() {
         if (isNew || !HasProf(pv["v"], CurProfile) || StrSplit(pv["v"], "|").Length < 2)
             return true
-        r := ThemedAsk("Macro Manager", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
+        r := ThemedAsk("ComboCrown", _T("This macro is in several profiles ({1}).", ProfLabel(pv["v"]))
             , _T("Apply the change to all of them, or only to the current profile ({1})? The other profiles then keep the old, unchanged version.", CurProfile)
             , [[_T("Cancel"), "", "btn"], [_T("Only in `"{1}`"", CurProfile), "one", "btn"], [_T("All profiles"), "all", "btnprimary"]], false)
         if (r = "")
@@ -2073,7 +2090,7 @@ EnableMacro(m, viaKey := false) {
     }
     other := KeyClash(m)
     if (other && !viaKey) {
-        if (ThemedAsk("Macro Manager", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
+        if (ThemedAsk("ComboCrown", _T("Same trigger key"), _T("Macro `"{1}`" uses the same trigger key ({2}) as the active macro `"{3}`". Only one of them will work.", m["name"], m["hotkey"], other["name"])
             , [[_T("Turn on anyway"), "yes", "btn"], [_T("Cancel"), "", "btnprimary"]]) != "yes") {
             Save()                                  ; keeps a "trusted" that was just given
             return
@@ -2250,7 +2267,7 @@ RunPick(m, trig, once := false) => m["type"] = "move" ? RunMove(m, trig, once) :
 
 ; one key, several press modes: waits only as long as needed to tell them apart.
 ; long press = still held after HoldMs; double tap = pressed again within DblMs after release; short tap = neither.
-; (approach of evilC/TapHoldManager, MIT - rewritten for Macro Manager)
+; (approach of evilC/TapHoldManager, MIT - rewritten for ComboCrown)
 RunPress(set, trig) {
     if AltGrFake(trig)
         return
@@ -2703,7 +2720,7 @@ EnsureAssets() {
         DirCreate(AssetsDir)
         verFile := AssetsDir "\version.txt"
         cur := FileExist(verFile) ? Trim(FileRead(verFile)) : ""
-        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(DiscordFile) || !FileExist(DiscordHovFile) || !FileExist(FlagFile("de"))) {
+        if (cur != AssetVersion || !FileExist(IconFile) || !FileExist(LogoFile) || !FileExist(SwOnFile) || !FileExist(LogoWideFile) || !FileExist(CbDarkFile) || !FileExist(FlagFile("de"))) {
             B64ToFile(IconB64(), IconFile)
             B64ToFile(LogoB64(), LogoFile)
             B64ToFile(SwOffB64(), SwOffFile)
@@ -2711,13 +2728,12 @@ EnsureAssets() {
             B64ToFile(LogoWideB64(), LogoWideFile)
             B64ToFile(CbDarkB64(), CbDarkFile)
             B64ToFile(CbLightB64(), CbLightFile)
-            B64ToFile(DiscordB64(), DiscordFile)
-            B64ToFile(DiscordHovB64(), DiscordHovFile)
             for c in LangOrder
                 B64ToFile(FlagB64(c), FlagFile(c))
-            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png"]    ; pictures of older versions (the "!" is drawn now)
+            for old in ["badge_main.png", "badge_dk.png", "badge_lt.png", "discord.png", "discord_hov.png"]    ; pictures of older versions (the "!" and the Discord button are drawn now)
                 try FileDelete(AssetsDir "\" old)
             WriteText(verFile, AssetVersion)
+            RebrandExe()                                                     ; new icon: the program file shows it too
         }
     }
 }
@@ -2744,7 +2760,7 @@ SetWinIcon(hwnd) {
 MakeShortcut(lnk, target, icon) {
     try {
         lp := LaunchParts(target)
-        FileCreateShortcut(lp[1], lnk, target, lp[2], "Macro Manager", icon)
+        FileCreateShortcut(lp[1], lnk, target, lp[2], "ComboCrown", icon)
         SetLnkAppId(lnk, AppId())
     }
 }
@@ -2764,14 +2780,42 @@ SetAppIdentity() {
         try IcoToPng(IconFile, png)
     k := "HKCU\Software\Classes\AppUserModelId\" id
     try {
-        RegWrite(UpdBranch = "beta" ? "Macro Manager (beta)" : "Macro Manager", "REG_SZ", k, "DisplayName")
+        RegWrite(UpdBranch = "beta" ? "ComboCrown (beta)" : "ComboCrown", "REG_SZ", k, "DisplayName")
         if FileExist(png)
             RegWrite(png, "REG_SZ", k, "IconUri")
-    }
-    lnk := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"
-    for dir in [A_Programs, A_Desktop]                         ; shortcuts made by older versions
+    } catch as e
+        DiagLog("SetAppIdentity", e)
+    lnk := UpdBranch = "beta" ? "ComboCrown Beta.lnk" : "ComboCrown.lnk"
+    old := UpdBranch = "beta" ? "Macro Manager Beta.lnk" : "Macro Manager.lnk"       ; the app's name before 1.24
+    for dir in [A_Programs, A_Desktop] {                       ; shortcuts made by older versions
+        if (FileExist(dir "\" old) && !FileExist(dir "\" lnk)) {   ; the shortcut (and so the notifications) get the new name
+            tgt := "", args := ""
+            try FileGetShortcut(dir "\" old, &tgt, , &args)
+            if InStr(tgt " " args, A_ScriptDir "\")             ; only a shortcut of this install (not of another copy)
+                try FileMove(dir "\" old, dir "\" lnk)
+        }
         if FileExist(dir "\" lnk)
             SetLnkAppId(dir "\" lnk, id)
+    }
+}
+
+; the branded interpreter of an installed copy gets the current name and icon too (installed by an older version).
+; The running .exe can't be overwritten, but it can be moved aside: patched copy -> its place, old one -> .bak
+RebrandExe() {
+    exe := A_ScriptDir "\Macro Manager.exe"
+    if (A_AhkPath != exe)
+        return
+    try {
+        FileCopy(exe, exe ".new", 1)
+        if !PatchExe(exe ".new", IconFile)
+            throw Error("patch")
+        FileMove(exe, exe ".bak", 1)
+        FileMove(exe ".new", exe)
+    } catch {
+        try FileDelete(exe ".new")
+        if !FileExist(exe)
+            try FileMove(exe ".bak", exe)
+    }
 }
 
 ; the largest picture of the app icon as a PNG file (the icon keeps its big sizes as PNG inside)
@@ -2883,6 +2927,8 @@ RoleColors(role, hover := false) {
             return d ? ["1F2127", "A9ADB8"] : ["E9E9EE", "5A5A66"]
         case "libhead":                                                    ; title strip of the library panel
             return ["000000", "D0AE6B"]
+        case "btndiscord":                                                 ; Discord Blurple (help banner)
+            return hover ? ["4752C4", "FFFFFF"] : ["5865F2", "FFFFFF"]
         default:    ; plain button
             if d
                 return hover ? ["3A3E49", "FFFFFF"] : ["2A2D35", "ECECEF"]
@@ -2948,7 +2994,7 @@ DrawBtn(wParam, lParam, *) {
     } else {
         disabled := !DllCall("IsWindowEnabled", "Ptr", h)      ; (itemState of a static says "disabled" on Windows even when it is not)
         col := RoleColors(disabled && role = "btnprimary" ? "btn" : role, lk.hover)     ; a disabled gold button looks plain
-        under := (role = "btnbanner" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
+        under := (role = "btnbanner" || role = "btndiscord" || SubStr(role, 1, 6) = "btnupd") ? "000000" : winBg
         ; the button itself may be smaller than the control (room for the "!" badge of the help button)
         fx := Round(lk.pad[1] * s), fy := Round(lk.pad[2] * s)
         fw := w - fx - Round(lk.pad[3] * s), fh := hh - fy - Round(lk.pad[4] * s)
@@ -2974,7 +3020,19 @@ DrawBtn(wParam, lParam, *) {
         DllCall("SetBkMode", "Ptr", mdc, "Int", 1)
         DllCall("SetTextColor", "Ptr", mdc, "UInt", Bgr(disabled ? (DarkOn ? "6E7380" : "A0A0AA") : col[2]))
         NumPut("Int", fx, "Int", fy, "Int", fx + fw, "Int", fy + fh, r)
-        if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
+        if (role = "btndiscord") {                              ; Discord symbol + text, centred together
+            sz := Buffer(8, 0)
+            DllCall("GetTextExtentPoint32W", "Ptr", mdc, "WStr", txt, "Int", StrLen(txt), "Ptr", sz)
+            ih := Round(fh * 0.4), iw := ih * 126.644 / 96, gap := Round(8 * s)
+            x0 := Round(fx + (fw - iw - gap - NumGet(sz, 0, "Int")) / 2)
+            if GdipOn() {
+                gr := GrOn(mdc)
+                DrawDiscord(gr, x0, fy + (fh - ih) / 2, ih, col[2])
+                DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+            }
+            NumPut("Int", Round(x0 + iw + gap), r)
+            DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824)
+        } else if (StrLen(txt) = 1 && !lk.left && GlyphCenter(mdc, txt, fw, fh, &gx, &gy))
             DllCall("TextOutW", "Ptr", mdc, "Int", fx + gx, "Int", fy + gy, "WStr", txt, "Int", 1)   ; icon (?, arrow, ×): the drawn shape itself centred
         else
             DllCall("DrawTextW", "Ptr", mdc, "WStr", txt, "Int", -1, "Ptr", r, "UInt", 0x824 | (lk.left ? 0 : 1))   ; SINGLELINE VCENTER NOPREFIX (+CENTER)
@@ -3015,6 +3073,26 @@ DrawBadge(gr, cx, cy, ro, ring) {
     FillRound(gr, cx - bw / 2, cy - ri * 0.62, bw, ri * 0.82, bw, "1B1B1F")
     dr := Max(0.9, ri * 0.19)                                   ; its dot
     FillRound(gr, cx - dr, cy + ri * 0.50 - dr, 2 * dr, 2 * dr, 2 * dr, "1B1B1F")
+}
+
+; the official Discord symbol (vector, from discord.com/branding), h pixels tall, top-left at x, y
+DrawDiscord(gr, x, y, h, hex) {
+    static shape := [[81.15, 0, 79.91, 2.2, 78.8, 4.47, 77.79, 6.79, 68.19, 5.35, 58.42, 5.35, 48.8, 6.79, 47.81, 4.47, 46.67, 2.2, 45.44, 0, 36.42, 1.54, 27.63, 4.24, 19.3, 8.06, 2.78, 32.53, -1.69, 56.37, 0.53, 79.89, 10.2, 87.03, 21.04, 92.49, 32.58, 95.97, 35.18, 92.49, 37.48, 88.78, 39.45, 84.91, 35.71, 83.52, 32.1, 81.78, 28.64, 79.76, 29.55, 79.1, 30.43, 78.42, 31.29, 77.76, 51.57, 87.31, 75.06, 87.31, 95.37, 77.76, 96.23, 78.47, 97.11, 79.15, 98.02, 79.76, 94.56, 81.81, 90.95, 83.52, 87.19, 84.94, 89.16, 88.8, 91.45, 92.51, 94.06, 96, 105.6, 92.51, 116.43, 87.08, 126.11, 79.94, 128.73, 52.66, 121.61, 29.02, 107.29, 8.08, 98.98, 4.27, 90.19, 1.57, 81.18, 0.05, 81.18, 0.05, 81.15, 0, 81.15, 0],
+        [42.28, 65.41, 36.04, 65.41, 30.86, 59.76, 30.86, 52.76, 30.86, 45.76, 35.84, 40.08, 42.26, 40.08, 48.67, 40.08, 53.77, 45.79, 53.67, 52.76, 53.57, 59.73, 48.64, 65.41, 42.28, 65.41],
+        [84.36, 65.41, 78.09, 65.41, 72.97, 59.76, 72.97, 52.76, 72.97, 45.76, 77.94, 40.08, 84.36, 40.08, 90.77, 40.08, 95.85, 45.79, 95.75, 52.76, 95.65, 59.73, 90.72, 65.41, 84.36, 65.41]]
+    k := h / 96
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)        ; alternate fill: the eyes stay holes
+    for sub in shape {
+        pts := Buffer(sub.Length * 4)
+        for i, v in sub
+            NumPut("Float", (i & 1 ? x : y) + v * k, pts, (i - 1) * 4)
+        DllCall("gdiplus\GdipAddPathBeziers", "Ptr", pa, "Ptr", pts, "Int", sub.Length // 2)
+        DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    }
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", 0xFF000000 | Integer("0x" hex), "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
 }
 
 ; the badge as its own control (help window, release notes dialog)
@@ -3737,7 +3815,7 @@ DeleteProfile(*) {
         ThemedNote(_T("You can't delete the last profile."), , true)
         return
     }
-    if (ThemedAsk("Macro Manager", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
+    if (ThemedAsk("ComboCrown", "", _T("Delete profile `"{1}`"?`n`nMacros that belong only to this profile are moved to the first remaining profile.", CurProfile), [[_T("Delete"), "yes", "btndanger"], [_T("Cancel"), "", "btnprimary"]]) != "yes")
         return
     old := CurProfile
     rest := []
@@ -4210,7 +4288,7 @@ OnUpdIcon(*) {
             }
         }
         msg := (UpdInfo["notes"] != "" ? UpdInfo["notes"] "`n`n" : "") Trim(_T("`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."), "`n")
-        if (ThemedAsk(_T("Macro Manager update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
+        if (ThemedAsk(_T("ComboCrown update"), _T("Version {1} is available (you have v{2}).", UpdInfo["ver"], AppVersion), msg
             , [[_T("Later"), "", "btn"], [_T("Update now"), "yes", "btnprimary"]], false) = "yes")
             InstallUpdate()
     } finally {
@@ -4244,7 +4322,7 @@ InstallUpdate() {
     try txt := FileRead(tmp, "UTF-8")
     if (!InStr(txt, "#Requires AutoHotkey v2") || !InStr(txt, "AppVersion")) {
         try FileDelete tmp
-        ThemedNote(_T("The downloaded file is not a valid Macro Manager script. Nothing was changed."), _T("Updates"), true)
+        ThemedNote(_T("The downloaded file is not a valid ComboCrown script. Nothing was changed."), _T("Updates"), true)
         return
     }
     if A_IsCompiled {
@@ -4302,7 +4380,7 @@ HelpTopics() {
     order.Push("Release notes")
     t["Release notes"] := _T("Version {1}", AppVersion) "`n`n" NotesFor(Lang)
     order.Push("Getting started")
-    t["Getting started"] := _TL("hlp_start", "Macro Manager runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
+    t["Getting started"] := _TL("hlp_start", "ComboCrown runs hotkey macros for you. Each macro has a trigger key; while you hold it (inside the chosen application) the macro plays.`n`n- Tick a macro in the list to turn it on, untick to turn it off.`n- The switch All macros in the banner turns every macro on or off at once.`n- Dark mode switches the look of the app.`n- The language button in the banner switches the app language (English, Čeština, Polski, Deutsch). The app restarts to apply it.`n- Double-click a row (or press Edit) to change a macro. Add creates a new one, Copy duplicates it, Delete removes it.`n- To select several macros drag the mouse over the rows (or Ctrl / Shift + click). Copy, Delete, Export, Move up / down and dragging out of the window work on all selected rows.`n- Closing the window keeps the app running in the tray. Right-click the tray icon for Open window / Uninstall / Exit.`n- The app always runs as administrator, so macros also work in games that run elevated.`n- The search box above the list shows only the macros whose name, key or application contains the text. The cross next to it clears it.")
     order.Push("Add / edit a macro")
     t["Add / edit a macro"] := _TL("hlp_edit", "Name - any text, shown in the list.`nProfiles - which profiles the macro belongs to (can be several).`nTrigger key - click the box, then press the key or a mouse button (right, middle, side buttons X1 / X2, mouse wheel). Hold Ctrl / Shift / Alt while pressing to make a combination, for example Ctrl+XButton1. Esc cancels.`nToggle - optional key that turns this macro on/off without opening the window. Backspace clears it.`nOnly in app (exe) - the macro works only while that program is in front. Press Select to pick a running application or browse for the .exe. Empty = works everywhere.`nType - Move + actions, Sequence or Script (.ahk). See the next topics.`nPress - how the trigger key has to be pressed. Normal: the macro starts as soon as the key goes down. Short tap: a quick press and release - the macro plays once after the release. Double tap: press the key twice quickly. Long press: hold the key for a moment (with Repeat it keeps playing while you hold it). One key can carry up to three macros this way: short tap, double tap and long press. A Normal macro on the same key takes the whole key. Mouse wheel macros always start at once.`nRun - Once per key press: plays one pass and waits until you release the key. Repeat while key is held: plays again and again until you release the key (it stops immediately). Not offered for Short tap - it always plays once.`nExact delays (bottom left) - the delays are kept to about a millisecond. On for new macros. Off = the older timing, where short delays often last 10-15 ms longer than written.`n`nSave stores the macro, Cancel throws changes away.")
     order.Push("Move + actions")
@@ -4310,15 +4388,15 @@ HelpTopics() {
     order.Push("Sequence")
     t["Sequence"] := _TL("hlp_seq", "A free list of steps. Write one step per line:`n`n  down KEY PAUSE   - press and hold the key`n  up KEY PAUSE     - release the key`n  tap KEY PAUSE    - press and release at once`n`nPAUSE is the wait after the step in milliseconds (empty = 0).`n`nExample - quick A / D change:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nExample - attack and spells:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nExample - two keys together:`n  tap Shift+4 50`n`nWith Run = Repeat the lines play in a loop while the trigger key is held; with Once they play one time.`nKeys that are still held when you release the trigger are released automatically.")
     order.Push("Script (.ahk)")
-    t["Script (.ahk)"] := _TL("hlp_script", "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.`n`n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.`n- It must be AutoHotkey v2 code (v1 scripts will not work).`n- Trigger key and application filter are not used, your script does that itself.`n- Imported .ahk files that were not made by Macro Manager become Script macros.`n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.")
+    t["Script (.ahk)"] := _TL("hlp_script", "For anything the other types can not do. Paste or write your own AutoHotkey v2 script.`n`n- The script runs as its own process while the macro is ticked, and is stopped when you untick it.`n- It must be AutoHotkey v2 code (v1 scripts will not work).`n- Trigger key and application filter are not used, your script does that itself.`n- Imported .ahk files that were not made by ComboCrown become Script macros.`n- An imported script asks before it runs for the first time: it runs with administrator rights, so only turn it on if you trust where it came from. The window shows what the script does (for example starts programs or deletes files) and offers to show the code.")
     order.Push("Keys and recording")
-    t["Keys and recording"] := _TL("hlp_keys", "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.`n`nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.`nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); Macro Manager then sees them as ordinary keys, so click the trigger box and press the side button.`n`nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.`n`nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).`nThe same works by typing it in the fields: a,Shift+4,d")
+    t["Keys and recording"] := _TL("hlp_keys", "Key names are the AutoHotkey names: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nA key can also be written as a scan code, for example sc002 - this is the physical key, regardless of layout. Keys like comma, plus, & and | are saved this way automatically.`n`nMouse: the trigger, toggle and All macros keys can also be a mouse button: RButton, MButton (wheel click), XButton1 / XButton2 (the two side buttons), or the wheel itself (WheelUp / WheelDown / WheelLeft / WheelRight). A wheel has no hold, so wheel macros always play once. The left button is not offered.`nGaming / MMO mice: windows only knows five mouse buttons, the extra side buttons are handled by the mouse software (G HUB, Synapse, iCUE, ...). Set them there to keys, best F13 - F24 (or Ctrl+Alt+number); ComboCrown then sees them as ordinary keys, so click the trigger box and press the side button.`n`nRecord (next to Directions and Actions): press Record, press the keys in the order you want, then press Done. The field fills in live. Macros are paused while recording.`n`nKeys at the same time: keys that you hold together are saved as one step joined with +, for example Shift+4. When the macro plays, all of them go down together and are released together (not Shift first and 4 afterwards).`nThe same works by typing it in the fields: a,Shift+4,d")
     order.Push("Profiles")
     t["Profiles"] := _TL("hlp_profiles", "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro. When you change a macro that belongs to several profiles, the app asks: apply the change to all of them, or only to the current profile (the other profiles keep the old version).`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile.")
     order.Push("Toggle keys")
     t["Toggle keys"] := _TL("hlp_toggle", "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys.")
     order.Push("Order, export, backup")
-    t["Order, export, backup"] := _TL("hlp_order", "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by Macro Manager come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\backup-before-restore.mmbackup.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.")
+    t["Order, export, backup"] := _TL("hlp_order", "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by ComboCrown come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\backup-before-restore.mmbackup.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.")
     order.Push("Updates")
     t["Updates"] := _TL("hlp_updates", "The arrow icon in the banner (next to the profile button) shows whether a new version exists: grey = you are up to date, green = a new version is available. Hover it for details.`n`nThe app checks a few seconds after it starts (can be turned off in the tray menu: Check for updates at start). Click the icon at any time to check again. Nothing is installed until you click the green icon and confirm.`n`nWhen you update, the app downloads the new file, checks its checksum, keeps the old one as Macro Manager.ahk.bak and restarts. Your macros, profiles and settings are stored separately in the config folder and stay exactly as they are.`n`nIf something goes wrong, close the app, delete Macro Manager.ahk and rename Macro Manager.ahk.bak back to Macro Manager.ahk.`n`nThe update needs internet access (Macro Hub server or github.com).")
     order.Push("Macro Hub")
@@ -4358,21 +4436,15 @@ OpenHelp(*) {
     g := Gui("+Owner" Main.Hwnd " +ToolWindow", _T("Help"))
     HelpGui := g
     g.SetFont("s9", "Segoe UI")
+    dc := 0
     try {
         g.AddPicture("x10 y8 w640 h72", LogoFile)
         g.SetFont("s16 bold cD0AE6B", "Segoe UI")
-        ttl := g.AddText("x100 y29 w400 BackgroundTrans", _T("Help"))
+        ttl := g.AddText("x100 y29 w300 BackgroundTrans", _T("Help"))
         Roles[ttl.Hwnd] := "skip"
-        g.SetFont("s10 norm cD8D8DC", "Segoe UI")
-        sup := g.AddText("x330 y36 w250 h24 Right BackgroundTrans", _T("For support click here") " " Chr(0x2192))
-        Roles[sup.Hwnd] := "skip"
-        sup.OnEvent("Click", OpenDiscord)
-        dc := g.AddPicture("x590 y27 w44 h33", DiscordFile)
-        Roles[dc.Hwnd] := "skip"
-        dc.OnEvent("Click", OpenDiscord)
-        hov := false
-        SetTimer(DcHover, 40)
-        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the link (else Windows resets it)
+        g.SetFont("s10 norm", "Segoe UI Semibold")
+        dc := AddBtn(g, "x416 y27 w218 h36", _T("Join Discord"), OpenDiscord, "btndiscord")    ; support: like the button on the website
+        OnMessage(0x20, HelpCur)                   ; WM_SETCURSOR: hand cursor over the button (else Windows resets it)
         g.SetFont("s9 norm c000000", "Segoe UI")
     }
     nav := Map()
@@ -4403,40 +4475,14 @@ OpenHelp(*) {
             SetHelpBadge(false)
         }
     }
-    ; hover feedback for the support link: hand cursor, gold underlined text, lighter icon
-    DcHover() {
-        if !IsSet(g) || !WinExist("ahk_id " g.Hwnd) {
-            SetTimer(DcHover, 0)
-            return
-        }
-        CoordMode("Mouse", "Screen")             ; (the default is relative to the active window - then never "on")
-        MouseGetPos(&mx, &my)
-        on := false
-        if true {
-            WinGetClientPos(&cx, &cy, , , "ahk_id " g.Hwnd)
-            for c in [sup, dc] {
-                c.GetPos(&px, &py, &pw, &ph)
-                if (mx - cx >= px && mx - cx < px + pw && my - cy >= py && my - cy < py + ph)
-                    on := true
-            }
-        }
-        if on
-            DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
-        if (on = hov)
-            return
-        hov := on
-        sup.SetFont(on ? "s10 Underline cD0AE6B" : "s10 norm cD8D8DC")
-        dc.Value := on ? DiscordHovFile : DiscordFile
-    }
     HelpCur(wp, *) {
-        if hov {
+        if (dc && wp = dc.Hwnd) {
             DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32649, "Ptr"))     ; IDC_HAND
             return 1
         }
     }
     HelpClose(*) {
         global HelpGui
-        SetTimer(DcHover, 0)
         OnMessage(0x20, HelpCur, 0)
         HelpGui := 0
         g.Destroy()
@@ -4716,7 +4762,7 @@ ThemedAsk(title, heading, body, buttons, warn := true) {
 }
 
 ; message with an OK button
-ThemedNote(text, title := "Macro Manager", warn := false, heading := "") {
+ThemedNote(text, title := "ComboCrown", warn := false, heading := "") {
     ThemedAsk(title, heading, text, [[_T("OK"), "ok", "btnprimary"]], warn)
 }
 
@@ -4775,7 +4821,7 @@ OnBackupBtn(*) {
 
 CreateBackup() {
     Save()
-    path := FileSelect("S16", A_Desktop "\Macro Manager backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("Macro Manager backup (*.mmbackup)"))
+    path := FileSelect("S16", A_Desktop "\ComboCrown backup " FormatTime(, "yyyy-MM-dd") ".mmbackup", _T("Create backup"), _T("ComboCrown backup (*.mmbackup)"))
     if (path = "")
         return
     if !RegExMatch(path, "i)\.mmbackup$")
@@ -4788,7 +4834,7 @@ CreateBackup() {
 }
 
 WriteBackup(path) {
-    t := "; Macro Manager backup - restore it with the Backup... button in the app (or drop this file onto its window)`n"
+    t := "; ComboCrown backup - restore it with the Backup... button in the app (or drop this file onto its window)`n"
     t .= "; version=" AppVersion " date=" FormatTime(, "yyyy-MM-dd HH:mm") " macros=" Macros.Length "`n"
     t .= "[[macros.ini]]`n" StrReplace(FileRead(IniFile), "`r", "") "`n"
     for m in Macros {
@@ -4831,19 +4877,19 @@ ReadBackup(path) {
             buf .= (cur = "macros.ini") ? line "`r`n" : line
     }
     if (!InStr(res["ini"], "[main]") || !RegExMatch(res["ini"], "m)^count=\d+"))
-        throw Error("not a Macro Manager backup")
+        throw Error("not a ComboCrown backup")
     return res
 }
 
 RestoreBackup(path := "") {
     if (path = "") {
-        path := FileSelect(1, A_Desktop, _T("Restore from backup"), _T("Macro Manager backup (*.mmbackup)"))
+        path := FileSelect(1, A_Desktop, _T("Restore from backup"), _T("ComboCrown backup (*.mmbackup)"))
         if (path = "")
             return
     }
     try b := ReadBackup(path)
     catch {
-        ThemedNote(_T("This is not a Macro Manager backup file:`n{1}", path), , true)
+        ThemedNote(_T("This is not a ComboCrown backup file:`n{1}", path), , true)
         return
     }
     if (ThemedAsk(_T("Restore from backup"), _T("Restore this backup?")
@@ -5765,7 +5811,7 @@ LibCheckUpdates(force := false) {
     RedrawList()
     if fresh.Length
         TrayTip(fresh.Length = 1 ? _T("`"{1}`" has a new version in Macro Hub. Click its green arrow in the list to see the changes.", fresh[1]["name"])
-            : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "Macro Manager", 0x24)
+            : _T("{1} downloaded macros have a new version in Macro Hub. Click their green arrows in the list to see the changes.", fresh.Length), "ComboCrown", 0x24)
 }
 
 ; macros downloaded before the app remembered where they came from (or shared from another install): asked once,
@@ -6101,7 +6147,7 @@ UriEnc(s) {
 IconB64() {
     return "
 (Join
-AAABAAQAEBAAAAEAIABXAgAARgAAACAgAAABACAA/AUAAJ0CAAAwMAAAAQAgAD8KAACZCAAAAAAAAAEAIAA4fAAA2BIAAIlQTkcNChoKAAAADUlIRFIAAAAQ
+AAABAAQAEBAAAAEAIABXAgAARgAAACAgAAABACAA/AUAAJ0CAAAwMAAAAQAgAD8KAACZCAAAAAAAAAEAIABhVAAA2BIAAIlQTkcNChoKAAAADUlIRFIAAAAQ
 AAAAEAgGAAAAH/P/YQAAAh5JREFUeJylk09IVFEUxn/nvvfmvXkzOuOQOTpKKBRZWBZau6KlYZuSWjS4MaJtEEnboF1BBNGiyKC0WkSBSBBBS7OibKBF0UTg
 H0prpgRTaXynzYzOBBXhhQ/uvd855+N+9xxEoCkZ7436oaznOgXPtQPPtfUPCDzXKUT9ULYpGe8VAVLJeNpxLAX+C45jaSoZTxPxQ1PFy0KJFBEF1IioKe5F
 KgoUAI34oSk8114hbMv8U7k8xnNtNZSteHWYC6f3EwmHEBF2tNazs7UBI4LvOZw/1UVNdbg8hZUCtmX4kp/nw0SOdPd2VJX+vr309+0hUOVodzsfp/PM5uex
@@ -6154,754 +6200,592 @@ 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
-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
+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
 )"
 }
 
 LogoB64() {
     return "
 (Join
-iVBORw0KGgoAAAANSUhEUgAABQAAAACQCAYAAABXusYTAABByElEQVR42u3dZ5Rd1Xn/8e/e57bpI426UEO9gVChCInejenF3ZhiHCfucf8nbiFxHMfBThwb
-3HCJbUAUU2wQoghTVSjqAjXUUJ8+t51z9v/FufdqRnUkBNYMv89as1jce8o+ZzRvfuvZz2N4G02dONghIiIiIiIiIiIiB7Rg8Xrzdl37iF5YgZ+IiIiIiIiI
-iMhbdyQDwSNyIQV/IiIiIiIiIiIiR96RCALf0gUU/ImIiIiIiIiIiLz93koQeFgnHkrwt2Dxev2GRERERERERERE9mPqxMGdPvZwgkBzGAtyB1mEfmsiIiIi
-IiIiIiKH6WCB4KGGgOYQb+4OcGP9dkRERERERERERI6QAwWBhxICmk7eTMGfiIiIiIiIiIjI38BbDQJNJ27g9nNxvX0REREREREREZF3yP6CwIOFgPYgF1X4
-JyIiIiIiIiIichTYXyZ3sJkd9kjdSERERERERERERN5eh5PN7TcA3FdyqPBPRERERERERETkb2tfGd2BqgD3GQAq/BMRERERERERETl6HUoIaDtzoMI/ERER
-ERERERGRo0tnQ0B7OBcSERERERERERGRv73OZHcdAsCDTQwRERERERERERGRo9ueGd8BKwBV/SciIiIiIiIiInJ0O1iGVwoAVf0nIiIiIiIiIiLSPbTP+vZb
-AajqPxERERERERERka7hQFmeBVX/iYiIiIiIiIiIdDfFzG+fFYCq/hMREREREREREela9pfpWb0aERERERERERGR7ivWlRdvjME5x/gRfbji3PFksj7WmtL3
-YehIxizrtzbxmz+9/DdZYzIRIwhC/CB8x99LXW051102mUTMEoYhWAshhIQkYh7b61v45b0vv6NrExERERERERGRd1asO/T/21HfxjknjWDwgFpyOR9jdoeA
-GIMLA15bt4MXXt2AtYYwfPsfuRjCffn6GSxY+iZ//uvKd/De4BzceOVUPvXBk2luzeO1C0aDMKCmqowf/u45/CB8x9YlIiIiIiIiIiLvrKkTB7u9tgB3pf5/
-zjk8a9i6s4Uf/t9z5PM+ja1pWtqytLTlaGnL0dScIcTxyWtPJBazOAfmbV6XtYXKxOF9+NAlJ/DRyyaRTMSie5u3/95h6BgxuI6rzpvAjl2ttGVypffR3JIm
-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
-zEP16VkBBgyGhuY02VyAMVGoVltdxrCBtfhBSMzzWLl2O22ZfOn7vV5G4XPPM4wb3gdbqJCLxzy27mxh09amDltxnXNUVyYpT8VxDtoyOZpbcx2u2bOmjHjM
-A6C+KU0uHxz0mcpTcaorkwShw5poe3JrOreP9e4O9E4Y258TJx5D/95VhM6xbmMDz73yBqvW79rr2D0VnxOgpjLJ8WP6M3lsf3rXVQLQ2JRm8etbee7l9TRq
-26+IiIiIiIiIyFFrzwBwweL1pssHgCIiIiIiIiIiIhLZVwBo9VpERERERERERES6r30GgPvaKywiIiIiIiIiIiJHr/1lehaiUkC9IhERERERERERke6jmPnt
-dwuwqgBFRERERERERES6hgNleaUAUFWAIiIiIiIiIiIi3UP7rO+AQ0BUBSgiIiIiIiIiInJ0O1iG1yEAVBWgiIiIiIiIiIhI17ZnxmcPdoKqAEVERERERERE
-RI5Oncnu9goA91UFqBBQRERERERERETk6LKvzG5f2d4+KwAVAoqIiIiIiIiIiBy9Ohv+wQG2ACsEFBEREREREREROfocSvgHnegB2JkbiIiIiIiIiIiIyNvv
-cLK5AwaA+0sOFQKKiIiIiIiIiIi8s/aXyR2o+g/AdPLibn/fLVi8Xm9fRERERERERETkbXKgYryDhX/QyQCw3c0UBIqIiIiIiIiIiLwD3mrwV2QO48buQN8r
-CBQRERERERERETl8B2u/dyjhHxxGAFhYhOvssQoERURERERERERE9u9Q5m0cavgHhxkAtluc069IRERERERERETk7XU4wV+RORILUBAoIiIiIiIiIiJy5L2V
-4K/IHMkFKQgUERERERERERF5645E8Fdk3s6FKhAUERERERERERE5uCMZ+O3p/wP5oIgs0kz7LQAAAABJRU5ErkJggg==
+iVBORw0KGgoAAAANSUhEUgAABQAAAACQCAYAAABXusYTAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAADj4SURB
+VHhe7d33c1RX1v97IyEBEhlEzsEig8mYbGwyJpqcM1IrtCRwzsYB53GOGNvYIAlQFmDPjMee4BkDQxYZ+3lu3ar7/SfWrbVPn9bpcw5YBImWv29VvUrypvc+
+u8/MT59ae6+77qrGn6H9OwkAAAAAAACA63PnalH74944AAAAAAAAgBvnzt3u+I97gwAAAAAAAABunTuHq/Ef94YAAAAAAAAA3H7uXK7af9wbuJ677roLAAAA
+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
+H32FtG4WPHAWAAAAAElFTkSuQmCC
 )"
 }
 
 LogoWideB64() {
     return "
 (Join
-iVBORw0KGgoAAAANSUhEUgAABqQAAACQCAYAAABu6wq5AABD0klEQVR4nO3dd7xdVZ3//9da+7Tb0ytppJICIYXeSygiLaGJbRTEcazjOLbvjGV0dNSxjONP
-AcU6KkkoUhRCR2oKENIICUkICaTn1tP3Wr8/9jkn96beGxIg4f18PO7D4ey911p7Z/57Pz6fj+EgmjJhsD+Y64uIiIiIiIiIiIiIiMiBMX/RWnOw1j6gCyuA
-EhEREREREREREREROTwcyIDqgCykIEpEREREREREREREROTwdCCCqTe1gIIoERERERERERERERGRd4c3E0zt14NdCaLmL1q7P1uIiIiIiIiIiIiIiIjIW2TK
-hMGdvnd/gqkuP7CvMEoBlIiIiIiIiIiIiIiIyKFtXwFVV0OpLt28tzBKQZSIiIiIiIiIiIiIiMjhZW/BVFdCqU7dqCBKRERERERERERERETk3evNBlP7vGFP
-YZSCKBERERERERERERERkXeXPQVT+wql7D4WVRglIiIiIiIiIiIiIiIiwJ4zor1124N9BFJd2UhEREREREREREREREQOf/uTFe0xkNpdkqUwSkRERERERERE
-RERERHaXGe2tSmq3gZTCKBEREREREREREREREdmbroRSuwRSCqNERERERERERERERESkMzobSu1zhpTCKBEREREREREREREREdmTzmRJHQKpvfX2ExERERER
-EREREREREemMnTOnvVZIqTpKRERERERERERERERE9mVfmVIlkFJ1lIiIiIiIiIiIiIiIiBwo7bOnPVZIqTpKREREREREREREREREOmtv2ZIFVUeJiIiIiIiI
-iIiIiIjIgVfOoHZbIaXqKBEREREREREREREREemqPWVMe2zZJyIiIiIiIiIiIiIiInIgxN7uA7wZxhi894wb0YfLzx1HNlfEWlO57pwnGbOs3djM7/7y/Nty
-xmQiRhg6iqF7y/Ysf5ee3ar58KWTSMQszjmwFhw4HIlYwObtrdxy+/Nv6dlEREREREREREREROTdJ3Y4zI/asj3NOcePYPCAbuTzRYzZEUphDN6FvLxmC88s
-fA1rDc4d/Fcuh0Jf/MgpzF/yBn/9+/K3cG/wHq6bPoVPXXsCLW0FgnZBXehCGuqq+MkfnqIYurfsXCIiIiIiIiIiIiIi8u4zZcJgv0vLvkNpfpT3nsAaNm5t
-5Sf/9xSFQpGmtgyt6Ryt6Tyt6TzNLVkcnk9cdRyxmMV7MPte+k2xtlS5NbwP77/4WD506USSiVi090HevBwujRjckxnTxrNlWxvpbL7yPVpaMxSKjiUrNnLj
-rXOB6DuKiIiIiIiIiIiIiIgcCLvLmg75GVLOe4wx3PvYcl5csZG66hTeeKw1WGuIxSyZTMjxxwzivJNH4b3H2IObCpXznRuunEroPEeP7Md7Thsd7X2wE6nS
-3tdNn0L3+hShg8DayvfAWKpTcf5wzws0tmQJrEF5lIiIiIiIiIiIiIiIHEyHfCBVrjrK5YvcNGsuMWsw3lBJZkr3FIvw0csnUVOVKD1zcIKhcnXUSccO4azj
-h5NJ5wgdfPjyY6mvTR7UUMpag/OeSUf154LTRtKSzhEEO75F6DypZJylqzYze84SjInuFxEREREREREREREROZgO+UAKwLso5Hnw6Vd46vm1VFclCNvNRIoF
-kM0XmDCiL5eefVQpFDpIZ/EQi1luuHIqQWDxxpArFDhqaB+uPH/8QW3b5z1YY7jhquNJxROEDqIGheVQyhOPG265fQFtmXxl1pSIiIiIiIiIiIiIiMjBdHgE
-UkQhj3Oen8+ai/euQxWSx2CAbDHkAxdPpEdDFc4d+EqlcnXUBaeM4oSjB5HJFQhsgDWGTL7ItRcdS79edQdl76C092lThnLqpCG0ZfPEbPmf1xN6T3UqzvPL
-Xuevjy2PqqOc0igRERERERERERERETn4DotACqIwyhrDMwtf46GnV1FXkyQMdwQu1hry+SLDj+jJtRdNBA5spVK52qg6Fef6GVMJi+W9o/CpUAg5om89H7p0
-0gHfGwPOQyIWcP0VUzAmCqc63FKqCvvl7AXki+HBn2UlIiIiIiIiIiIiIiJSctgEUkDUmQ74+cy5ZLJ5bBC1qSvPULImIJ0rcPX5ExjUv6ESYh0IthQCzZg2
-nrFH9iaTL2CNpdwyzxpLW6bA9HPGMWJwj2hve2D3vvD00UwdN5BMtkBgd/zThs5RU5Xkyede5aFnX8Eag3PugOwtIiIiIiIiIiIiIiKyL4dVIFUOeZas3Mi9
-j79MXXWKsBK8GIyBYtHTt1ct118+5YDta0sVSj0bqvjwZZPI5AuYnT6tMeBCT/eGKj4247joxwPQMa9cmVVbneD6GVPJF/0uy1pryRdDbpw1r9Qu8M3vKyIi
-IiIiIiIiIiIi0lmHVSAFVEKeG2fOZUtTG0HQMX2x1tCSzvHeM49i3Ig+OH8AKpVKFUofunQSQ/t3J1cIsbv5stYaWttyXHDaKCaNHXBA9rbG4r3nqgvGM2ZY
-L3K5Yoc1i85Rk0rwwJMrmbtoHdYYQs2OEhERERERERERERGRt9BhF0iVQ54167cz677F1FYlOwQwBgidp6Y6wcevmvqm97PW4JxnUN8Grr7gGFrSOexePmvo
-PYlYwMevPD4Kjt5ENmRM9L49u1XzgfdOoi2bx1hDJY7ynlhgaG7LcvNt80oP7f9+IiIiIiIiIiIiIiIi++OwC6QgamFnDPz2L8+z9o1GEvEAVwmlPDEb0JbO
-cfbxIzn52ME45wneZKXSR2dMpme3aopFt9eqp5g1tGXznDZlCKdPHobz+793eXbUP1w6icH9ulHIu9JMLAN4Qu+prUrwl0deYtmqzZXwTERERERERERERERE
-5K10mAZSHmsMW7a38fu7F1KVjNGxRqpUSWUMH7tiKoG1UYjVxX2siQKeMcN6c8mZY2lOZ7G769XXQRQieQfXz5hCPBbgSgFal/a2Ueu9wf0buPL88TSnsxiz
-Y28PxGOWNza38Js7FnTxzURERERERERERERERA6cwzKQgihwMsYw6/7FvLR6C6lErF3rPo+1lnS2wAlHD+bsE4dH9+9npdINV02hriZBGPpdgiXvPR7X/hcC
-a8nkikweP5DzTx2JL511f1w3fTI9u9UQFl2HuVXOeapTcf5832Je29Ck6igREREREREREREREXnbHLaBVLltX2s6xy9vm0csBsZ4wAEGg8GX2tpdN30SiXhQ
-eaYzrDU47zl+whFMO2kkzW1ZYh0CLY/3niCwpTZ6vvQXtdTzeMKi56OXTqY6Fe/a3qXKrNHDenHxmWNpactigx0POweJhGXlq1v5070vUNleRERERERERERE
-RETkbXDYBlIQVQkZY7jn0eU8+8J6qlNxQr8jmQmsJZstMHH0AC46fXSXKpW8j0KpG644jpiNwqz2Tf9CB6lUjB/+9gkefOYValIJQrejUiqwlky+yLiRfZl+
-7rj9qpK6fsZUaquTFJzD0DEMS8bj/Pau59nWlMGYKDwTERERERERERERERF5OxzWgRREVUfF0HHTbfMIQ4/d6ZU9kC86PnL5JOpqEp2qVLI2mgN19gnDOWnS
-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
+iVBORw0KGgoAAAANSUhEUgAABqQAAACQCAYAAABu6wq5AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAADrzSURB
+VHhe7d33d5VV+v9/SEgCCZ3QexOkixRRpIhSBBQEaYL0lpwk55wEbGPv2Mc6o45ih4T0hIBO0ynOCEgJhM7M+/1d37U+n3/i9Vl73+dOzjn3DSZAEOWZtR4r
+cXP2vve5Z357reu6mjRpxJ8xw3sJAAAAAAAAAAAAV7/4nOeq/Ym/OAAAAAAAAAAAAH6Z4nOgn/0n/oIAAAAAAAAAAAD4dYjPha74T/yFAAAAAAAAAAAA8OsU
+nxM1+k/8BS6kSZMmAAAAAAAAAAAAuIrF5zsXEp8bNcpP/EPjxX8BAAAAAAAAAAAA/LLE5z/x4vOjy/oT/zCCKAAAAAAAAAAAgF+v+DyoUUOp+AcQRAEAAAAA
+AAAAAFw74vOhyx5MxR9KEAUAAAAAAAAAAHBtis+LLksoFX8YYRQAAAAAAAAAAMC1LT43uuRQKv4gwigAAAAAAAAAAADE50cXHUjFH0IYBQAAAAAAAAAAAFd8
+jtTgUCp+M2EUAAAAAAAAAAAA4sXnSfUOpeI3EUYBAAAAAAAAAADgfOJzpXqFUj4bAAAAAAAAAAAAgPPyyZfO/xP/YQIpAAAAAAAAAAAA/JT4fOmCoZTPBwEA
+AAAAAAAAAICf5JMzeX/iP0QgBQAAAAAAAAAAgPqKz5l8QymfDwAAAAAAAAAAAAD15pM3nT+MIpACAAAAAAAAAABAQ8XnTTGhlM8/AAAAAAAAAAAAAA3mkzsR
+SAEAAAAAAAAAAODy8cmdCKQAAAAAAAAAAABw+fjkTt4wikAKAAAAAAAAAAAAFys+d7LZk2fBZyMAAAAAAAAAAABQX578ybPgswkAAAAAAAAAAACoL0/+5Fnw
+2QQAAAAAAAAAAADUlyd/8iz4bAIAAAAAAAAAAADqy5M/eRZ8NgEAAAAAAAAAAAD15cmfPAs+m35uCU2bqnN6S40Z1l3jR/TQ6KHd7N/GjcbQ7ho3vLuGX9dZ
+LVOTPfuvdU2bNq39u0PbVI0x78u8P/c9DjXvsJv9b/N+hw7oqOSkRM85AAAAAAAAAAAA9eHJnzwLPpt+biaQGjawk954eI4Kf3ufPtu2SJ+/uEifb1tk//7s
+xUXa8fISbX9ugWbcMkAJCXUBzM+pe6fWGtSno1qlpXj+7UpyA6m2rZpr7YIxyn9tqb407+2Fe+07NO/yk+cXauerS7TjlcXKWDpOLVsQ7AEAAAAAAAAAgIvj
+yZ88Cz6brgad2rfU6w/O1n/2btH//nGrTlSEdLoyt9aZqjz9/395UO/8Zq769Whn90RXBl1pTZs20dp7btSbD83RxNG9nfWm3s9dCeYu5vcdEwbo6w9W2/d0
+sjJXpyLv7lRl2L7P//PtQ/r3js1aMH2okiIVUu5eAAAAAAAAAACA+vLkT54Fn00/JzcQMeHSLaP7qPzt+3V2T572F2To4K6ADu7Ksn4sCOh4RUg/7NikNfNH
+KzEhwdnnc2ZjsXeN3Ld317ba/vwC/ffrPG1de+vPFvC4z2vfJlXP5tyh05VhHS4M6Mfod7czU0dLslVTFtS28Ey1bvnzVnQBAAAAAAAAAIBfNk/+5Fnw2fRz
+c0OVpKRmemjDFB0pztbR0mztz8/UjwUmjHICqQMFAZ3bm2db9w3t39lzzpVkqqP++cVG/d/vHtKu15bqppF17/ZKh1LG3VOv1x8/XKMzVWHt32neW6D23Zn/
+PluVq4p379ftN/Wv3XMlwzwAAAAAAAAAAPDr4cmfPAs+m64m44b3UMFrS/XfvVtsIBVdJbV/Z0DHy8LatzNTWfdNULPESJXUFWjdFx0yDeydbudanawI6nhZ
+UAcLA3oi8zalpV65uUzR9+mS3lJvPDRbp3aHdLjICe/c93YgP6AjRTm2OurRzbcptXmSZz8AAAAAAAAAAEBDePInz4LPpquBW63TPLmZcpZPUHVRtqpLcpxK
+n0ggddBW/QTsPKmCV5dq5OAutS30rlTAkpycaMOwfTsz7FymfTs263RVWHvfX6Up4/ooMcEJx67UfYyld47Qd59s0Ondudqfb1odRt7XroD25wdsC8TiN5dr
+4ug+9vNX8m4AAAAAAAAAAODXx5M/eRZ8Nl0NTCDlVjqNuK6zPnvhXtuez7TpcwOpQ7ZKKlMnykN2RtID6yapRVTFT2NVSrnnmt8jBnVVyVvLdbIypENFWTaY
+Olaao6MlOXp5yyylt0uLfLYx71P3d88ubfTRswt0siJXh4uy7fuyc6OsgA4XZ6umPKjwylvUMlLBRSAFAAAAAAAAAAAuhSd/8iz4bLpauAFOclKi1sy/UUeK
+zCypYFTFjzMT6eCuTJ2oDKni3RW2xV9CVGAUf+bl4J7bplVzPbR+sr2XaYF3INJS0FRtHa8I6btPN2jWpMFq1qxxWwnWztxqlqhV80brX19t1snKsK2GqntP
+zt1OV+Uq/7WlGjO0u+ccAAAAAAAAAACAi+HJnzwLPpuuJm6IM7hPR3349D22Pd+hwuzIXCQnbDmQn6FjZUEbDD2ddbvS26bG7L2cbPjTtIkSEprqlht665sP
+1uh4eUiHCutCHxNMmfaC5k7vPHq3+nRrF9l7+e9jWxRGAqnreqfrq5cX6Xh5UIeLnXlR0YFUdXG2tWHR2KjqqEa4EwAAAAAAAAAAuKZ48ifPgs+mq4kbmCQm
+JmjRzOE6UJBpW+KZ4Mdlw6lCp0rpLx+t1W3j+zValZR7bteOrWz4dbwsx4ZPbmu82gBoV5at5tq3I0OLZgxXs8TGqZJyz2vdMkUZS8bbajFbrRV1H/N+Dhdl
+2RlXn79wr4YM6OjsbXJ57wIAAAAAAAAAAK5NnvzJs+Cz6Wrjhi79erbXe0/MsxVJ1SVmPpKpSIpUSRUEVF2cY6uDXtkyy85Sit57OUTPWpo5caC++3S9jpXl
+6GCB2zowupWgCYGybeu8j55ZoCH9IiFQI93nxiHdVPrWCjsfylRrxQdkplprf0Gm7pszSinJzeweN1wDAAAAAAAAAAC4FJ78ybPgs+lqE10lNXvyYP39842q
+KXerpOoqkmzwUpqtf325SXffdv1lr5Jyz+nTvZ1e3TpLZ037wKJIhVZU+BPtaEmObSW4bsGNSklxgqDLdR/3+6W3S9XWtRNVY4K6YlOtVRfUmTlSR4pzbNXU
+H56+R317NGL7QAAAAAAAAAAAcE3y5E+eBZ9NVyO3Gqhzh5Z6ZessHS3NVk1pTtycJNO6L6DTVbl657G56t/z8oUv0Wcsnjlc//4qw1ZqxVciRTMhmbnT2T25
++nLbYo0e0s05y+f8hjLvwz1n0pg+2vvBKtuSz86w2hUJpAqcSimz/o/PNuqe24c2WutAAAAAAAAAAABw7fLkT54Fn01XIzeQSkxoqslj+uqbD1brdGXYBi61
+FUrm710Bp43erkzdf9cNSkpKjOy/tADG3W8qjN597G799+ut9rnxrfr8AinTXvBYaVB5qyYqrXly5DzvMxoiIbK/Y7s0PZE5TWeqcm2rvrpqrYAN68y8LVMd
+9dYjc9WlQ0u751KfDQAAAAAAAAAAEM2TP3kWfDZd7dJSk/VUYJqOFGeppiyk/TvrQhgnCMrUuT15+vjZBRo6oJPdc6mBlGFa5K1dcKN+2Jlhq46iq7POzwRD
+GTq3N0/Fb9ynW0b1tmddaijk7p87ZZD+8vE6nTLhXH50QBawrftMUPWnP6zVzFsHRbUw9J4HAAAAAAAAAABwsTz5k2fBZ9PVyg1STKu68SN7qeStFTq7Z4sO
+FJjKoLoQyAQxR0uCOrQrS4FlNynZrZLyObM+3H3X9U7X9ucW6tzXedq/K/M81VHekOpAfqaOFufoWEmOHtt8m1o0T3LOvchgyA3XOrVP08tbZtqWgKZS7EB+
+9DtwqqOOlubo+dAMtWnVPGq/90wAAAAAAAAAAICL5cmfPAs+m65mbphiWvFtXTPJtqk7VhZdreS07TP/fW7vFn318mLdEJnddCkSExOUvfwm7c/P0MmKkPbl
+R+Y0RZhw6nBRtqqLs+2dYgMq5z5nq/JU8e79mjquX+25lxIOLZ45TN9+sl5ndoe1f2fsffbnmyqxXJW/c7+mju/v2QsAAAAAAAAAAHC5ePInz4LPpl+K0UO6
+6YuX7rXt8ExVlJkbFR3ImKDqYGFAeatvUbNmCXZPQwKg6M+OuK6zCl5fqjN7wjbwiq2EclsFmpZ5mTpUGNChuM+Y+5iqLVMp9UJwulqnpXie8VOiK7y6dmyl
+dx+9KzI7yoRwdd/dVEodKTHhWJYeXjc5qiLr0tsWAgAAAAAAAAAAxPPkT54Fn02/FEnNErVh4VjbEu9YeY4OmDZ6bsWSrVoK2HZ2xW8s05ih3eta/jUgBDJa
+pDTTg2tu1cGCgE6UB2Oqo+xzdmXZmVLvPzVfj26aoop37teJ8pANicwd3M+ZKqnTu52ZTjNuGdjgkMwNpEywtGzOSP39s406XRXWvvzNMeGXqdY6uzdPO19d
+optG9nT21/MZAAAAAAAAAAAADeXJnzwLPpt+Cdxqn0F90vX+k/N1dk9epHIpqm3dzkzVlAdtBdGjmyYrtYVTKVQf7vkJTZtqzLDuqnxvpU5Vhm3FVW3IVOC0
+BzSVTyakWjB9qK1cemTjFJ2qzNWhIuczdZVL5rPOXKc3Hpqjzh1aep53PtGhVa8ubfXRswt0cndYh4qdmVm1rQp3BVRdbCqxggrcN4HqKAAAAAAAAAAA0Og8
++ZNnwWdTYzLBSEJC00sOSJz9TdUsMUFL7xyp/TsyVFMWrA2K3EohU6V0andYe99fpZtH9VJigvPcC1YlNa0LcNq3bqEnMqbpSHGOakqDtvXeQTMjqtCc77Tn
+O1kZ1luPzFWPLm3snklj+uibD9bYqikzTyomlDJVVhVB/fOLTbp72vVKTkqM+j4+d6n9vs5v831XzRutf+/IsIHUvvyMqGotE0pl6fTuPH3+wiKNGtS19uym
+TS58/k+x/7uZcy703gAAAAAAAAAAwDXJkz95Fnw2XUkm4IiejdQwTsjSp1s7vfnwnMg8pfiqpAwdKw3ayqTng3covW1q7XO95zkSzL81dcKfaeP76a8fr1dN
+WVgHd2U7Z5tnRGZEHSsL6h+fb9Sdtw6qbcHXvk0LPbBmkmrKQjbIMiFUdJWUDbfKg/rgyfnq16N95D4XDozcdzSwdwfteGWJDbuOFGfHnG3uVF2cY9/B6nmj
+lRqpjjJBUvx59WH/t7nIvQAAAAAAAAAA4NrhyZ88Cz6bGoMJNkxQ06Nz69qgJObfawMQ797ziW6rN3fqYH3/1WZbJXWoMLtulpQJbAoCNgD69pN1un1CfyUm
+urOb/MMWN8Dp0amNXsmbZedGmaAnJlgqyLSt92pKQ3ohNEOdO7SKnOmcMWZId5W/c79qykM6bO5TUDffydzJ7D2wM1PLZo/8ySopdz2tRZI2LxlnzzHf02nV
+V/c9TYtAE1T94Zl7NKhvurM3KsyqjwsFhO3bpKpLesvaNoAAAAAAAAAAAACGJ3/yLPhsaixjh3XXA2snad2CMRo2sIsNqFKSm8V8pjaY8tnvxw1rundurZe2
+mPAopOqS+PDIVCVlq6Y8R688MEu9ujqt9fwCIHfNhFZ3Tb1e33++ScdKc2rDJKcSKctWIZ2sCOnPf1irSWP71u2LtARs3bK5clbcbMOo42UhWxlVFx5l6rAJ
+jypD+vSFhRp+XecL3KfODUO6quSt5TbkMuGTG0iZ+5jWhMfKcrRvZ4YWzRxe+179zox3oXdtQrBO7dM0YWQvbV1zq20XaEIp599/+mwAAAAAAAAAAPDr58mf
+PAs+my632oqjLm30ct4snaoMq+Kd+21l0aIZwzSgVwdbdeOGObXqUTHlBi7mc1PH9tVfPl6rmoqgM08pviqpLEf//HKT5k0boqYJsfvjzxvYp4Pe+s1cnfZp
+A2jmSB0vD+pIUZaezpymdq1b1N4hOtwZ3LejCl9fZmdGxZ9hVJdk2zM2LR5XWzV2vvuY6qS8VbeqpizH7jOhVvR9jpRkq6Y0R797fJ56d21be5/os/yY2VLx
+gZRpPdimVXONGdZNGxeN1buP36W/f7bRVpqtuefGn6wwAwAAAAAAAAAA1xZP/uRZ8NnUWEyQMe+267V/Z4b+u3eLnev0zy82quC1ZXom6w7NnzZUvbuZMMUb
+dJi5TucLQNxAxcyHejrrdhvYmODGBDV1VUlOS7tTu3P13mN321lMdm/UmbXhVpOmWjF3lPbt3GyrjqLDH6ciKaBTVSFVvrtS44b38NzDDYKaJzdTxuLxtmrp
+ZGXYtug7ZGdP1YVkp6vC2vnqkphz6u5T9/fEG/uo8r1VOl4esrOrou9kKsBMtdU/Ptuou6deb2dfxX+36DPNul9Y1TI1WaOv76Z1C8fqzUfmas/vV2r/zkxb
+kfX//ekBfbFtsW4Y3O28ZwMAAAAAAAAAgGuTJ3/yLPhsagxugNGrW1u98fAcnd2TZ+cdmSDl9O5cG079dft6ffzsQuWtuVWzbh2onpHWevFMxVVMkBT1jHEj
+emjP+6t0enfYBj6xVUkBGzCZVncr775Byc2c4Mat4HINHdBJHz2zQOf25tlWeAetSPiTn+lUPBUF9MiGKbXzlDwBT+TMvt3b6vMX73UqrSLt+upCMlMllWPv
+tHXNJLVOS4k5y/3dqX1L/WbzbTpZGV2t5Xwv0wrwWFnQevPhufaz8fepC6G8IVLzlGYaNaiL7pszUi+Ep6vwjWX615ebbevDM7vDzv9GFUEdLcm2rRZTkurf
+ChAAAAAAAAAAAFwbPPmTZ8FnU2NwQx8z22jRrOE26DFzlPbtdAKamtKgDanO7tmiw0XZ2vP7VXrrkbm2nd3Ucf3UrVNrz5mGCUacgMr5bxMQPbZ5qp0ZZWY3
+mQqf6MqmA7sy7XO2P7tQwwZ0rD3D3Z/WIlm5qybau5nZUdGzqMysJrP/3N5c5b+6RCOu6xJ1D++93L/X3DNa//pqsw3J9u3IiArInDlQZ/fkqvzt+zV1TN/a
+s6L3z5w4UN98uFqnIiFb9P79BZk6XZWnP364VtNvHhgTZp0/hErSkH6dbLXawxum6PMXF+lvn26w1VcmhDPPMQGhCd/M9zf/25S+vdzOAIv/bgAAAAAAAAAA
+AJ78ybPgs6kx2HAk8vegvun64qVFkTlM2Tb4MMGRDY8KTDgV0rk9W2xwdKgwoLJ3VuiF0Ewtmz1SY4d2V5d0pwoo9vy6oOTGId1U/OZynduTZyuInFlSARso
+mUDnWIkz0ymw7CbbVs/db363Sk3RS3mzbDDj7MnUwcIsy86OqgjpQH6GAkvHKyF+5lXcfdy/e3ZpY2c7mfuYOUzRoZKpmKouztaJ8qCezb5DbVo2j+x3zu7U
+Pk3bwjN0piocqY6qq/YyYZaZi2U8H5xeW2HlxwRt1/VO1+0T+it7+QS9/8Q8/fXjdbYS6j97t+hUZa6OFJkQKqB9kSDKOFoa1LGSHG1de2vUrKzzf28AAAAA
+AAAAAHDt8eRPngWfTY3FrZJqlZaijYvG2ZlOpvrGBFK1VT8FThu6/TZIMoFIjg1jzlTl2s/tenWprYCaO2WQhvTrqA5tUz0BiZmhlLfaVDmZoMetkqoLgcw5
+Z/fmascrSzR2qDO7ya2SMpbeOULffrJeJyrCOrDLVDS5YVamDZU+fHq+Bvd1qqsuJPpei2YM13fb1+uUmSUV/X13Bez9zPf7+sPVmjN5UMwZi2cM17fb19nZ
+V9HVWrY6Kj9T/9mbp4p379eUsU51lfNc53dyUqINwyaM6qWNi8fpnd/crT/+YY1qyoI6tydXJytDthLsRxMI5gd0IL8u8DK/TQBm5kd9/cEa3Tyq7v8r8e8b
+AAAAAAAAAABc2zz5k2fBZ1NjiQ4yRgzqovJ3Vuh4malWyo6q/Ill50DlZ9p2e9Ul2TpZGbbVRN9/sVFfbFukLWsm6bbx/dWrSxsbdLlVS2YO1PbnFtrg5cd8
+b5s7M7fp8K4sPbRucu1cJHdv986t9Hxoug2B3Kok27quLKh/fblJ980dGfWdvN8z9js7v7t1bK0XTaXT7lwd3JUdE0iZgOpIcY5qynP05sNzlN4uzblHp9Z6
+99G7dLq2Oiq6sipg5zrVlObo0U1T1aJF7Cwr07rwzluv028fmqM976/WkZJsG4aZtnymKs1UfpnvFD2PKpoJBU111NGSoLblzlLHyJ2a/MT3BQAAAAAAAAAA
+1x5P/uRZ8Nl0JbRt1VxPZk5TdVFk1pOtGvIPR2woZauUAjpYGNDhQme+04mKkKpLcvTt9vX66Jl7FFw+QZPG9FV621Tbim/1/Bu176vNNkgys59iz3Sqksre
+Xq5bR/euvZcbmt0xYYD2/n6NTpSHbWs8c4czVXl648E56tejfeSz3u8Vz21TaMyceJ2++cA50zzfcL+vCYDMjKm/fbpe828fotTmSVoxZ5T++flGG0jVVVVF
+Pl8QsNVaRb+9T7eO6eN57vSJA1X53v36n2+22JZ+JpAyFWm17zPyTv3et/1MfkCnKnL19083au7U65WUlBj5zlRHAQAAAAAAAACAWJ78ybPgs6kxuSGOCTam
+jOurP324Rqd3h2zoc75AqjYkiQpTTGs/05LPBFPHy8M2dDIBzzcfrrHzmjYuGqvwyltU9buVOlFh/i32XBMAHSsN6khxlp4L3q7WLZ35S26VVPs2LfTgusm2
+gsu0tTPVQt99sl5zpwxWovlMpL1f/Pfz44Y46W3T9NimqTpRGbIVT2aeVO19bMVTjp0nZe4/Z/JgG7LZiqZiU0FmPuu8I/O3WTMVYzkrblFK7Rws9+6peilv
+pg3cTDWZ2WcDPfvuvO81nvnfwpx9oiyoD56ar64dW0V9F+/3AwAAAAAAAAAA1zZP/uRZ8Nl0pbRp3VyvPTDbtp0zwZJTMeQNSPy4bfScuUrZqi52KqZO7Q7r
+eEVQP+zYrD9/tFZ//2yjDZQOxQVd7v7TlWH9+eO1mn7zACU1S7CBizvravyIHip5a7ltdXeqIqynsqapS7oTzjS0Usj9vKnG2v27+23QFN2Gz4Rt5re567++
+3Kzyd+7Xv7/arOpis+4GdU6llgmXTDXVFy8t0ugh3e25bpBmzJ82RH/5eJ3O7MnVvp0ZnjDup5hqLHP+959v1Kp5o9WsWULkO3i/FwAAAAAAAAAAgCd/8iz4
+bGps0cHGgunD9O32DTq7Jy/Sts8bkBxygxITQMXNgzJsuJQfsPtNaz5TPWSCqZPlIR2286kCTkVS3D7z+WNmDlNZUG89PEdd0lvaO7nhTlqLJGUum2Arjb79
+ZIMm3tjbBktWk4sLpFqlJSt0/81ONVRJTiRQi7qXqX4qMrOyQrZaKrqtn9Pmz8zSyrHvZM280TKzopo0ce5kzu+a3lK/f3xepJ2hW1nlzKwyf5v3dKEqKftv
+BVn2O3/6wkL1j7QndL6D93sBAAAAAAAAAAB48ifPgs+mxhYdbHTv1Fq/f2KeDaQOmooh35Z9TqBkghjDfGZ/foZvuGL+rTacOk/AVctUG+UHbLWSqUa6e+r1
+SjazkqLa8Y0c3FU7XlmixzJuU8f2aZH7NyyMit8zclBXFf/2PlvJddiETtEhm2e+U92/mUDKzM86WR7WR08t0KDe6fY8N0BrlthU980eqe+/2GQDLfOOzFn7
+8jPt3+YMp01hjvddRBzYmanjZWZuVkCh+29x2hP6fB8AAAAAAAAAAACXJ3/yLPhsuiKiQql1C260gdCJirBPiBTQwULTms+EK5k6VpajU5UhnawI6agNVrJr
+K6fiw6n6MPtMyGUqit5/cp4G9Oxg7+SGPG1apuiOCQM0/LrOnllNDeXua5marE2Lx+rHXZk6Xh70rfqK57T0M3OvcvTDjgwtnjFcLVLMfZrWthgc2Ku9Pt+2
+SMfKgvad7duZaYO8Y6XZOlkRtO/NzMwyM6LMu3Irz2Lex85MnduzRbteX6bxI3p6vgMAAAAAAAAAAEA8T/7kWfDZdCU0jTB/Dx3QSdufXaBze/I8gZRtUVds
+QpjN+nzbvXrz4bna87tVNpw5Xha01U226qco0pYusqfe4VTkc0dLTaVSppbeOSJqZpIT9FxsABUv+pwBvTroi22L7P0PF/m07otj/t28BzNv653H7lKvrm3t
+OQkJzl3TUpO18d4xNuQy4ZppW1hTGtLxMvN+cvTvrzZp1+tL9fqDd6rs7RW2laER/Qzzzkz1lGkn+NCGyUq17QDr/ncCAAAAAAAAAADw48mfPAs+m66YSJWU
+qUYKLBuvQ0VZNnRx5h45Icn+/ICOlgTtPKRncm5Xj86tNW5Yd21eMk6/f/xu/fmjdXaPCWHMLCgzd8lUBTnBVOS3T8ATG8Q4LQFPVYb18XMLNGxgF3uvyxVE
+RXNbAZpqq5V3j9b3X27Wqd25552fFX1HE159u329Zk8apKRIaOZWco2+vptK31qu01Vh267PvAvT/q/87RV6KW+GFt85XAP7dNCY4d315bbFOrM7L7ZVYOR9
+ndmdq/J3VmjaTf09dwcAAAAAAAAAAPDjyZ88Cz6briQ3oLn5hl7a9dtlOlOVVxsm2ZBklzNT6UxVrgpeX6qRg7rYPabtXdf0VrppZE9tWjTezqH668frbNXU
+6apc2wrvcJET5Lgt/eJDnpgwZldAR0qz7J71C8cqycySaqRQymXmZ/3uyXk6WRG2FV5OdVjUPQuddoX7CzJslVN1UbZe2TJLHdqm2v1uGNWpfZp+s2GK/veP
+W3W0NGgDpW2507V01nANH9hZHdulKcW292ui5XNH6R+fbtTp3Xk27Kt9ViSUO10Z1tNZtyu93cXPywIAAAAAAAAAANcWT/7kWfDZdCW5gUfrlil6cN1kG86Y
+VnImIHLCkoD278ywFVAmXAqtvKU2LHK1TktR/57tNXlMHwWW3aQPnpyv77avt2ed25tnK4acwCdgK5H82uM5lVQB2zbw8xfv1ajBXT13vVzcEM64d8Yw/fXj
+9TpblWvnN8Xey9wzUwd2ZdrKp6/fX61p4+sql9xzzPf+5NkF+v3j87Rq/miNHtLNVpKlJMe+py4dWuqDp+Y7AVhxsC70s+/DtEAM2fd219TBBFEAAAAAAAAA
+AKDePPmTZ8Fn05XVtDb8MG3ivv5gjWrKwjFByY8FmbZ650R5WDteWaLr+qTbz/uFJq3SUjS0fyfNmTRIW9dM0vbnFuhvn67XifKQzu3dYiuD3LaA0a0B3efZ
+SqTibIVW3KIWKZEZSlEB0mXRtO5MU+30fGiGvZ8JzWJnX5nqrkwds60Ic/Rs9h1qlZoSc1ZiYoKG9O+ombcM1MBeHZQcF0LZWV1NmyipWaLumjLIvgunRWDd
+d3daFgZsy8LXH5it3t3aOXt93i8AAAAAAAAAAEA8T/7kWfDZdKW5wUeXji31TM4dOlGZq8M2nImdJWWqpH74KkMr776htvrHtK0z+/3Ck7QWyRo5qLOtQnp8
+8236Ytti/e2zjXYW04nyoDNrKiaUMq39MvWfvVtU+Pp9Gj+8Z+R+3jtfqugzs++bYMMo024vurWguZup6Dq7J08lby7XLaOc/71syBTZawKpBJ/vbt5HQkJC
+7Xvp2D5Nr2+9U8dKcnS0NCfSHrCuMsys/7BjsxZOH2bDK/eM+HMBAAAAAAAAAADiefInz4LPpivNDT5MuDR70iB9/8UmW6lkq6PccCY/YCuXTGjzh6fvUZ9u
+bSN7o89xzvILUtJaJOmGwV21/K5ReiE8Q998sFrVJeYZJpCpa5VnAqFjJU5F0qObptZWSV1O0YFS725t9O6jd+lURVgH4wIyE0aZ72vCua1rJ6p5sjMHKnp/
+NBNMRX939+/EhARNurGP/vKRmbEVsvOi3OeY9oWHirJthdbHzy6orT4DAAAAAAAAAACoL0/+5Fnw2fRz6tu9nd5/fJ6Ol+XoSHF23bynSCu7Y2U5NrC6a8pg
+JSY4gYtfAOUGU37BTVpqslbfM1p/3b7BBjEHCjIi85oioVRBps7syVXFuys1eUzfqDO9Z12M6OqmTYvG6t9fbY600YudIfWjqY7am6evXl6iccN6eM6JOdPn
+bm7lVHrbVP1m4xSnOqrEzNKqe45tU1gW1MHCgNYuuNG2PHTO875TAAAAAAAAAAAAP578ybPgs+nn4AYgpiLpvtkjtX9nhmrKgjEVQyacqi7J1vGyoLblzlCP
+zm1i9v6U6HCqW8fWejE0Q2d259owxrStq61MMnObzCypkmw736ltq+aR53jPbKjoMwb37agdryzV6apcHSqKvYOZJXW0JMdWR2UsvUmJzRI8+y/Efi7y2dFD
+uqnsnRW2Osq0KTSBm/uMw4U5NpDa9cZ9Gjaws+89AQAAAAAAAAAALsSTP3kWfDb9HJx2e87fA3p10JcvL7bB05GinNoqKROgmLZ2JkD580drNW18v6j9Px1K
+uYGU+3vWrdfZNnZmNpVp2+eGX3auUkFAp3eH9aeP1mnGxIFKamAgdD7u/hYpzZSz/Gb73U5WhqOqo+ra6Z2pytOnL9yrG67vavf4zYo6H/ezrVumKGPJeB0t
+zbYBl32HNvhy5mXZFn67AtqyZqLa1AZv9X8OAAAAAAAAAACAJ3/yLPhs+rm4YU1q8yQF7ptgwxoTFpm5TtEt5kzV0MmKkB7dMEWd2qdF9tY/RKltZdcuTU9m
+TtOZ3WGnQinSFtBWSeVn2gopUyn15iNz1CW9ZdQ96/+saNH7Rg3uqtK3VuhEhXl23ewo89swzzbrq+aNVoo7O6oBYZgbuo0c1EVfvbxYpyrDtjoq+jkH8wP2
+PVb9fpXGj+hR+14u9vsBAAAAAAAAAIBrkyd/8iz4bPq5mUBkxKAuKn17hZ2t5FQs1QVShglYKt65X7eO7h21z3uWHxPWuKHL5DF99OeP1uh4eUiHirIjgY1p
+n5epA7sydbw8qO+/3KT5tw+JCoYuLbAxVUsPrJtkZ2SZaq/aOVmR+VWHi7J0sjKkj569R4P6pjf4me5nk5MStGreDTpSnKXqkpzaZxwyz8k3bQmDOlqcrRfD
+l7ctIQAAAAAAAAAAuLZ48ifPgs+mn1VUldQTGdNsNVRNWUj7d9a17TOhkWnlV1MaVGjFzUprkWz3NCRMcUMbE8Q8tH6yTpSHdLS0rj2gEw4FbGhkQqkPn5qv
+AT07xOxtCHeP+T1hVC/t/WB17Uyn2FaBTlBkKrQWzRim5ilOCNaQdn3us/r3bK93H7tL/9mb55wdF0iZloB//sNa27owIcG9n/c8AAAAAAAAAACAC/HkT54F
+n00/JzcQMaHKlLF9tfu9lTq7Jy8yY8kNi5wqqbNVefpy22KNGdI9Zm99RIdKNw7prqrfrdSJiqCtTqpra+eEOKa6yARF988dpeYXWSXlft60GHwi8zYbspmw
+K6ZNoGnVV+wEcO8+frd6dm3j7I2IP/On3DtjmP7+2QYbtrnfxa0yO1KUbdfffHiu0tulRt3Tew4AAAAAAAAAAMCFePInz4LPpp9TdPDSpmWKXsqbaedIHbbh
+jdNOz61espVEOwPauHCsEhMSPGf9FDckMi30wqtusdVYphrKCb/c8CbLtvIzLfQ+e3GhRg7qGrO3IUwV0oxbBujb7etsq76DhU6wVvusXc7MrH98tlGzpwxS
+clJig5/lvr8uHdL08paZOr0n7LyzuPlYp3aH9e0n67V09kjPGQAAAAAAAAAAAA3hyZ88Cz6briaLZg7Xd9vX6UxVOCYocit9zuzJ1e+fmFfbTq8hooOeof07
+qvCN+2zwdCiqSsqtyKouybLVU5sWj29wlZT7OVPxtC08Q6erwjoY1arPBmz5JmDL0dGSHL32wOzaqqWLqYwy5k4ZpK8/WKUzVbnan58RVV3mzKk6uzesD56a
+r/4X8d4AAAAAAAAAAACiefInz4LPpquB2zqud7e2eufRu3Tu61xbQRQdSDmVPrn67pMNWnaRlT7uc8yspqxlE7RvZ4ZOVcaGX878pYBOV+Vq56tLddOInjF7
+LyT6M/fcPtS20DMt+UwAFVMdZcK1qlx98+Ea3TGhf+3MqPo8w34uKrwyM7Wezr5dNWVBVRebdoOxc7FqysxahjKWjKutLKvvcwAAAAAAAAAAAOJ58ifPgs+m
+q4lpc7d6/mjtK8iwAYsJVNxZSObvI0VZdvbTbx+erY6XOAupf8/2+uyFRTprKpgic6qiA6Pq4ix7hwfXTVLL1OR6PccNifr2aKc3H5mjc19vcQKuqBZ6B/Iz
+nfCoJFvP5txRe3ZDRN/jppG9VPzWCp3bu8UGX9Ehnnln5/bm6atXlmjssB6evQAAAAAAAAAAAA3lyZ88Cz6brhZuq7vh13XWpy8s1H++3hITSNkqqZ0ZtrLo
+jx+u1qxbB15UuOKGRub32ntu1PdfbrSVV2Y+VV2YE9D+ggyd3Zun8ndWaurYfp5zLmTVvBv0r6826URlSPtjQqKAbaFnQqLSt1bolhvq/je5mO9i5k5tXTtZ
+BwqydLw8HBVIOQHb4cIc1ZQHlbt6oq2kcp5Tv9aDAAAAAAAAAAAAfjz5k2fBZ9PVwg1KUpsnKbDsJp2oCOtIUXZMIGWqi8zsperibL0YmqE2rZp7zvkptt1d
+JPzp2aWNbRF4ds+WSGVUbHB0pDhbJ8rDnmfFh0fR/z2gVwd98tyCSKCWGVd5laljZUF77oPrJqtF8yTfMy7EfU/m9/X9OqrgtWU6vTtXBwvq5lSZ55i/T1aG
+Vfm7lZo6rq+zh0AKAAAAAAAAAABcIk/+5Fnw2XQ1cauXbh7VSxXvrtSpikg7PTtPyqn6MX+frAir6nerNWFUL9vmz+5tQNASHf4snD5M327foFOVubYiyw2k
+bJXUzgyd3ZOnP/5hre6cNMh3f/R/JyY2Vdaym7Q/P8OGQft21s2msoFapDpqx8uLNXZYd8+96sP9nmYO1qZ7x2nfjgz7PqLb9ZlA6lBhlk7vDuvJzGnq0qGl
+3ePOqgIAAAAAAAAAALhYnvzJs+Cz6WriBiad2qfpN5um6FRlSIcLnYDFCYlMlVRAx8tC9u+H1k1S20jlUkMCKefzzu8endvopdwZOluVq4OFbhgVaRGYn6nq
+khzVlIX024fmKL1t3dwqP4P6dlT+q0t0uirstBuMCYmydLQ0R4eKAspYMs6223Pu0bB7u/p0b6tPX7hXNaVBW0kWMz+qMGArsf7x2Qbdeet1tXsu9lkAAAAA
+AAAAAAAuT/7kWfDZdDWJDkxuu6mfvvt0vY6VBm1VlBNKOW3pDhVm2yCm5M37NGJQZ9/9DWFCmz9/tE415aHadne1VU35mTpdGdZ3n2zQ/GlDlNQsNkhyg620
+5knKXTlRBwsydbIipP22OsptoZdlWw+a+VcfPXuPRlzn3Dm+0uqnuIFdSnKi7p0xTP/+arOOlwdj71sQcFoNVob01iNz1Kd7u5j7AgAAAAAAAAAAXApP/uRZ
+8Nl0tXFDFzPf6fUHZ+t4eUjVJSYYyqirNsoPqKYkR4cKA9q4eKxap6XE7K0vN6Tp1KGlnsicZlvfHS4y4VFswFNd7FRJvf/kfPXo1KburlFnjRrUReVvr7Bh
+lGmX54REJkiLVEcVB20rv+VzR6pZYkLM8+vL/Xyvrm30zm/m6nhZ0Hk3kbDOZeZs/bAjQwunD1XSRT4LAAAAAAAAAADAjyd/8iz4bLrauMFJs2YJumvq9fr+
+y82qKTNVQHWVSyYkOlyUreMVIX2+7V4N7tvR2RsRf+aFNG3S1D5z0pg+2vv+ahuAmdZ97jwpU9lkAp8T5UE7r2nJrOFqkZJk9yYkOGFPm1bNtXXtJFWXZKum
+3ARPsfOczF1N2PXe43drYO/0mO9ZX9EVWTMnXqd/fL5JNWVOKOcGaKZtX3Vxtn1f259fqH4921/UswAAAAAAAAAAAM7Hkz95Fnw2Xc1MJdAfnrnHVieZoMW0
+z3NDIuNoSbYNfJbcOUIpyc3snoutkmrTMkV5q2/R0ZIcVZfmeNr2mTlNJpTa/vwCDewTGypNGNlTX3+wWscrgjpkKqwK6uZGORVLQX3/1SbNu+36i54d5X6+
+a3orPZszXad2h3Wk2J2v5d4zoBPlITv7at2CMWqecnHvBAAAAAAAAAAA4Hw8+ZNnwWfT1cidrWRmJa286wY7K+lkZag2kHLCHjNLKmDnO7396Fz16+nMSjJV
+Sya8aQj3uSMHd1HZWyt0oiJsA6i6UMq03gvYAMwETqvvuVFpqcl2T4d2aXps81QbRjkBUV2Qtb8g0wZcprXe6w/eqW4dW0ee5b3DhZhAyb3n1HF99acPV9tw
+7FDkPdS9D6cSq+C1pbVVY877JJACAAAAAAAAAACXhyd/8iz4bLoauYGU0b9nB3310mIbSJnWd3XVR06rOlN99M8vNmru1MGec+orIcH5ndYiSVnLJtjzTes+
+U3EUHUiZAOhUZVg7Xl2iYQM72z1Tx/fTXz5eZ0Mn915udZS534mKoL7dvl7Tbx6gpGYXVx3lMlVgeasm6pSZUxVVgWXDr52mrWDYPt98xq2OAgAAAAAAAAAA
+uJw8+ZNnwWfT1c6EOMEVN9vAxVT/OCGRw7TtM2HM6cpcvRCargG9OqhD2xZKb5d6QR2N9mlKa5GshKYmkKoLiExl0Y6Xl+hERUiHTZvAqPZ7JuwxlVPVJTna
+cO84DezdQU8Fbrch1eHCunDIBkT5Tlh2pDhbz4emq32bVHu+G7YlJjRVu9Yt7D3S2xnee9ZJU4e2qbr9pv4qeHWpzlTl6cd8E5JF7hYJzM7szlXpW8s1dlgP
++72inwcAAAAAAAAAAHA5ePInz4LPpqtVdJAydmh3Fb2xTGf35EYFUpF5UgUBHStxqpDe/s1cPbppip7Kmqanz+OpwDQ9k3W7XgzP1P1336DOHVpGnueEUqYK
+aeOicfphx2Y7p8nMY4oOmmzrvtIcVb67Up+9sFB/2b7OBlQHIhVb0Z87tTtXVe+t0qTRfWrnOLnf6/p+HfXw+ik2SHs66/YL3vnpwO16fPNt2v7sAu3fkWHn
+acVUR+Vn6lhpjl033y+1udNOEAAAAAAAAAAA4HLz5E+eBZ9NV7Omkd/Nk5vZOU3VRTk6WhyMmSXlCNhKJDOv6aj9baqY/NnPFefYsOi7Tzdo7hSn1Z95lvu8
+vj3a6ZPnF+pUVcjOjHIrsaKfZ84wIdCREqdCya3acqujakpDOlyYrScybrOtAM25bijVtmWKbat3sjJsW/1VF+d47hnNfKfq4izrcJHz/Oj7mPdxpipXu3+3
+UjMmDvS8RwAAAAAAAAAAgMvFkz95Fnw2/VKYGUymKuncnjwdyM+Iq0bK0sFCp5VeTVnQOnYhpUHVlAf1P99s1esPzbYBlHlGQhO3iqmpVs8bbWdTmeDKr0rK
+hE1mptUh06ovpl1fQPsLAjq7Z4tK3lyum0b0dM60nPMnj+mj3e+t1H+/2Wrvcqw05L1jFPc7mQqo6ODLCaMCOlSYbdsZmqov0wbQeWcXN6cKAAAAAAAAAADg
+Qjz5k2fBZ9NVL1JV1K51cz0fnK7Tu8NOEFMQHxI54Ux9mAqmH3Zk2FDqX19u0vI5I+0zbGgUaanXvVNrvffYXTYAMxVS0S3y3FDKtunzrGfaEMlUYj2wdpKa
+pzSz57kzncwsqCcyb7PtAE2YZe5ixN/Rj3nmwbjnmfVTlbn6bvsGLZox3Pv+AAAAAAAAAAAALiNP/uRZ8Nl01YsEUsY9dwzRXz9Zb1vd2XAmKphpiENuoLQr
+oP/uzdOHT87XwJ4d7DNMIOWGUotnDtffP9uo05W52r+zHs+zoVim/vN1nna+skSjr+/mOfPOyYP0zYdrdLbKmYdl7mJ4zqoHNww7tzdPbz8yV327O5VebiUW
+AAAAAAAAAADA5ebJnzwLPpt+Cdwwp3e3tnrjodlO1ZKtLMr0VBHVj9mXqR92bNbxspD+/WWGNt071rbqM89xq5m6d26jV7bM0n/2bLHBzwGfUCg2IArY+VVH
+irIUWHaTkpslxtzftNN7KW+WjleEbMvBfTsv9v7Od9+3I1PVJUH7e8XcUWqaEGk5SCAFAAAAAAAAAAAaiSd/8iz4bPolcIMiY9mdI3WwIKDTlWEdK87R0ZJL
+UJxtf//vNw8o/9WlGj6oi31W9Lyn2ZMG6dvt63WiPKwDBd7WfdHVSiZkOrcnV588t0AjB3WOuXtSs0TdN2eU/v75Rv33j1t1uDhLR0t97lRPZl7WsdIc/eeb
+rfr42YUaNsB5HgAAAAAAAAAAQGPy5E+eBZ9NvxRusGOCl0+eX6j/+WaLTpSHdKw0qJqyi3O8LGjDnf9+vVXVZubT+lvVskWKfU5CQoL93a1jKz2TfYfO7M7V
+4UKnCio+jLKB1K4sVZdk62BhplbePUqJcdVKfbq11fZnF+q/32zRyd3hS7q3I2TnUB0vD2rT4rFq0dyZVRUd3gEAAAAAAAAAAFxunvzJs+Cz6ZfCDVpSmyfr
+zkmD9PLWmXopd6ZeDM24JM+Hpmtb7gy99sCdylw2Xunt02KeaUwd309/+mitDX8O+oRS5r8PF+XoZEVY7z85T4P7ptv9CZFQKjExQTdc31WPb7pNbzw4R88H
+Z+iFoPcu9WX3hmfo1S2z9PCGKRoUeR4AAAAAAAAAAEBj8+RPngWfTb9ELZonqWvHVo70S9Sxlbqkt1T3Tq3t7+QkZ+6TkRAJwTq0TdXDGyfbyqTq4hzbMvDQ
+LhNKBZxWfQVZOlYW1L++3KT504YoqZlTXeWGaOZ365Yp6taxtbrZ5/jco6E6trLVW+ltU23gFf+OAAAAAAAAAAAAGoMnf/Is+GzC+TmzpEyg1ERjh3VX5Xsr
+dbwspMOFJojKtNVRBwoCtu3fsbIcvfHQnerRpbWzl9Z5AAAAAAAAAADgV8iTP3kWfDb9Ermt9BqD37PM77TUZIXuv1mHCrN0vCxHB/Iz9aOpkNoV0ImKkP7y
+8TrdcfMANYurjoo/q3F43xEAAAAAAAAAAEBj8ORPngWfTbgwE/i4fw/p30m73limk5UhHSnM0r6dGTpWGtSR4hw9F5yu9m1So/Z5zwIAAAAAAAAAAPil8+RP
+ngWfTai/5KRmylgyTj/s3KyTFSHt35mp07vD2v3eKt16Y5/aWU6EUQAAAAAAAAAA4NfKkz95Fnw24adFB0z9e7TX9ucW6ERl2LbqO7groMc2TVVqi2Tnsz77
+AQAAAAAAAAAAfi08+ZNnwWcT6scNpUwLv5V3j9bfPt2o//vdw8p/danGDe/p+RwAAAAAAAAAAMCvkSd/8iz4bEL9mMont/qpW8fW+vDpe3R2T67yVk1UclKi
+5/MAAAAAAAAAAAC/Rp78ybPgswkXZ/W80Xr9gdm6eaTzXqmMAgAAAAAAAAAA1wJP/uRZ8NmEi9Ojc2sN7tNRrdJS7H8TSAEAAAAAAAAAgGuBJ3/yLPhsQsMR
+PgEAAAAAAAAAgGuVJ3/yLPhsAgAAAAAAAAAAAOrLkz95Fnw2AQAAAAAAAAAAAPXlyZ88Cz6bAAAAAAAAAAAAgPry5E+eBZ9NAAAAAAAAAAAAQH158qf4BUIp
+AAAAAAAAAAAAXKz43CmSPTXxhFLxGwEAAAAAAAAAAID68MmdnB+ffwAAAAAAAAAAAAAazCd3IpACAAAAAAAAAADA5eOTO/kHUoRSAAAAAAAAAAAAaKj4vCkm
+kPILpeIPAAAAAAAAAAAAAC7EJ2+K/Yn/AKEUAAAAAAAAAAAA6is+Z/INpMyPz4cAAAAAAAAAAACAn+STM/n/xH+QUAoAAAAAAAAAAAA/JT5fumAgZX58PgwA
+AAAAAAAAAACcl0++dOGf+A2EUgAAAAAAAAAAADif+FypXoGU+YnfRCgFAAAAAAAAAACAePF5Ur3DKPcnfjOhFAAAAAAAAAAAAFzxOVKDwyj3J/4QQikAAAAA
+AAAAAADE50cXHUaZn/iDCKUAAAAAAAAAAACubfG50SUHUuYn/jBCKQAAAAAAAAAAgGtTfF50WcIo9yf+UIIpAAAAAAAAAACAa0d8PnTZw6jon/gHEEwBAAAA
+AAAAAAD8esXnQY0aREX/xD8sXvxFAQAAAAAAAAAA8MsSn//Ei8+PGuUn/qEXEv8FAAAAAAAAAAAAcHWJz3cuJD43avSf+AsAAAAAAAAAAADg1yk+J7riP/EX
+AgAAAAAAAAAAwK9DfC70s//EXxAAAAAAAAAAAAC/TPE50FX7E39xAAAAAAAAAAAAXJ3ic57L+fP/AHBwmTz/nRX5AAAAAElFTkSuQmCC
 )"
 }
 
@@ -7051,319 +6935,6 @@ FlagB64(c) {
     return "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"
 }
 
-DiscordB64() {
-    return "
-(Join
-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
-)"
-}
-
-DiscordHovB64() {
-    return "
-(Join
-iVBORw0KGgoAAAANSUhEUgAAAIQAAABkCAIAAADIYg9yAAAauElEQVR42u19
-eXhU5dX4eZc7M5klM9kTQiBCgIBAwr5vYRGDILix+FMrbvVXrVZtrdZ+2j5f
-a+vztX7t97T9qQhqBUUFAyIg+44oYJVFQBK2QMg+yez3vsvvjzcMI2symQn4
-NecZkod5cu8995z3rO8550XQJoAwxggDAOcs/CWltHNuXq9ehQWFg/J7Fgwa
-VLh2zYbH/u9dGBMheHzxQRghWPzhls6ds/bu/WrfN3u++Wb3kcMHKivPRP4Z
-IRRACiGklG1BpbjeHWOMEBZCSCnOMUDr1r1n//5DBg0e0fvGAR07dXG5rJQC
-42DoIIFPLR729b++JIRwHi9+qJsXT7n9nws/8gfAbAKEQQ9BdU39sbLD+7/e
-vXvP9q//tfv48aMRL0IQQpEv8oNhxjke8PCC6tAhZ/CQUaNGTxgwaGTXLt0c
-DpASQjroITAMIaVECEkhklPoJ8s+u+/eyfEUDoQxolRbsWpvQUEvTyNDGEsp
-McYmEzKbQdNACKivN44cOrDriy1bN6/Zs/dzd33t5V7tOmUGQghjLKUUomn5
-dM3LHzt20viJUwsLh2Zk2DGGYBBCIWCMA0iEMEII4/M4CCESEvAtxSP27N5x
-OeFACF0R//M0uiS9CKGcs1unz1nwzsK6Wk4piXi6lFJpJKRpxGIBkwkMA06X
-V+7atXX9uhXbt284c/pUWLwUwjHkCoqdKKAw7Tp17jJx0tTiKbcXFgxLTqGM
-Q8APut7EAIzR9wl6HhhjSUl02bJVc+8rJoRKKRFqor6UUko4R6zmLg5lG8J3
-AAApAWP0yYo9/Qb08fmEounFIISUUkohEMZmM06wAgI4e9az6/PNn674aNPG
-VTU1VWHuxkp9odbr37AoOBzOceNvnj5jzoiRE9LTEgwGAT8YOgOEMMaREnAF
-EEJoJpg8ceCB/V9dhvHEZDJpmolSakmwfl8qZCDg55zpum4YelhAL4CJk259
-b3GJ2y0oxc1DqekFTSZitQFGcKq8ZuO6VSUlC7dt3cCYcQEdrgEzEELhRZqf
-3+fOu+6dMm1mt7wcCeD3ga5zhBQXWvYIxnhyMnl7wbsvv/xsTk5uenpmdnZu
-elpGWnqH1LSMxESnze6wJtgsCTZNo5RoEHF/KSTnuqGzQMDn8/t8vsZGd0NN
-zdmq6oqqyorTp49Xnq2oqCj/69/eKyoa3dgoInVUi7hisRCrFQwD9u87UPLx
-wqVLF50uPxFWoVErLtQ6TqAJE4vvvvfHY8dMdiVRvw8CAa60Vkt5cDH4fD6X
-y2Y2AyGAEAgBQoLgIETTR0q4+K0xbvqJMWACBANCgAlIAZxDIACNDV67w95K
-Pa+4ghCy2bDZAmfPNK5auXThwjf27N7R1pKhrHRqWsb8+SVDhw9BCLxeYAbD
-hLSeBxEKEAxDrUQJUmGqVl7Tzytd3LQ4m8xE+HJKCSEQQ5+ZcyGFMJmp3Q6h
-EKz4dPnjj87UdV0qE9fSV46KGUQI8adX35k+Y0J1tREKAUKIEHI5sxzte0qM
-lbHBmOAIQFcHjM5fG3G5um0M8cQYYYI5l34fNwwxckTPUMi8dcsaZULiLhnK
-45x26+y33llUV2dQqkE7nNNdAMxsJtNuGXUF1zxmzFCeosuVvG7DvvSM9FAI
-CMHtbIj0PhyJ5F9f7Z9aPJBxJlsYhZAWigUWQrz02/+ZMGlUY0OLvZH/9YAx
-DvpZjx6ZjY36rp2bWqqsUEs4QTjnQ4aOWfbJJp+PXy5caldWGAshjAlFhWWl
-RzBGzQ8+mktQhBAAopS+/sbHWdkZoZBU9rAdLiYUY9LlMmVldy9Z+k/leTZX
-sFriQfG773l06PC+ngbWrqCuAJSS+no+9ZZJNxffznkLVAhqHiewlDIlNX3j
-5oMul8swoF0srhp/JCSg0qPHJk3sGwoGmhl24GaKnpTyiSdezMlJDgVFOyea
-4+n4fKJvQZcHH/yZEM2lGGqGWBApRbfuvdau3ysEVcnQdnI3x5JTKr0e77ix
-PasqK9TeVGsNOMJYCvH7P8zr17+XzyfaA4vmW3JD5xmZCRjb169b0RxLjppj
-twcMHL5i5XZ/QJB2BdUSkFICSITYhHEFpaWHryocVyWuBICnnvlPTQMpZDt9
-o3BznU7TT598SSW5o5cMFeUNGz6uZPkGr7ddQUUtHwJjcdOE/ocP71f759FI
-htJxj/3014RA29Sq/C91c6XDQX/y+K+itxlKLIYOHbNsxaZ2sYiNcEzsf/jQ
-lYQDX1ksHv7xs5RCXIuF/i2Eg4nERPrgwz9XJRYtkwxCCOeid+/CVWt2t8fb
-MYk5MAbGQkVjbjx16tjl3KorUFn+6IGf2e1Y8HaxaC1gjJjBU1Mt99z3Eykl
-Qri5koExFkJ06NBpw+ZvExISOIcY7mz/OwuHpkF1Ve24Md0bGuoja2uuJBlK
-Kd01a25mptXQeTsnYiUcwaC4oWvqtOmzVTR9dTWlCgMtloQ77vhRIACo3VrE
-lB96CObMfoSQS1cS44vzH1LKceOn5Pfq7PPxdo82hkAI9npFvwF9Bw4cIaW8
-eJ8DX+wRA8DMu+ZCe5QXn4DDZIaZsx+8ugFXprtT5y4bNx8kxBTv7o1/VzOO
-3G732FE9amurLjDj35MMZSGmTp2ZkmJmBm+nXXzMOO/Y0TXpplvhXF/BpZkh
-OMcY33LLrFCo3XTHCxACxuS0abMB4ILQD0fqKCll7z4D+hT08flku+mOE1BK
-fD4YPHRE59y8C3ZkcQTHMAAUF99utyPB23VUHIEZPDnFNGnSreGo7kJmCMEJ
-oUUTpgaD7Toq3poKMQMm3TQdAHhEtglH6qiePfvm9+wZCLSRjhJCci54Ewhx
-LXYSrwkOmGB/AAr7DcrJyZXyvKbCkSmQceOLEx2Is7jrKMY4Y5xSZLVih4M4
-HMRqxZQi9X0b6QqFg4ZstvM4EIIY4zzOuVFVq5Caah41elKkpqLqlypeHzP2
-ZsMAFM9kFOcCADmdhBCoqQmVHj3Z2FgPAImJSdkdO6WkmqWAxkYpZRylk3OB
-MU5KIlJCVZXvzJmTPq8HEHIlpWR36JScQpkBHo+4oBM35vGfkDCuqHjRwtfD
-4kjDsV5Wh5zeffoFAnC5BG9MFqPNRjCG9es3fvTh21/s2lpxptwwdADQNC0r
-K2fwkFG33X530fiJAMjr4VSLfRGpYXCnk+g6LCtZvnTJwr17dlZWnlFr0Ww2
-d+yYO2Jk0Z133jdsxJBQCAIBHqdCVoxJwA8DBoxITHQ1NrpV9IfgXGv0tFtn
-L3h7UX19vB7PGE9KIocOfvfSS0+vXfNJpMzC95sSx46b/B+/+VNhQa+6uhgj
-wxhPSSE7tn/50otPffnFtivgcNvtd7/wwis5nTu43VzTSJwE1G7Ht8+YuG3r
-OrXJfV4Iho8owhjilJJSPawrP101pXjY2jWfYIwJoaojTNWhqoZ+9eWmjaun
-3jz0ww8+Sk4hMTQhjLHkFDLvjfnTp4388ottGBNCiBoMcAEOCKGlSxZOKR66
-c/vO5BRixCcZIYUwm2HYsHHhvFTTcBVCSL/+w0J6XJxaxnhSMvnkk9X33TPV
-7a5VXeycs8jxAqqJWn1JCPX5PI88dOfCd99PiREtDIOnpNDX/vH6z59+gDFD
-JbE555Fd/mEcpJSU0oqKU3NmT962dZfLRRiLvUlHGBkGDB46RsUVKh2FhRC5
-uXnrNx2kVBNCxrpPUiRYUenR0uKbBno8Dc0cCqIcDEq1kmU7Bg7u39jYKn3F
-GHc6ycaNW2beMfaCgRpXAKU60tKy1qzbm5aeEQrF2Kc4lzRsGDOyW11dNVI9
-oQBQUDDI5dIMg8e8qBkhAAm/ePphj6fhcpsql0JUIIR0PfT0U3MDAZ0SFHU9
-oxBS03C92/fzp+bKphkUonnLiFNKq6srnvvlY2YzipxKEqukoa6L9HRnr159
-1X+bfLd+A4ZhEnuDwRh3uvDyZct27tzY0u5Pzjkh9Ntvv373nwucLsyjHbIj
-OHc60fw3/3HiRCmhtEUTJRhjhJDVq5asXbvJ6SQxj4GU2SjoN0Q5EVgFODf2
-7s/iEGFgjAwd5r/55+gEThnVBfP/0uA2omshlFJSE6muDrz79t/UFKWoQjS0
-4M1Xw2Y2tnpDCCgoHKxQxVIKhyOxS5f8UCjGEQbnwmrF+/Yd2rN7ZziubKGG
-4QDo6Hfffrn7C7sdRXEHzoXDjnZs21Jefrw5HRKXxEFKuW3r+u+OnrFacWzz
-JQihUAi69+hNqdbk2ubm5mVmpui6jG3AKYUwW2DX5xs5Z5cshmgOKJu5fdu6
-KMvgpSQEtm1fq9zW6GQLYxII+Pbu3m6xQGxHkiGEdB06ZnfKysxucm27dutl
-tUIrx/Nc6lEgJez7Zk+rOColAOzft5cxiELXIYxDITiw/6vohnmElS0AHNi/
-F+MYW3GMEWPC6dRyu3RvYka3bj3jEe4hhJkBp04dU1SNlhkAAJWVpwMBQC30
-LIWQlGKPh1VUlEMrJg+pC8vLT3CuvMMY23CTCbp179XEjC5de3IR+8coGfR5
-PdAqRksACPh9oZAgGLVUZSMEBjOCwQC0erEFg4E4FcxICXld81V0hXNybmAG
-XM9tk7EdnhQlDnHKnyLEOHTKzQMAnJjoyszMMuLADCmlyQSJThe0SuoQADid
-yVYrYky0lCVSgkZN1gRbq3BACACSklMxgXiEfsyADlk5mmbCGZnZTmcS4zHX
-UiCl0DTo3LkrQPScVhfm5uaZzC1uE1HmMTGRdMjOaRUOAACQe0Mejn0YDgCI
-MUhNS09OTsWZGdk2m4kzGSc1VVg4pDXGs+km/YagqAihzGNBwaDWMEPFxYWF
-gw0W+7gYIeAcbDZHekYHnN2xE6FxadnDGAeCMGx4kcWSwLmIjhacc0q14cPH
-B6OqwkYIGQaMGVsM39/6b5FPKKXIyupYUDAo4I/9zpvqiLVaSWZmNs7M6khw
-vJjh94ke+Z1GjpoIIKOI+wghCMHwEUU39s7z+6PpKySUeL1y0OAh3Xv0jg4H
-FSoWT7kzM8uq6yw+foQkBLKyOuL09Kx4+iBSSvjxo89GHWpIKR959Be4FcuF
-c+500ocfeUbKFqcY1L6T2Wy59/7H/H4Zpw1pKSUmkJ6RhVNTM7iIl19LKWls
-5OOKhs+47R6VkW7JtZRzPummGRMnFTW0YuobIcTtFjNn/Z/CfkNVFrYl11Ih
-+EMPP9O3T5f4juqQkJqWiVOS0+Pay4oQ9vvF717+S+fcPMZYM/lBCGWMpad3
-+OMrf9dDrRujjJAQoGnk1b8ssNkcnPNmKitN0xgzCgqH/PzZFxoa4tiqojBM
-SU7DiU6nEHGM+DBGoRCkpCQteLskJSWDMUapduXHUapxzux255tvLe2YkxkM
-tnYsJSHY6+V9++a/Nu8jTTMLcRUZRQhpmmYYxg039Ji/YImmmTmPa9kOSAku
-VzK2Wu0izu2slGKPh/fpc+OSkk35+X0ZM6SUhFB1KMX5WbQYE0IBgDEjJ6fL
-4g/XDhs+xO3mzZxYflWFWVfHi6dMWrjw0/T0DowxhFC4KCICB0IolVIahtG/
-/7APl67tmJMdne/QwjQaOOyJOMFqa4MeJUpJQwPv2TN/2YrtD//4aavVxjlT
-WwVhUMUAlGpz7n5oxerPBw8ZVF8XyzIZTSO1Nbxo4viVn+2acdscAAgXRUTg
-wDljDofzp0++sKRkY3Z2jscjYrIaruYmgMVqQwcP+ewOq2iTXm/GhMmE7XY4
-cKB0ecn7GzesLCs74vE0SpA2q71zbtdRoydMnz6n/4A+gQAEg3GhAmM8wUpM
-Jvhy156Skvd2bNtw8mSZz+cjBDsSXXl5+UXji6dNm53fs1NjIzDWFnM6hJAm
-EzpVfhodP9Wm5cZqpLvNRiwW8PuhttZdV1cjhXQlp6SmJKuJ4l4vj8lo+8s7
-uxJA2u3YZAKPB2qqa9zuWkK15OTUlJREqxX8fvD744vDBa4tpai6qqatmRFO
-MEgpMCYmE1KuJufAGDDGEMJtUwOvcKCUUgqUgpTAGBiGFJyr2eltSRCMwdPo
-pXAtgBCstlLUPH1oOiIItSgQiSEOodB5HDC+NjQBKa/RgyMc32veU3s94NCE
-CbTDdQPtzLiemNE+o/Y6AQkS67rezo9rC2o0WCDox6FgsJ0Z1xwQAkM3cDAU
-xBhE+8zaa82MYMCPfX5vu2RcY2shJcbgC/io3+PFGABkPHxttfWtmi1+uPMv
-OBfqJN749eAiBI2Nbtroqcc4Lp18jHG7nQgBJjMxdPD5OAD8gE5BkVKqRmm7
-HVMKug4AyO+PRwOqRBga3HW4pqZKShHzeiAhZEYmObD/4O0zip579pljpWVJ
-ScTpJADADMav74mgnAtmMIyRy0VcLnzo8KGnnnxs5p03nSo/lZ5OBJex5jqA
-FLXVVdjjbbTZcGx7coQQmib/+t9/L548YOeOjW+89qfxRX3m3j9nw7r1CMnU
-NGq1Ys4FY9cXVxQPOJc2G05No5yz1atW33fPHROLCt95+29bt6y5aXy/d95a
-aLbI2FbsC8ETErDH10A/Wjx/9KixvW7sWlMTy6SxlDIY8DsciaFQEACCwcCy
-j99b9vF7N/bud+uMWTdNnpHfo5vJhINBCASk4LzpaPA2L6htOjtXSkKp1YYt
-ZhwMwsH9367+bEnJx+8fOXwAIsZJmEymRk9jDFW6enp6hunrr75b+ekSBABJ
-Sam/e/l/Zs2e5fNDMBCbzTUpITkZTpysmffaf7/91t8bGuoBgFJNHdhsMpmH
-DR8zefJtI0eP75qXZ00A3YBQEHSdSyFbdGR1FKtESimEBCkRxiYTtlhA08Dn
-gyNHDm3dsnb1yqW7dm3jnAGA2gkHAJcrZe4Djz308JNZHVx1dbHpKjIMnpBA
-rFZY9O6iF371U7e7FoV7gWfOmvsfL72SlZVSV8sRxoS09nmMcYuF2O1w6PDJ
-+fP+8sHit931tYoThqGrzLnJZC7sN2j06EnDR47P79E3Ld2uacAYhEJgGMAY
-BykBqWPWkarQbH7thAqe1IkiUqrjdhGlxGQCkwkoBd2AqsrGAwf27ti+fsvm
-Nd98vVfxAGNMqabrIQBISk69++6HfjT3J3l52R4PhEIxMOCcSylFcjKpqKh9
-6cVnPlz8lnpo0ynCanR9p05dXvzNn6ffdmswAAE/oxptvRhyLmw2YrXCd9+d
-fm/hG++/v+DM6ZMAgDFB6HuNfllZHXv3GTBg4LCCgkFduuZnZXWw2YAQEAI4
-B8MAztUn3EYvL3Q70PlfCCFKMcZAKGgUCAGMgTHweOTZytPfHTnwzde79+7Z
-uX/f3qqqivANCKFqJxwAOubkzp7zwOxZD9yQl+X3QcAfm2OdmcESrNSSAB8v
-LXnp10+Vlx9Tp1o1zQ4J46HWxV0z73/u+d/ldsmqr5Oq+af19pxzabUSqxXO
-nmn4dOWSDxYv+GLXtvA6QAip4oTwJVarPfeGrl26dM/L69W1W37HDp3TM7Jd
-rmSb3W6xAKWAEGAMgCLPZgchAWTTUeGMgd8vAn5ffX3t2cozp8uPlx49dPTo
-wbLSwydOlAUC/ggfH4XJoXAYNnzMnTPvv/nm2zKzHD4fBPyckBioTdXSkJSE
-jped+f3vf/XhB29Fkh0uHqWqaJeWnvXsL347554HKYWGBo5xDEI2JSVmC7Hb
-QNdhy5at9983xef1IgTnNvvUCyMpxcXuisWS4HA4k1PSnM4klyvJkeiy2x2a
-ZrLZHOfGsAif16vrIa/P09hQ39DgbnDX1dXVeDzuUCh0wd3UidSqJCW81ajO
-Ilzw1qeDhww0mcDrBT0UG2lQ0pzoJMyAhf+c98c//Lqm5izGWMrv9TnQC5Yw
-ABBCqqsqnnnmoY+WvPv88y+PHD0sGAS/r7VoYYwwJsyQ1dV6Wrr5zKkTfp+X
-EBzWVFKeH40YWcukSBYMBoLBQHX12ajiWxQ5NEbd8AJ+qxi7wV3f6GmgFKqr
-Q5pmiomiFpxbbdRiga2bd7z88vOf79wM52ZhwCW17CWx55wjhOfc/eDjTzyX
-n5/r8UAo2FqWCCEJkX6/f9zo/LNnT6vJJc0kaJhJTZijS2AvI/+dUzvNLJpW
-vkyPHr3XrP9KCNzKEwkVG8wW6nDAocPH//rq795b9Kaaui0uczQ1uWL2ikgp
-9n2z54PF7zR6Ar1u7JuZZTMMpOs8gigt1pvJKeTP//XHdWuXK7SicEzV4m5a
-3t8HKURY+7e0cF1Rqrq6MiOj08hRA6I+3EgIyRnXTCQpGVdX1776pz8+9cQD
-u3fvCPP7sgvuqrcOC1RmZvYjjz41e/YDGVlOb1RSok48PXHs1ITxvQMBX2t6
-s+MEypCkpWdu3HzQ4UhkrGUltmFpsDugsqJh4aJ5r/+/P1eePXM5vdRcyYhc
-L6os1eNp2LxpTUnJ+3pIduuWn5FpEwLpOpeyuaedCCHsDvzUzx45sH9v8xVU
-GycHCaFeT2MwqE+bPrn5wsG5EEJYLNjlwjU1dW/O+8fPnpy7YvkHPq+HEArQ
-rAxKC9geNiQqJrjn3kdmzprbpWuHkA4+b1OS+QpcUWPxli//7P57J7d0wk5b
-wrkibPzx8s+HDLnKqCuVz0AIqfrE0tLTi9+f/+47r6sxAFcwD61lxjlcMcZN
-M1VcrpTpt82eM+fBwn4FhIDXC4bOEL5ESaCy2yE9OLGo4OSJ0uhmqrQZqLVS
-2G/IipU7dF2qSOgS3qoQJjO12YBx2Lv3q8WL5pd8vMjtrjvHBtlGp7gpxRV2
-QsZPmPLGG0u+K/O7PfJsjSw7IY6WGaXH+fFTUn2Olhluj7z/gSdVmHP9b2ao
-BqdfPv9Kg1ceLTPCL1J6nB8tM8pOiMoaWe+RR8p8r8/7qGj8zeEOM0LItRlv
-EMkSAMjN7fr4E899tv7riirp9siz1fLYySbs6xrk+x9uQggRQn4Qx3KosNxs
-sazZsL+6Th49xkqP82Mn5dlq6fbIiiq5eu2/Hnv8l51zu0amMK6HKROIEBLO
-MyOEBg8e8eJvXt245WB5hayqlWer5f5va3Nyboh6ztA1FI7evfuXnfCfqZRV
-dbK8Qm7ccvDF37w6ePCIMN0xxtENJou7XxhZuWw2m8eMnfSHV14/8G35HXfd
-Dxed3fFD4AcFgJ889qtvD1f84ZXXxoydZDabz2cvVCYydvD/AcJXkSvLUFAn
-AAAAAElFTkSuQmCC
-)"
-}
-
 ; ===== TRANSLATIONS (generated by i18n/gen_tables.py - edit the JSON files, not this block) =====
 TrCs() {
     m := Map()
@@ -7423,13 +6994,13 @@ TrCs() {
     m["Import anyway?"] := "Přesto importovat?"
     m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Tento skript nemá řádek „#Requires AutoHotkey v2“.`nSpustí se pomocí AutoHotkey v2 – skripty pro v1 nebudou fungovat."
     m["Import anyway"] := "Přesto importovat"
-    m["Macro Manager setup"] := "Instalace Macro Manageru"
-    m["Macro Manager is already installed"] := "Macro Manager je už nainstalovaný"
+    m["ComboCrown setup"] := "Instalace ComboCrown"
+    m["ComboCrown is already installed"] := "ComboCrown je už nainstalovaný"
     m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Nainstalováno v:`n{1}`n`nAktualizovat ho tímto souborem a spustit, nebo jen spustit nainstalovanou kopii?"
     m["Just start"] := "Jen spustit"
     m["Update and start"] := "Aktualizovat a spustit"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nainstalovanou kopii se nepodařilo aktualizovat (neběží?). Spouští se nainstalovaná verze.`n`n{1}"
-    m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Vyber, kam se má Macro Manager nainstalovat.`nVytvoří se tam složka 'MacroManager'."
+    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Vyber, kam se má ComboCrown nainstalovat.`nVytvoří se tam složka 'MacroManager'."
     m["Installation failed:`n{1}"] := "Instalace se nezdařila:`n{1}"
     m["Create a Start Menu shortcut?"] := "Vytvořit zástupce v nabídce Start?"
     m["Skip"] := "Přeskočit"
@@ -7437,16 +7008,16 @@ TrCs() {
     m["Create a Desktop shortcut?"] := "Vytvořit zástupce na ploše?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Nainstalováno do:`n{1}`n`nTvoje makra a nastavení jsou uložena v:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "Tohle nevypadá jako nainstalovaná kopie, nic se neodstranilo."
-    m["Uninstall Macro Manager"] := "Odinstalovat Macro Manager"
-    m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat Macro Manager?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
+    m["Uninstall ComboCrown"] := "Odinstalovat ComboCrown"
+    m["Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalovat ComboCrown?`n`nTím se trvale smaže celá složka včetně všech maker a nastavení:`n{1}"
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Uložit před odinstalací zálohu maker, profilů a nastavení? Po nové instalaci ji obnovíš přes Záloha... > Obnovit..."
     m["Don't save"] := "Neukládat"
     m["Create backup..."] := "Vytvořit zálohu..."
     m["Create backup"] := "Vytvořit zálohu"
-    m["Macro Manager backup (*.mmbackup)"] := "Záloha Macro Manageru (*.mmbackup)"
+    m["ComboCrown backup (*.mmbackup)"] := "Záloha ComboCrown (*.mmbackup)"
     m["The backup could not be saved:`n{1}"] := "Zálohu se nepodařilo uložit:`n{1}"
     m["Backup saved to:`n{1}"] := "Záloha uložena do:`n{1}"
-    m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager byl odinstalován.`nSložka bude za chvilku odstraněna."
+    m["ComboCrown has been uninstalled.`nThe folder will be removed in a moment."] := "ComboCrown byl odinstalován.`nSložka bude za chvilku odstraněna."
     m["New macro"] := "Nové makro"
     m["Edit macro"] := "Upravit makro"
     m["Profiles"] := "Profily"
@@ -7548,31 +7119,31 @@ TrCs() {
     m["Updates"] := "Aktualizace"
     m["You have the latest version (v{1})."] := "Máš nejnovější verzi (v{1})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nAktualizovat teď? Aplikace se restartuje. Tvoje makra, profily a nastavení zůstanou beze změny."
-    m["Macro Manager update"] := "Aktualizace Macro Manageru"
+    m["ComboCrown update"] := "Aktualizace ComboCrown"
     m["Version {1} is available (you have v{2})."] := "Je dostupná verze {1} (máš v{2})."
     m["Later"] := "Později"
     m["Update now"] := "Aktualizovat"
     m["The download failed. Try again later."] := "Stahování se nezdařilo. Zkus to znovu později."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Stažený soubor neodpovídá očekávanému kontrolnímu součtu (nová verze se možná ještě nahrává). Nic se nezměnilo - zkus to znovu za pár minut.`n`nOčekáváno: {1}...`nPřijato: {2}  ({3} bajtů)"
     m["(could not compute)"] := "(nelze vypočítat)"
-    m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Stažený soubor není platný skript Macro Manageru. Nic se nezměnilo."
+    m["The downloaded file is not a valid ComboCrown script. Nothing was changed."] := "Stažený soubor není platný skript aplikace ComboCrown. Nic se nezměnilo."
     m["Could not replace the app file: {1}"] := "Nepodařilo se nahradit soubor aplikace: {1}"
     m["Version {1}"] := "Verze {1}"
-    m["hlp_start"] := "Macro Manager za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Ukončit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
+    m["hlp_start"] := "ComboCrown za tebe spouští makra na klávesové zkratky. Každé makro má spouštěcí klávesu; dokud ji držíš (ve vybrané aplikaci), makro se přehrává.`n`n- Zaškrtnutím makra v seznamu ho zapneš, odškrtnutím vypneš.`n- Přepínač Všechna makra v horní liště zapne nebo vypne všechna makra najednou.`n- Tmavý režim přepíná vzhled aplikace.`n- Tlačítko jazyka v horní liště přepíná jazyk aplikace (English, Čeština, Polski, Deutsch). Aplikace se kvůli tomu restartuje.`n- Dvojklikem na řádek (nebo tlačítkem Upravit) makro změníš. Přidat vytvoří nové, Kopírovat ho zduplikuje, Smazat ho odstraní.`n- Chceš-li vybrat více maker, táhni myší přes řádky (nebo Ctrl / Shift + klik). Kopírovat, Smazat, Exportovat, Nahoru / Dolů i přetažení ven z okna fungují na všech vybraných řádcích.`n- Zavřením okna aplikace zůstane běžet v oznamovací oblasti. Po kliknutí pravým tlačítkem na ikonu v oznamovací oblasti najdeš Otevřít okno / Odinstalovat / Ukončit.`n- Aplikace vždy běží jako správce, takže makra fungují i ve hrách spuštěných se zvýšenými oprávněními.`n- Pole pro hledání nad seznamem zobrazí jen makra, jejichž název, klávesa nebo aplikace obsahuje zadaný text. Křížek vedle něj hledání zruší."
     m["hlp_edit"] := "Název - libovolný text, zobrazuje se v seznamu.`nProfily - do kterých profilů makro patří (může jich být víc).`nSpouštěcí klávesa - klikni do pole a stiskni klávesu nebo tlačítko myši (pravé, prostřední, boční tlačítka X1 / X2, kolečko myši). Pro kombinaci při stisku drž Ctrl / Shift / Alt, například Ctrl+XButton1. Esc zruší výběr.`nPřepínač - volitelná klávesa, která toto makro zapíná/vypíná bez otevření okna. Backspace ji smaže.`nJen v aplikaci (exe) - makro funguje, jen když je daný program v popředí. Tlačítkem Vybrat vybereš spuštěnou aplikaci nebo najdeš soubor .exe. Prázdné = funguje všude.`nTyp - Pohyb + akce, Sekvence nebo Skript (.ahk). Viz další témata.`nStisk - jak se má spouštěcí klávesa stisknout. Normální: makro začne, jakmile klávesu stiskneš. Krátký stisk: rychle stiskni a pusť - makro se přehraje jednou po puštění. Dvojitý stisk: stiskni klávesu dvakrát rychle za sebou. Dlouhý stisk: chvíli klávesu podrž (s Opakováním hraje, dokud ji držíš). Jedna klávesa tak může mít až tři makra: krátký, dvojitý a dlouhý stisk. Normální makro na stejné klávese si vezme celou klávesu. Makra na kolečku myši se spouští vždy hned.`nSpouštění - Jednou na stisk klávesy: přehraje jeden průchod a čeká, dokud klávesu nepustíš. Opakovat při držení klávesy: přehrává dokola, dokud klávesu nepustíš (zastaví se okamžitě). U Krátkého stisku se nenabízí - přehraje se vždy jednou.`nPřesné prodlevy (vlevo dole) - prodlevy se dodrží zhruba na milisekundu. U nových maker zapnuté. Vypnuté = dřívější časování, kdy krátké prodlevy často trvají o 10-15 ms déle, než je zapsáno.`n`nUložit makro uloží, Zrušit zahodí změny."
     m["hlp_move"] := "Určeno pro hry, kde se neustále pohybuješ (například A a D) a mezitím sesíláš kouzla.`n`nSměry - pohybové klávesy v pořadí, například: a,d`nAkce v pořadí - klávesy ke stisknutí, jedna na cyklus, například: 1,2,1,F7,1,F8`n`nKaždý cyklus proběhne takto, s prodlevami, které nastavíš:`n  1. směr dolů`n  2. (prodleva 1) akce dolů`n  3. (prodleva 2) směr nahoru`n  4. (prodleva 3) akce nahoru`n  5. (prodleva 4) pauza, pak další směr + další akce`n`nSeznamy se po dojetí na konec opakují od začátku. Pokud jsou Směry prázdné, mačkají se jen akce: doba držení = prodleva 2, pauza = prodleva 4.`nPokud hra makro ignoruje, zvyš prodlevy (běžně se používá 20-30 ms)."
     m["hlp_seq"] := "Volný seznam kroků. Piš jeden krok na řádek:`n`n  down KEY PAUSE   - stiskne a drží klávesu`n  up KEY PAUSE     - pustí klávesu`n  tap KEY PAUSE    - stiskne a hned pustí`n`nPAUSE je čekání po kroku v milisekundách (prázdné = 0).`n`nPříklad - rychlé střídání A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPříklad - útok a kouzla:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPříklad - dvě klávesy najednou:`n  tap Shift+4 50`n`nPři Spouštění = Opakovat se řádky přehrávají ve smyčce, dokud držíš spouštěcí klávesu; při Jednou se přehrají jen jednou.`nKlávesy, které jsou při puštění spouštěcí klávesy stále stisknuté, se uvolní automaticky."
-    m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil Macro Manager, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
-    m["hlp_keys"] := "Názvy kláves odpovídají názvům v AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlávesu lze zapsat i jako scan kód, například sc002 - jde o fyzickou klávesu bez ohledu na rozložení. Klávesy jako čárka, plus, & a | se takto ukládají automaticky.`n`nMyš: spouštěcí klávesa, přepínač i klávesa Všechna makra může být také tlačítko myši: RButton, MButton (klik kolečkem), XButton1 / XButton2 (dvě boční tlačítka) nebo samotné kolečko (WheelUp / WheelDown / WheelLeft / WheelRight). Kolečko nelze držet, proto se makra na kolečku vždy přehrají jednou. Levé tlačítko se nenabízí.`nHerní / MMO myši: Windows zná jen pět tlačítek myši, další boční tlačítka obsluhuje software myši (G HUB, Synapse, iCUE, ...). Nastav jim tam klávesy, nejlépe F13 - F24 (nebo Ctrl+Alt+číslo); Macro Manager je pak vidí jako obyčejné klávesy, takže klikni do pole spouštěcí klávesy a stiskni boční tlačítko.`n`nNahrát (vedle Směrů a Akcí): stiskni Nahrát, mačkej klávesy v požadovaném pořadí a pak stiskni Hotovo. Pole se plní průběžně. Během nahrávání jsou makra pozastavená.`n`nKlávesy současně: klávesy, které držíš zároveň, se uloží jako jeden krok spojený pomocí +, například Shift+4. Při přehrávání se všechny stisknou společně a společně se i uvolní (ne nejdřív Shift a pak 4).`nStejně to funguje i při psaní do polí: a,Shift+4,d"
+    m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil ComboCrown, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
+    m["hlp_keys"] := "Názvy kláves odpovídají názvům v AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlávesu lze zapsat i jako scan kód, například sc002 - jde o fyzickou klávesu bez ohledu na rozložení. Klávesy jako čárka, plus, & a | se takto ukládají automaticky.`n`nMyš: spouštěcí klávesa, přepínač i klávesa Všechna makra může být také tlačítko myši: RButton, MButton (klik kolečkem), XButton1 / XButton2 (dvě boční tlačítka) nebo samotné kolečko (WheelUp / WheelDown / WheelLeft / WheelRight). Kolečko nelze držet, proto se makra na kolečku vždy přehrají jednou. Levé tlačítko se nenabízí.`nHerní / MMO myši: Windows zná jen pět tlačítek myši, další boční tlačítka obsluhuje software myši (G HUB, Synapse, iCUE, ...). Nastav jim tam klávesy, nejlépe F13 - F24 (nebo Ctrl+Alt+číslo); ComboCrown je pak vidí jako obyčejné klávesy, takže klikni do pole spouštěcí klávesy a stiskni boční tlačítko.`n`nNahrát (vedle Směrů a Akcí): stiskni Nahrát, mačkej klávesy v požadovaném pořadí a pak stiskni Hotovo. Pole se plní průběžně. Během nahrávání jsou makra pozastavená.`n`nKlávesy současně: klávesy, které držíš zároveň, se uloží jako jeden krok spojený pomocí +, například Shift+4. Při přehrávání se všechny stisknou společně a společně se i uvolní (ne nejdřív Shift a pak 4).`nStejně to funguje i při psaní do polí: a,Shift+4,d"
     m["hlp_profiles"] := "Profily udržují různé sady maker odděleně (například jeden na hru).`n`n- Tlačítko profilu v horní liště ukazuje aktuální profil. Kliknutím přepneš profil nebo vytvoříš / přejmenuješ / smažeš profil.`n- Seznam ukazuje jen makra aktuálního profilu a jen ta jsou aktivní.`n- V editoru můžeš v Profily vybrat pro makro jeden nebo více profilů. Když změníš makro, které patří do více profilů, aplikace se zeptá: použít změnu ve všech, nebo jen v aktuálním profilu (ostatní profily si ponechají starou verzi).`n- Zaškrtnutí makra je ve všech profilech stejné; přepnutím profilu se jen mění, která makra jsou ve hře.`n- Smazáním profilu se makra, která patřila jen jemu, přesunou do prvního zbývajícího profilu."
     m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
-    m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené Macro Managerem se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
+    m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené aplikací ComboCrown se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu (server Macro Hubu nebo github.com)."
     m["hlp_hub"] := "Macro Hub (tlačítko vedle hledání) ukazuje makra, která sdílejí hráči. Otevře se jako panel po straně hlavního okna.`n`n- Makra hráčů: makra ostatních hráčů. Moje makra: makra, která jsi sdílel, s jejich hodnocením a počtem stažení.`n- Hledej slovy z názvu, hry nebo jména autora: musí sedět každé slovo. 4story najde všechna makra pro 4Story, 4story war jen ta pro warriora.`n- Tlačítko hry vyfiltruje jednu hru, tlačítko řazení řadí podle hodnocení, nejnovějších nebo nejstahovanějších.`n- U každého makra je průměrné hodnocení ve hvězdičkách (1 = nejhorší, 5 = nejlepší) s počtem hodnocení v závorce, autor, hra, spouštěcí klávesa a počet stažení. Zlatá fajfka označuje makra zkontrolovaná moderátorem - jsou na začátku.`n- Pole pod seznamem ukazuje popis a co makro dělá (klávesy, prodlevy, sekvenci) - ještě před stažením.`n- Stáhnout (nebo dvojklik) přidá makro do aktuálního profilu jako vypnuté. Zkontroluj klávesu a aplikaci a pak ho zaškrtni.`n- Hodnotit dá 1 až 5 hvězdiček - jedno hodnocení na instalaci, později ho můžeš změnit. Vlastní makra hodnotit nejde.`n- Nahlásit pošle makro ke kontrole, třeba farm / AFK makro, které není povolené. Po několika nahlášeních se makro schová.`n- Smazat (Moje makra) odstraní z Macro Hubu makro, které jsi sdílel; tvoje kopie v seznamu zůstane.`n`nSdílení: klikni na ikonu sdílení na konci řádku v hlavním seznamu a vyplň název, hru, popis a přezdívku. Po sdílení ikona zezlátne. Makra stažená z Macro Hubu mají místo ní šipku stažení a sdílet je jde až po úpravě.`n`nAktualizace: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu - hodnocení i počet stažení zůstanou (do té doby má jeho ikona tečku; kliknutím ho aktualizuješ). Když autor aktualizuje makro, které sis stáhl, objeví se upozornění a jeho šipka v seznamu zezelená: klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou. Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Skript makra sdílet nejde.`n`nMacro Hub potřebuje připojení k internetu. Kdo makro hodnotil nebo nahlásil, nikdo neuvidí. Aby aplikace poznala makra stažená starší verzí, pošle Macro Hubu jednou, co dělají (klávesy, prodlevy, sekvenci - ne jejich názvy); nic z toho se neukládá."
     m["hlp_tips"] := "- Hra nic nedělá: zkus zvýšit prodlevy, ověř, že Jen v aplikaci (exe) odpovídá hře (použij Vybrat), a nech aplikaci běžet jako správce.`n- Postava běží jedním směrem: ve Směrech drž dvojice směrů (a,d) a prodlevu mezi cykly nastav malou, ale ne 0.`n- Makro se nespustí: zkontroluj, že je zaškrtnuté, Všechna makra je zapnuté, makro je v aktuálním profilu a spouštěcí klávesa je nastavená (není nedefinovaná).`n- Dvě makra se stejnou spouštěcí klávesou: funguje jen jedno z nich - použij různé klávesy, různé profily nebo různý Stisk (krátký / dvojitý / dlouhý).`n- Makra vytvořená před zavedením Přesných prodlev si nechávají dřívější časování. Když jim Přesné prodlevy zapneš, můžou hrát rychleji - pak jim prodlevy trochu zvyš.`n- Zaseknutá klávesa po přerušení: jednou ji stiskni a pusť; aplikace při zastavení makra uvolní klávesy, které stiskla.`n- Nastavení a skripty jsou ve složce config vedle aplikace."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord se nepodařilo otevřít. Odkaz je zkopírovaný do schránky - vlož ho do prohlížeče:`n`n{1}"
     m["Help"] := "Nápověda"
-    m["For support click here"] := "Podpora: klikni sem"
+    m["Join Discord"] := "Přidej se na Discord"
     m["Close"] := "Zavřít"
     m["Set a trigger key first: {1}"] := "Nejdřív nastav spouštěcí klávesu: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Přetažení makra ven se nezdařilo:`n{1}"
@@ -7581,7 +7152,7 @@ TrCs() {
     m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Ulož všechna makra, profily a nastavení (včetně souborů skriptů) do jednoho souboru zálohy – pro nový počítač nebo přeinstalaci. Nebo je z takového souboru obnov."
     m["Restore..."] := "Obnovit..."
     m["Restore from backup"] := "Obnovit ze zálohy"
-    m["This is not a Macro Manager backup file:`n{1}"] := "Tohle není soubor zálohy Macro Manageru:`n{1}"
+    m["This is not a ComboCrown backup file:`n{1}"] := "Tohle není soubor zálohy aplikace ComboCrown:`n{1}"
     m["Restore this backup?"] := "Obnovit tuto zálohu?"
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Všechna současná makra, profily a nastavení se nahradí zálohou z {1} ({2} maker). Aplikace se restartuje.`n`nSoučasný stav se nejdřív uloží jako:`n{3}"
     m["Restore"] := "Obnovit"
@@ -7727,13 +7298,13 @@ TrPl() {
     m["Import anyway?"] := "Zaimportować mimo to?"
     m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Ten skrypt nie ma wiersza „#Requires AutoHotkey v2”.`nZostanie uruchomiony przez AutoHotkey v2 – skrypty v1 nie zadziałają."
     m["Import anyway"] := "Importuj mimo to"
-    m["Macro Manager setup"] := "Instalator Macro Manager"
-    m["Macro Manager is already installed"] := "Macro Manager jest już zainstalowany"
+    m["ComboCrown setup"] := "Instalator ComboCrown"
+    m["ComboCrown is already installed"] := "ComboCrown jest już zainstalowany"
     m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Zainstalowano w:`n{1}`n`nZaktualizować go tym plikiem i uruchomić, czy tylko uruchomić zainstalowaną kopię?"
     m["Just start"] := "Tylko uruchom"
     m["Update and start"] := "Zaktualizuj i uruchom"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nie udało się zaktualizować zainstalowanej kopii (czy jest uruchomiona?). Uruchamiam zainstalowaną wersję.`n`n{1}"
-    m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Wybierz, gdzie zainstalować Macro Manager.`nZostanie tam utworzony folder 'MacroManager'."
+    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Wybierz, gdzie zainstalować ComboCrown.`nZostanie tam utworzony folder 'MacroManager'."
     m["Installation failed:`n{1}"] := "Instalacja nie powiodła się:`n{1}"
     m["Create a Start Menu shortcut?"] := "Utworzyć skrót w menu Start?"
     m["Skip"] := "Pomiń"
@@ -7741,16 +7312,16 @@ TrPl() {
     m["Create a Desktop shortcut?"] := "Utworzyć skrót na pulpicie?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Zainstalowano w:`n{1}`n`nTwoje makra i ustawienia są przechowywane w:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "To nie wygląda na zainstalowaną kopię, nic nie zostało usunięte."
-    m["Uninstall Macro Manager"] := "Odinstaluj Macro Manager"
-    m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować Macro Manager?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
+    m["Uninstall ComboCrown"] := "Odinstaluj ComboCrown"
+    m["Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Odinstalować ComboCrown?`n`nTo trwale usunie cały folder, razem ze wszystkimi makrami i ustawieniami:`n{1}"
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Zapisać przed odinstalowaniem kopię zapasową makr, profili i ustawień? Po ponownej instalacji przywrócisz ją przez Kopia... > Przywróć..."
     m["Don't save"] := "Nie zapisuj"
     m["Create backup..."] := "Utwórz kopię..."
     m["Create backup"] := "Utwórz kopię zapasową"
-    m["Macro Manager backup (*.mmbackup)"] := "Kopia Macro Managera (*.mmbackup)"
+    m["ComboCrown backup (*.mmbackup)"] := "Kopia ComboCrown (*.mmbackup)"
     m["The backup could not be saved:`n{1}"] := "Nie udało się zapisać kopii:`n{1}"
     m["Backup saved to:`n{1}"] := "Kopię zapisano w:`n{1}"
-    m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager został odinstalowany.`nFolder zostanie za chwilę usunięty."
+    m["ComboCrown has been uninstalled.`nThe folder will be removed in a moment."] := "ComboCrown został odinstalowany.`nFolder zostanie za chwilę usunięty."
     m["New macro"] := "Nowe makro"
     m["Edit macro"] := "Edytuj makro"
     m["Profiles"] := "Profile"
@@ -7852,31 +7423,31 @@ TrPl() {
     m["Updates"] := "Aktualizacje"
     m["You have the latest version (v{1})."] := "Masz najnowszą wersję (v{1})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nZaktualizować teraz? Aplikacja uruchomi się ponownie. Twoje makra, profile i ustawienia nie zostaną zmienione."
-    m["Macro Manager update"] := "Aktualizacja Macro Manager"
+    m["ComboCrown update"] := "Aktualizacja ComboCrown"
     m["Version {1} is available (you have v{2})."] := "Dostępna jest wersja {1} (masz v{2})."
     m["Later"] := "Później"
     m["Update now"] := "Aktualizuj teraz"
     m["The download failed. Try again later."] := "Pobieranie nie powiodło się. Spróbuj ponownie później."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Pobrany plik nie zgadza się z oczekiwaną sumą kontrolną (nowa wersja może być jeszcze wgrywana). Nic nie zostało zmienione - spróbuj ponownie za kilka minut.`n`nOczekiwano: {1}...`nOtrzymano: {2}  ({3} B)"
     m["(could not compute)"] := "(nie udało się obliczyć)"
-    m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Pobrany plik nie jest prawidłowym skryptem Macro Manager. Nic nie zostało zmienione."
+    m["The downloaded file is not a valid ComboCrown script. Nothing was changed."] := "Pobrany plik nie jest prawidłowym skryptem ComboCrown. Nic nie zostało zmienione."
     m["Could not replace the app file: {1}"] := "Nie udało się zastąpić pliku aplikacji: {1}"
     m["Version {1}"] := "Wersja {1}"
-    m["hlp_start"] := "Macro Manager uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zakończ.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
+    m["hlp_start"] := "ComboCrown uruchamia za ciebie makra klawiszowe. Każde makro ma klawisz wyzwalający; dopóki go trzymasz (w wybranej aplikacji), makro jest odtwarzane.`n`n- Zaznacz makro na liście, aby je włączyć, odznacz, aby je wyłączyć.`n- Przełącznik Wszystkie makra w nagłówku włącza lub wyłącza wszystkie makra naraz.`n- Tryb ciemny zmienia wygląd aplikacji.`n- Przycisk języka w nagłówku zmienia język aplikacji (English, Čeština, Polski, Deutsch). Aplikacja uruchomi się ponownie, aby go zastosować.`n- Kliknij dwukrotnie wiersz (lub naciśnij Edytuj), aby zmienić makro. Dodaj tworzy nowe, Kopiuj je powiela, Usuń je kasuje.`n- Aby zaznaczyć kilka makr, przeciągnij myszą po wierszach (lub Ctrl / Shift + kliknięcie). Kopiuj, Usuń, Eksportuj, W górę / W dół oraz przeciąganie poza okno działają na wszystkich zaznaczonych wierszach.`n- Zamknięcie okna zostawia aplikację uruchomioną w zasobniku systemowym. Kliknij ikonę w zasobniku prawym przyciskiem, aby wybrać Otwórz okno / Odinstaluj / Zakończ.`n- Aplikacja zawsze działa jako administrator, więc makra działają też w grach uruchomionych z podwyższonymi uprawnieniami.`n- Pole wyszukiwania nad listą pokazuje tylko makra, których nazwa, klawisz lub aplikacja zawiera wpisany tekst. Krzyżyk obok czyści wyszukiwanie."
     m["hlp_edit"] := "Nazwa - dowolny tekst, widoczny na liście.`nProfile - do jakich profili należy makro (może być kilka).`nKlawisz wyzwalający - kliknij pole, potem naciśnij klawisz lub przycisk myszy (prawy, środkowy, boczne X1 / X2, kółko myszy). Przytrzymaj Ctrl / Shift / Alt podczas naciskania, aby uzyskać kombinację, na przykład Ctrl+XButton1. Esc anuluje.`nPrzełącznik - opcjonalny klawisz, który włącza/wyłącza to makro bez otwierania okna. Backspace go czyści.`nTylko w apce (exe) - makro działa tylko wtedy, gdy ten program jest na wierzchu. Naciśnij Wybierz, aby wskazać uruchomioną aplikację lub wskazać plik .exe. Puste = działa wszędzie.`nTyp - Ruch + akcje, Sekwencja lub Skrypt (.ahk). Zobacz kolejne tematy.`nNaciśnięcie - jak trzeba nacisnąć klawisz wyzwalający. Zwykłe: makro startuje, gdy tylko klawisz zostanie wciśnięty. Krótkie: szybko naciśnij i puść - makro odtwarza się raz po puszczeniu. Podwójne: naciśnij klawisz dwa razy szybko. Przytrzymanie: przytrzymaj klawisz przez chwilę (z Powtarzaniem gra, dopóki go trzymasz). Jeden klawisz może w ten sposób mieć do trzech makr: krótkie, podwójne i przytrzymanie. Zwykłe makro na tym samym klawiszu zajmuje cały klawisz. Makra na kółku myszy zawsze startują od razu.`nUruchamiaj - Raz na naciśnięcie klawisza: odtwarza jeden przebieg i czeka, aż puścisz klawisz. Powtarzaj, gdy klawisz jest wciśnięty: odtwarza w kółko, dopóki nie puścisz klawisza (zatrzymuje się natychmiast). Niedostępne dla Krótkiego - zawsze odtwarza się raz.`nDokładne opóźnienia (na dole po lewej) - opóźnienia są dotrzymywane co do około milisekundy. Włączone dla nowych makr. Wyłączone = dawny sposób, w którym krótkie opóźnienia często trwają o 10-15 ms dłużej, niż wpisano.`n`nZapisz zapisuje makro, Anuluj odrzuca zmiany."
     m["hlp_move"] := "Stworzone dla gier, w których cały czas się poruszasz (np. A i D) i w międzyczasie rzucasz czary.`n`nKierunki - klawisze ruchu, po kolei, na przykład: a,d`nAkcje po kolei - klawisze do naciśnięcia, po jednym na cykl, na przykład: 1,2,1,F7,1,F8`n`nKażdy cykl wygląda tak, z ustawionymi przez ciebie opóźnieniami:`n  1. kierunek w dół`n  2. (opóźnienie 1) akcja w dół`n  3. (opóźnienie 2) kierunek w górę`n  4. (opóźnienie 3) akcja w górę`n  5. (opóźnienie 4) pauza, potem następny kierunek + następna akcja`n`nListy powtarzają się od początku, gdy się skończą. Jeśli Kierunki są puste, naciskane są tylko akcje: czas przytrzymania = opóźnienie 2, pauza = opóźnienie 4.`nJeśli gra ignoruje makro, zwiększ opóźnienia (20-30 ms to częsta wartość)."
     m["hlp_seq"] := "Dowolna lista kroków. Napisz jeden krok w linii:`n`n  down KEY PAUSE   - wciśnij i przytrzymaj klawisz`n  up KEY PAUSE     - puść klawisz`n  tap KEY PAUSE    - wciśnij i od razu puść`n`nPAUSE to czas oczekiwania po kroku w milisekundach (puste = 0).`n`nPrzykład - szybka zmiana A / D:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nPrzykład - atak i czary:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nPrzykład - dwa klawisze naraz:`n  tap Shift+4 50`n`nPrzy Uruchamiaj = Powtarzaj linie są odtwarzane w pętli, dopóki trzymasz klawisz wyzwalający; przy Raz odtwarzane są jeden raz.`nKlawisze, które nadal są wciśnięte, gdy puścisz klawisz wyzwalający, są puszczane automatycznie."
-    m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez Macro Manager, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
-    m["hlp_keys"] := "Nazwy klawiszy to nazwy z AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlawisz można też zapisać jako kod skanowania, na przykład sc002 - to fizyczny klawisz, niezależnie od układu. Klawisze takie jak przecinek, plus, & i | są zapisywane w ten sposób automatycznie.`n`nMysz: klawisz wyzwalający, przełącznik i klawisz Wszystkie makra mogą być też przyciskiem myszy: RButton, MButton (kliknięcie kółkiem), XButton1 / XButton2 (dwa przyciski boczne) lub samo kółko (WheelUp / WheelDown / WheelLeft / WheelRight). Kółko nie ma przytrzymania, więc makra na kółku zawsze odtwarzają się raz. Lewy przycisk nie jest dostępny.`nMyszy dla graczy / MMO: Windows zna tylko pięć przycisków myszy, dodatkowymi przyciskami bocznymi zajmuje się oprogramowanie myszy (G HUB, Synapse, iCUE, ...). Ustaw je tam na klawisze, najlepiej F13 - F24 (lub Ctrl+Alt+cyfra); Macro Manager widzi je wtedy jako zwykłe klawisze, więc kliknij pole klawisza wyzwalającego i naciśnij przycisk boczny.`n`nNagraj (obok Kierunków i Akcji): naciśnij Nagraj, naciskaj klawisze w żądanej kolejności, potem naciśnij Gotowe. Pole wypełnia się na żywo. Podczas nagrywania makra są wstrzymane.`n`nKlawisze jednocześnie: klawisze trzymane razem są zapisywane jako jeden krok połączony znakiem +, na przykład Shift+4. Przy odtwarzaniu makra wszystkie idą w dół razem i są puszczane razem (nie najpierw Shift, a potem 4).`nTo samo działa przy wpisywaniu w polach: a,Shift+4,d"
+    m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez ComboCrown, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
+    m["hlp_keys"] := "Nazwy klawiszy to nazwy z AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlawisz można też zapisać jako kod skanowania, na przykład sc002 - to fizyczny klawisz, niezależnie od układu. Klawisze takie jak przecinek, plus, & i | są zapisywane w ten sposób automatycznie.`n`nMysz: klawisz wyzwalający, przełącznik i klawisz Wszystkie makra mogą być też przyciskiem myszy: RButton, MButton (kliknięcie kółkiem), XButton1 / XButton2 (dwa przyciski boczne) lub samo kółko (WheelUp / WheelDown / WheelLeft / WheelRight). Kółko nie ma przytrzymania, więc makra na kółku zawsze odtwarzają się raz. Lewy przycisk nie jest dostępny.`nMyszy dla graczy / MMO: Windows zna tylko pięć przycisków myszy, dodatkowymi przyciskami bocznymi zajmuje się oprogramowanie myszy (G HUB, Synapse, iCUE, ...). Ustaw je tam na klawisze, najlepiej F13 - F24 (lub Ctrl+Alt+cyfra); ComboCrown widzi je wtedy jako zwykłe klawisze, więc kliknij pole klawisza wyzwalającego i naciśnij przycisk boczny.`n`nNagraj (obok Kierunków i Akcji): naciśnij Nagraj, naciskaj klawisze w żądanej kolejności, potem naciśnij Gotowe. Pole wypełnia się na żywo. Podczas nagrywania makra są wstrzymane.`n`nKlawisze jednocześnie: klawisze trzymane razem są zapisywane jako jeden krok połączony znakiem +, na przykład Shift+4. Przy odtwarzaniu makra wszystkie idą w dół razem i są puszczane razem (nie najpierw Shift, a potem 4).`nTo samo działa przy wpisywaniu w polach: a,Shift+4,d"
     m["hlp_profiles"] := "Profile oddzielają od siebie różne zestawy makr (na przykład jeden na grę).`n`n- Przycisk profilu w nagłówku pokazuje bieżący profil. Kliknij go, aby przełączyć profil albo utworzyć / zmienić nazwę / usunąć profil.`n- Lista pokazuje tylko makra bieżącego profilu i tylko one są aktywne.`n- W edytorze Profile pozwalają wybrać jeden lub kilka profili dla makra. Gdy zmieniasz makro należące do kilku profili, aplikacja pyta: zastosować zmianę we wszystkich, czy tylko w bieżącym profilu (pozostałe profile zachowają starą wersję).`n- Stan zaznaczenia makra jest taki sam w każdym profilu; zmiana profilu zmienia tylko to, które makra są w grze.`n- Usunięcie profilu przenosi makra, które należały tylko do niego, do pierwszego pozostałego profilu."
     m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
-    m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez Macro Manager wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
+    m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez ComboCrown wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu (serwer Macro Hub lub github.com)."
     m["hlp_hub"] := "Macro Hub (przycisk obok wyszukiwania) pokazuje makra udostępnione przez graczy. Otwiera się jako panel z boku głównego okna.`n`n- Makra graczy: makra innych graczy. Moje makra: makra, które udostępniłeś, z ich ocenami i liczbą pobrań.`n- Szukaj słowami z nazwy, gry lub nazwy autora: każde słowo musi pasować. 4story znajdzie wszystkie makra do 4Story, 4story war tylko te dla wojownika.`n- Przycisk gry filtruje jedną grę, przycisk sortowania sortuje według ocen, najnowszych lub najczęściej pobieranych.`n- Każde makro pokazuje średnią ocenę w gwiazdkach (1 = najgorsza, 5 = najlepsza) z liczbą ocen w nawiasie, autora, grę, klawisz wyzwalający i liczbę pobrań. Złoty znaczek oznacza makra sprawdzone przez moderatora - są na początku.`n- Pole pod listą pokazuje opis i co makro robi (klawisze, opóźnienia, sekwencję) - zanim je pobierzesz.`n- Pobierz (lub podwójne kliknięcie) dodaje makro do bieżącego profilu jako wyłączone. Sprawdź jego klawisz i aplikację, a potem je zaznacz.`n- Oceń daje od 1 do 5 gwiazdek - jedna ocena na instalację, możesz ją później zmienić. Własnych makr nie można oceniać.`n- Zgłoś wysyła makro do sprawdzenia, np. makro farm / AFK, które jest niedozwolone. Po kilku zgłoszeniach makro zostaje ukryte.`n- Usuń (Moje makra) usuwa z Macro Hub makro, które udostępniłeś; Twoja kopia na liście zostaje.`n`nUdostępnianie: kliknij ikonę udostępniania na końcu wiersza na głównej liście i wpisz nazwę, grę, opis i swój pseudonim. Po udostępnieniu ikona staje się złota. Makra pobrane z Macro Hub mają zamiast niej strzałkę pobierania i można je udostępnić dopiero po zmianie.`n`nAktualizacje: gdy zmienisz udostępnione przez siebie makro, aplikacja zapyta, czy zaktualizować je w Macro Hub - oceny i liczba pobrań zostają (do tego czasu jego ikona ma kropkę; kliknij, aby zaktualizować). Gdy autor zaktualizuje pobrane przez Ciebie makro, pojawi się powiadomienie, a jego strzałka na liście zrobi się zielona: kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją. Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Makr skryptowych nie można udostępniać.`n`nMacro Hub wymaga dostępu do internetu. Nikt nie widzi, kto ocenił lub zgłosił makro. Aby rozpoznać makra pobrane starszą wersją, aplikacja wysyła raz do Macro Hub, co robią (klawisze, opóźnienia, sekwencję - nie ich nazwy); nic z tego nie jest zapisywane."
     m["hlp_tips"] := "- Gra nic nie robi: spróbuj zwiększyć opóźnienia, upewnij się, że Tylko w apce (exe) pasuje do gry (użyj Wybierz) i zostaw aplikację uruchomioną jako administrator.`n- Postać biegnie w jedną stronę: trzymaj pary kierunków w Kierunkach (a,d), a opóźnienie między cyklami małe, ale nie 0.`n- Makro się nie uruchamia: sprawdź, czy jest zaznaczone, czy Wszystkie makra jest włączone, czy jest w bieżącym profilu i czy klawisz wyzwalający jest ustawiony (nie jest pusty).`n- Dwa makra z tym samym klawiszem wyzwalającym: działa tylko jedno z nich - użyj różnych klawiszy, różnych profili lub różnego Naciśnięcia (krótkie / podwójne / przytrzymanie).`n- Makra utworzone przed Dokładnymi opóźnieniami zachowują dawny sposób odmierzania. Gdy włączysz im Dokładne opóźnienia, mogą grać szybciej - wtedy lekko zwiększ opóźnienia.`n- Zablokowany klawisz po przerwaniu: naciśnij go i puść raz; aplikacja puszcza klawisze, które nacisnęła, gdy makro się zatrzymuje.`n- Ustawienia i skrypty leżą w folderze config obok aplikacji."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Nie udało się otworzyć Discorda. Link został skopiowany do schowka - wklej go w przeglądarce:`n`n{1}"
     m["Help"] := "Pomoc"
-    m["For support click here"] := "Po pomoc kliknij tutaj"
+    m["Join Discord"] := "Dołącz do Discorda"
     m["Close"] := "Zamknij"
     m["Set a trigger key first: {1}"] := "Najpierw ustaw klawisz wyzwalający: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Przeciągnięcie makra na zewnątrz nie powiodło się:`n{1}"
@@ -7885,7 +7456,7 @@ TrPl() {
     m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Zapisz wszystkie makra, profile i ustawienia (łącznie z plikami skryptów) w jednym pliku kopii – na nowy komputer lub po ponownej instalacji. Albo przywróć je z takiego pliku."
     m["Restore..."] := "Przywróć..."
     m["Restore from backup"] := "Przywróć z kopii"
-    m["This is not a Macro Manager backup file:`n{1}"] := "To nie jest plik kopii Macro Managera:`n{1}"
+    m["This is not a ComboCrown backup file:`n{1}"] := "To nie jest plik kopii aplikacji ComboCrown:`n{1}"
     m["Restore this backup?"] := "Przywrócić tę kopię?"
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Wszystkie obecne makra, profile i ustawienia zostaną zastąpione kopią z {1} ({2} makr). Aplikacja uruchomi się ponownie.`n`nObecny stan zostanie najpierw zapisany jako:`n{3}"
     m["Restore"] := "Przywróć"
@@ -8031,13 +7602,13 @@ TrDe() {
     m["Import anyway?"] := "Trotzdem importieren?"
     m["This script has no `"#Requires AutoHotkey v2`" line.`nIt will be run with AutoHotkey v2 - v1 scripts won't work."] := "Dieses Skript hat keine Zeile „#Requires AutoHotkey v2“.`nEs wird mit AutoHotkey v2 ausgeführt – v1-Skripte funktionieren nicht."
     m["Import anyway"] := "Trotzdem importieren"
-    m["Macro Manager setup"] := "Macro Manager Setup"
-    m["Macro Manager is already installed"] := "Macro Manager ist bereits installiert"
+    m["ComboCrown setup"] := "Macro Manager Setup"
+    m["ComboCrown is already installed"] := "ComboCrown ist bereits installiert"
     m["Installed in:`n{1}`n`nUpdate it with this file and start it, or just start the installed copy?"] := "Installiert in:`n{1}`n`nMit dieser Datei aktualisieren und starten oder nur die installierte Kopie starten?"
     m["Just start"] := "Nur starten"
     m["Update and start"] := "Aktualisieren und starten"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Die installierte Kopie konnte nicht aktualisiert werden (läuft sie noch?). Die installierte Version wird gestartet.`n`n{1}"
-    m["Choose where to install Macro Manager.`nA 'MacroManager' folder will be created there."] := "Wähle, wo Macro Manager installiert werden soll.`nDort wird ein Ordner 'MacroManager' angelegt."
+    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Wähle, wo ComboCrown installiert werden soll.`nDort wird ein Ordner 'MacroManager' angelegt."
     m["Installation failed:`n{1}"] := "Installation fehlgeschlagen:`n{1}"
     m["Create a Start Menu shortcut?"] := "Verknüpfung im Startmenü erstellen?"
     m["Skip"] := "Überspringen"
@@ -8045,16 +7616,16 @@ TrDe() {
     m["Create a Desktop shortcut?"] := "Verknüpfung auf dem Desktop erstellen?"
     m["Installed to:`n{1}`n`nYour macros and settings are stored in:`n{1}\config"] := "Installiert in:`n{1}`n`nDeine Makros und Einstellungen liegen in:`n{1}\config"
     m["This doesn't look like an installed copy, nothing was removed."] := "Das sieht nicht nach einer installierten Kopie aus, es wurde nichts entfernt."
-    m["Uninstall Macro Manager"] := "Macro Manager deinstallieren"
-    m["Uninstall Macro Manager?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "Macro Manager deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
+    m["Uninstall ComboCrown"] := "ComboCrown deinstallieren"
+    m["Uninstall ComboCrown?`n`nThis permanently deletes the whole folder, including all macros and settings:`n{1}"] := "ComboCrown deinstallieren?`n`nDadurch wird der gesamte Ordner endgültig gelöscht, einschließlich aller Makros und Einstellungen:`n{1}"
     m["Save a backup of your macros, profiles and settings before uninstalling? After a reinstall you can restore it with Backup... > Restore..."] := "Vor der Deinstallation eine Sicherung der Makros, Profile und Einstellungen speichern? Nach einer Neuinstallation stellst du sie über Sicherung... > Wiederherstellen... wieder her."
     m["Don't save"] := "Nicht speichern"
     m["Create backup..."] := "Sicherung erstellen..."
     m["Create backup"] := "Sicherung erstellen"
-    m["Macro Manager backup (*.mmbackup)"] := "Macro Manager-Sicherung (*.mmbackup)"
+    m["ComboCrown backup (*.mmbackup)"] := "ComboCrown-Sicherung (*.mmbackup)"
     m["The backup could not be saved:`n{1}"] := "Die Sicherung konnte nicht gespeichert werden:`n{1}"
     m["Backup saved to:`n{1}"] := "Sicherung gespeichert unter:`n{1}"
-    m["Macro Manager has been uninstalled.`nThe folder will be removed in a moment."] := "Macro Manager wurde deinstalliert.`nDer Ordner wird gleich entfernt."
+    m["ComboCrown has been uninstalled.`nThe folder will be removed in a moment."] := "ComboCrown wurde deinstalliert.`nDer Ordner wird gleich entfernt."
     m["New macro"] := "Neues Makro"
     m["Edit macro"] := "Makro bearbeiten"
     m["Profiles"] := "Profile"
@@ -8156,31 +7727,31 @@ TrDe() {
     m["Updates"] := "Updates"
     m["You have the latest version (v{1})."] := "Du hast die neueste Version (v{1})."
     m["`n`nUpdate now? The app restarts. Your macros, profiles and settings are not changed."] := "`n`nJetzt aktualisieren? Die App wird neu gestartet. Deine Makros, Profile und Einstellungen bleiben unverändert."
-    m["Macro Manager update"] := "Macro Manager Update"
+    m["ComboCrown update"] := "ComboCrown Update"
     m["Version {1} is available (you have v{2})."] := "Version {1} ist verfügbar (du hast v{2})."
     m["Later"] := "Später"
     m["Update now"] := "Jetzt aktualisieren"
     m["The download failed. Try again later."] := "Der Download ist fehlgeschlagen. Versuche es später erneut."
     m["The downloaded file does not match the expected checksum (the new version may still be uploading). Nothing was changed - try again in a few minutes.`n`nExpected: {1}...`nReceived: {2}  ({3} bytes)"] := "Die heruntergeladene Datei stimmt nicht mit der erwarteten Prüfsumme überein (die neue Version wird möglicherweise noch hochgeladen). Es wurde nichts geändert - versuche es in ein paar Minuten erneut.`n`nErwartet: {1}...`nErhalten: {2}  ({3} Bytes)"
     m["(could not compute)"] := "(konnte nicht berechnet werden)"
-    m["The downloaded file is not a valid Macro Manager script. Nothing was changed."] := "Die heruntergeladene Datei ist kein gültiges Macro Manager Skript. Es wurde nichts geändert."
+    m["The downloaded file is not a valid ComboCrown script. Nothing was changed."] := "Die heruntergeladene Datei ist kein gültiges ComboCrown Skript. Es wurde nichts geändert."
     m["Could not replace the app file: {1}"] := "Die App-Datei konnte nicht ersetzt werden: {1}"
     m["Version {1}"] := "Version {1}"
-    m["hlp_start"] := "Macro Manager führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen.`n- Das Suchfeld über der Liste zeigt nur die Makros, deren Name, Taste oder Anwendung den Text enthält. Das Kreuz daneben leert es."
+    m["hlp_start"] := "ComboCrown führt Hotkey-Makros für dich aus. Jedes Makro hat eine Auslösetaste; solange du sie gedrückt hältst (innerhalb der gewählten Anwendung), läuft das Makro.`n`n- Hake ein Makro in der Liste an, um es einzuschalten, entferne den Haken, um es auszuschalten.`n- Der Schalter Alle Makros in der Kopfzeile schaltet alle Makros auf einmal ein oder aus.`n- Dunkelmodus wechselt das Aussehen der App.`n- Die Sprachschaltfläche in der Kopfzeile wechselt die App-Sprache (English, Čeština, Polski, Deutsch). Die App startet neu, um sie zu übernehmen.`n- Doppelklick auf eine Zeile (oder Bearbeiten) ändert ein Makro. Hinzufügen legt ein neues an, Kopieren dupliziert es, Löschen entfernt es.`n- Um mehrere Makros auszuwählen, zieh die Maus über die Zeilen (oder Ctrl / Shift + Klick). Kopieren, Löschen, Exportieren, Nach oben / unten und das Herausziehen aus dem Fenster wirken auf alle ausgewählten Zeilen.`n- Beim Schließen des Fensters läuft die App im Infobereich weiter. Rechtsklick auf das Symbol im Infobereich öffnet Fenster öffnen / Deinstallieren... / Beenden.`n- Die App läuft immer als Administrator, damit Makros auch in Spielen funktionieren, die mit erhöhten Rechten laufen.`n- Das Suchfeld über der Liste zeigt nur die Makros, deren Name, Taste oder Anwendung den Text enthält. Das Kreuz daneben leert es."
     m["hlp_edit"] := "Name - beliebiger Text, wird in der Liste angezeigt.`nProfile - zu welchen Profilen das Makro gehört (auch mehrere).`nAuslösetaste - klicke in das Feld und drücke dann die Taste oder eine Maustaste (rechte, mittlere, Seitentasten X1 / X2, Mausrad). Halte beim Drücken Ctrl / Shift / Alt gedrückt, um eine Kombination zu bilden, zum Beispiel Ctrl+XButton1. Esc bricht ab.`nEin/Aus-Taste - optionale Taste, die dieses Makro ein-/ausschaltet, ohne das Fenster zu öffnen. Backspace löscht sie.`nNur in App (exe) - das Makro funktioniert nur, solange dieses Programm im Vordergrund ist. Drücke Wählen, um eine laufende Anwendung auszuwählen oder nach der .exe zu suchen. Leer = funktioniert überall.`nTyp - Bewegung + Aktionen, Sequenz oder Skript (.ahk). Siehe die nächsten Themen.`nDrücken - wie die Auslösetaste gedrückt werden muss. Normal: das Makro startet, sobald die Taste unten ist. Kurz tippen: kurz drücken und loslassen - das Makro spielt einmal nach dem Loslassen. Doppelt tippen: die Taste zweimal schnell drücken. Lang drücken: die Taste einen Moment halten (mit Wiederholen spielt es, solange du sie hältst). Eine Taste kann so bis zu drei Makros tragen: kurz tippen, doppelt tippen und lang drücken. Ein normales Makro auf derselben Taste belegt die ganze Taste. Mausrad-Makros starten immer sofort.`nAusführung - Einmal pro Tastendruck: spielt einen Durchlauf ab und wartet, bis du die Taste loslässt. Wiederholen, solange Taste gehalten: spielt immer wieder ab, bis du die Taste loslässt (es stoppt sofort). Bei Kurz tippen nicht verfügbar - es spielt immer einmal.`nGenaue Verzögerungen (unten links) - die Verzögerungen werden auf etwa eine Millisekunde eingehalten. Für neue Makros an. Aus = das frühere Timing, bei dem kurze Verzögerungen oft 10-15 ms länger dauern als eingetragen.`n`nSpeichern sichert das Makro, Abbrechen verwirft die Änderungen."
     m["hlp_move"] := "Gedacht für Spiele, in denen du dich ständig bewegst (zum Beispiel A und D) und dazwischen Zauber wirkst.`n`nRichtungen - die Bewegungstasten in Reihenfolge, zum Beispiel: a,d`nAktionen in Folge - die zu drückenden Tasten, eine pro Zyklus, zum Beispiel: 1,2,1,F7,1,F8`n`nJeder Zyklus läuft so ab, mit den eingestellten Verzögerungen:`n  1. Richtung runter`n  2. (Verzögerung 1) Aktion runter`n  3. (Verzögerung 2) Richtung hoch`n  4. (Verzögerung 3) Aktion hoch`n  5. (Verzögerung 4) Pause, dann die nächste Richtung + nächste Aktion`n`nDie Listen beginnen am Ende wieder von vorn. Wenn Richtungen leer ist, werden nur die Aktionen gedrückt: Haltezeit = Verzögerung 2, Pause = Verzögerung 4.`nWenn ein Spiel das Makro ignoriert, erhöhe die Verzögerungen (20-30 ms sind üblich)."
     m["hlp_seq"] := "Eine freie Liste von Schritten. Schreibe einen Schritt pro Zeile:`n`n  down KEY PAUSE   - Taste drücken und halten`n  up KEY PAUSE     - Taste loslassen`n  tap KEY PAUSE    - sofort drücken und loslassen`n`nPAUSE ist die Wartezeit nach dem Schritt in Millisekunden (leer = 0).`n`nBeispiel - schneller A / D-Wechsel:`n  down a 25`n  up a 5`n  down d 25`n  up d 5`n`nBeispiel - Angriff und Zauber:`n  tap 1 600`n  tap e 100`n  tap F7 100`n`nBeispiel - zwei Tasten zusammen:`n  tap Shift+4 50`n`nBei Ausführung = Wiederholen laufen die Zeilen in einer Schleife, solange die Auslösetaste gehalten wird; bei Einmal werden sie einmal abgespielt.`nTasten, die beim Loslassen der Auslösetaste noch gehalten werden, werden automatisch losgelassen."
-    m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von Macro Manager erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
-    m["hlp_keys"] := "Tastennamen sind die AutoHotkey-Namen: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nEine Taste kann auch als Scancode geschrieben werden, zum Beispiel sc002 - das ist die physische Taste, unabhängig vom Layout. Tasten wie Komma, Plus, & und | werden automatisch so gespeichert.`n`nMaus: Auslöse-, Ein/Aus-Taste und die Taste für Alle Makros können auch eine Maustaste sein: RButton, MButton (Radklick), XButton1 / XButton2 (die zwei Seitentasten) oder das Rad selbst (WheelUp / WheelDown / WheelLeft / WheelRight). Ein Rad kann nicht gehalten werden, daher laufen Rad-Makros immer nur einmal. Die linke Taste steht nicht zur Auswahl.`nGaming- / MMO-Mäuse: Windows kennt nur fünf Maustasten, die zusätzlichen Seitentasten werden von der Maussoftware (G HUB, Synapse, iCUE, ...) verwaltet. Belege sie dort mit Tasten, am besten F13 - F24 (oder Ctrl+Alt+Zahl); Macro Manager sieht sie dann als normale Tasten, klicke also in das Feld Auslösetaste und drücke die Seitentaste.`n`nAufnehmen (neben Richtungen und Aktionen): Drücke Aufnehmen, drücke die Tasten in der gewünschten Reihenfolge und dann Fertig. Das Feld füllt sich live. Makros sind während der Aufnahme pausiert.`n`nTasten gleichzeitig: Tasten, die du zusammen hältst, werden als ein Schritt gespeichert und mit + verbunden, zum Beispiel Shift+4. Beim Abspielen gehen alle zusammen runter und werden zusammen losgelassen (nicht erst Shift und danach 4).`nDasselbe funktioniert durch Eintippen in die Felder: a,Shift+4,d"
+    m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von ComboCrown erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
+    m["hlp_keys"] := "Tastennamen sind die AutoHotkey-Namen: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nEine Taste kann auch als Scancode geschrieben werden, zum Beispiel sc002 - das ist die physische Taste, unabhängig vom Layout. Tasten wie Komma, Plus, & und | werden automatisch so gespeichert.`n`nMaus: Auslöse-, Ein/Aus-Taste und die Taste für Alle Makros können auch eine Maustaste sein: RButton, MButton (Radklick), XButton1 / XButton2 (die zwei Seitentasten) oder das Rad selbst (WheelUp / WheelDown / WheelLeft / WheelRight). Ein Rad kann nicht gehalten werden, daher laufen Rad-Makros immer nur einmal. Die linke Taste steht nicht zur Auswahl.`nGaming- / MMO-Mäuse: Windows kennt nur fünf Maustasten, die zusätzlichen Seitentasten werden von der Maussoftware (G HUB, Synapse, iCUE, ...) verwaltet. Belege sie dort mit Tasten, am besten F13 - F24 (oder Ctrl+Alt+Zahl); ComboCrown sieht sie dann als normale Tasten, klicke also in das Feld Auslösetaste und drücke die Seitentaste.`n`nAufnehmen (neben Richtungen und Aktionen): Drücke Aufnehmen, drücke die Tasten in der gewünschten Reihenfolge und dann Fertig. Das Feld füllt sich live. Makros sind während der Aufnahme pausiert.`n`nTasten gleichzeitig: Tasten, die du zusammen hältst, werden als ein Schritt gespeichert und mit + verbunden, zum Beispiel Shift+4. Beim Abspielen gehen alle zusammen runter und werden zusammen losgelassen (nicht erst Shift und danach 4).`nDasselbe funktioniert durch Eintippen in die Felder: a,Shift+4,d"
     m["hlp_profiles"] := "Profile halten verschiedene Makro-Sets getrennt (zum Beispiel eines pro Spiel).`n`n- Die Profilschaltfläche in der Kopfzeile zeigt das aktuelle Profil. Klicke darauf, um zu wechseln oder ein Profil anzulegen / umzubenennen / zu löschen.`n- Die Liste zeigt nur die Makros des aktuellen Profils, und nur diese sind aktiv.`n- Im Editor kannst du unter Profile ein oder mehrere Profile für das Makro wählen. Wenn du ein Makro änderst, das zu mehreren Profilen gehört, fragt die App: Änderung auf alle anwenden oder nur auf das aktuelle Profil (die anderen Profile behalten die alte Version).`n- Der Haken-Status eines Makros bleibt in jedem Profil gleich; ein Profilwechsel ändert nur, welche Makros im Spiel sind.`n- Beim Löschen eines Profils werden Makros, die nur dazu gehörten, in das erste verbleibende Profil verschoben."
     m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
-    m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von Macro Manager erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
+    m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von ComboCrown erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang nötig (Macro-Hub-Server oder github.com)."
     m["hlp_hub"] := "Der Macro Hub (Schaltfläche neben der Suche) zeigt Makros, die Spieler teilen. Er öffnet sich als Seitenleiste neben dem Hauptfenster.`n`n- Makros der Spieler: Makros anderer Spieler. Meine Makros: die Makros, die du geteilt hast, mit ihren Bewertungen und Downloads.`n- Suche mit Wörtern aus dem Namen, dem Spiel oder dem Autor: jedes Wort muss passen. 4story findet alle 4Story-Makros, 4story war nur die für den Krieger.`n- Die Spiel-Schaltfläche filtert ein Spiel, die Sortier-Schaltfläche sortiert nach Bewertung, Neueste oder Meiste Downloads.`n- Jedes Makro zeigt seine Durchschnittsbewertung in Sternen (1 = am schlechtesten, 5 = am besten) mit der Anzahl der Bewertungen in Klammern, den Autor, das Spiel, die Auslösetaste und wie oft es heruntergeladen wurde. Ein goldener Haken markiert vom Moderator geprüfte Makros - sie stehen oben.`n- Das Feld unter der Liste zeigt die Beschreibung und was das Makro tut (Tasten, Verzögerungen, Sequenz) - noch vor dem Herunterladen.`n- Herunterladen (oder ein Doppelklick) fügt das Makro dem aktuellen Profil hinzu, ausgeschaltet. Prüfe Taste und Anwendung und hake es dann an.`n- Bewerten vergibt 1 bis 5 Sterne - eine Bewertung pro Installation, du kannst sie später ändern. Eigene Makros kann man nicht bewerten.`n- Melden schickt ein Makro zur Prüfung, zum Beispiel ein Farm- / AFK-Makro, das nicht erlaubt ist. Nach mehreren Meldungen wird es ausgeblendet.`n- Löschen (Meine Makros) entfernt ein von dir geteiltes Makro aus dem Macro Hub; deine eigene Kopie in der Liste bleibt.`n`nTeilen: Klicke auf das Teilen-Symbol am Ende einer Zeile in der Hauptliste und gib Name, Spiel, Beschreibung und deinen Spitznamen ein. Das Symbol wird golden, sobald das Makro geteilt ist. Aus dem Macro Hub geladene Makros zeigen stattdessen einen Download-Pfeil und können erst nach einer Änderung geteilt werden.`n`nAktualisierungen: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll - Bewertungen und Downloads bleiben (bis dahin hat sein Symbol einen Punkt; ein Klick aktualisiert es). Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, erscheint ein Hinweis und sein Pfeil in der Liste wird grün: Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten. Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt: die Umschalttaste und deine Profile. Skript-Makros können nicht geteilt werden.`n`nDer Macro Hub braucht eine Internetverbindung. Niemand kann sehen, wer ein Makro bewertet oder gemeldet hat. Um mit einer älteren Version geladene Makros zu erkennen, sendet die App dem Macro Hub einmal, was sie tun (Tasten, Verzögerungen, Sequenz - nicht ihre Namen); davon wird nichts gespeichert."
     m["hlp_tips"] := "- Das Spiel reagiert nicht: Erhöhe die Verzögerungen, stelle sicher, dass Nur in App zum Spiel passt (nutze Wählen), und lass die App als Administrator laufen.`n- Der Charakter läuft nur in eine Richtung: Halte Richtungspaare in Richtungen (a,d) und die Verzögerung zwischen Zyklen klein, aber nicht 0.`n- Ein Makro startet nicht: Prüfe, ob es angehakt ist, Alle Makros an ist, es im aktuellen Profil liegt und die Auslösetaste gesetzt ist (nicht undefiniert).`n- Zwei Makros mit derselben Auslösetaste: Nur eines davon funktioniert - nutze unterschiedliche Tasten, unterschiedliche Profile oder unterschiedliches Drücken (kurz / doppelt / lang).`n- Makros, die vor den Genauen Verzögerungen erstellt wurden, behalten ihr altes Timing. Schaltest du sie für eines davon ein, kann es schneller spielen - erhöhe dann seine Verzögerungen etwas.`n- Hängende Taste nach einem Abbruch: Drücke sie einmal und lass sie los; die App lässt Tasten los, die sie gedrückt hat, wenn das Makro stoppt.`n- Einstellungen und Skripte liegen im Ordner config neben der App."
     m["Could not open Discord. The link was copied to the clipboard - paste it into your browser:`n`n{1}"] := "Discord konnte nicht geöffnet werden. Der Link wurde in die Zwischenablage kopiert - füge ihn in deinen Browser ein:`n`n{1}"
     m["Help"] := "Hilfe"
-    m["For support click here"] := "Für Support hier klicken"
+    m["Join Discord"] := "Discord beitreten"
     m["Close"] := "Schließen"
     m["Set a trigger key first: {1}"] := "Lege zuerst eine Auslösetaste fest: {1}"
     m["Dragging the macro out failed:`n{1}"] := "Das Herausziehen des Makros ist fehlgeschlagen:`n{1}"
@@ -8189,7 +7760,7 @@ TrDe() {
     m["Save all macros, profiles and settings (including script files) into one backup file - for a new PC or a reinstall. Or restore them from such a file."] := "Speichere alle Makros, Profile und Einstellungen (inklusive Skriptdateien) in einer Sicherungsdatei – für einen neuen PC oder eine Neuinstallation. Oder stelle sie aus einer solchen Datei wieder her."
     m["Restore..."] := "Wiederherstellen..."
     m["Restore from backup"] := "Aus Sicherung wiederherstellen"
-    m["This is not a Macro Manager backup file:`n{1}"] := "Das ist keine Sicherungsdatei von Macro Manager:`n{1}"
+    m["This is not a ComboCrown backup file:`n{1}"] := "Das ist keine Sicherungsdatei von ComboCrown:`n{1}"
     m["Restore this backup?"] := "Diese Sicherung wiederherstellen?"
     m["All your current macros, profiles and settings are replaced with the backup from {1} ({2} macros). The app restarts.`n`nYour current state is saved first as:`n{3}"] := "Alle aktuellen Makros, Profile und Einstellungen werden durch die Sicherung vom {1} ({2} Makros) ersetzt. Die App startet neu.`n`nDer aktuelle Stand wird zuerst gespeichert als:`n{3}"
     m["Restore"] := "Wiederherstellen"
