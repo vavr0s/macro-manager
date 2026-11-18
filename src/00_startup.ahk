@@ -115,6 +115,8 @@ SeenVer := AppVersion   ; last version whose release notes the user has opened (
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
 MasterOn := true
+OverlayPos := "tc"     ; in-game overlay of the All macros switch: off / tl / tc / tr / bl / br (macros.ini [main] overlay)
+OvGui := 0, OvState := 0, OvMenu := 0
 Registered := []
 Populating := false
 HoverHwnd := 0
@@ -275,6 +277,7 @@ A_TrayMenu.Add(_T("Check for updates..."), OnUpdIcon)
 A_TrayMenu.Add(_T("Check for updates at start"), ToggleAutoUpd)
 if AutoUpd
     A_TrayMenu.Check(_T("Check for updates at start"))
+OvMenu := OverlayMenu()
 A_TrayMenu.Add(_T("Uninstall..."), (*) => UninstallApp())
 A_TrayMenu.Add(_T("Exit"), (*) => ExitApp())
 A_TrayMenu.Default := _T("Open window")
@@ -288,6 +291,7 @@ SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 ModHookStart()                       ; ... except those another program holds on purpose
 SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
+OverlayStart()                       ; the All macros switch over the game
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window

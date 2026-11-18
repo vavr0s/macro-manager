@@ -1,26 +1,14 @@
 {
   "en": [
-    "Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.",
-    "New look of the logo and the app icon: just the crown, without the lettering.",
-    "The support link in Help is now a Join Discord button, the same as on the website.",
-    "New website: https://combocrown.pages.dev"
+    "In-game overlay: a small bar over the game shows whether All macros is on (gold) or off (grey), also when you switch it with its toggle key. It appears only while the game is in front and lets the mouse through. Pick its corner or turn it off in the tray menu (right-click the icon > In-game overlay)."
   ],
   "cs": [
-    "Macro Manager se teď jmenuje ComboCrown. Makra, profily i nastavení zůstávají, jak jsou, a zástupci dostanou nový název sami.",
-    "Nový vzhled loga a ikony aplikace: jen koruna, bez nápisu.",
-    "Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na webu.",
-    "Nový web: https://combocrown.pages.dev"
+    "Overlay ve hře: malý pruh nad hrou ukazuje, jestli jsou Všechna makra zapnutá (zlatě), nebo vypnutá (šedě), i když je přepneš klávesou. Zobrazí se jen, když je hra v popředí, a myš jím prochází. Roh nebo vypnutí vybereš v nabídce ikony v oznamovací oblasti (pravé tlačítko > Overlay ve hře)."
   ],
   "pl": [
-    "Macro Manager nazywa się teraz ComboCrown. Makra, profile i ustawienia zostają bez zmian, a skróty same dostaną nową nazwę.",
-    "Nowy wygląd logo i ikony aplikacji: sama korona, bez napisu.",
-    "Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na stronie.",
-    "Nowa strona: https://combocrown.pages.dev"
+    "Nakładka w grze: mały pasek nad grą pokazuje, czy Wszystkie makra są włączone (złoty) czy wyłączone (szary), także po przełączeniu klawiszem. Pojawia się tylko, gdy gra jest na pierwszym planie, i nie blokuje myszy. Róg lub wyłączenie wybierzesz w menu ikony w zasobniku (prawy przycisk > Nakładka w grze)."
   ],
   "de": [
-    "Macro Manager heißt jetzt ComboCrown. Deine Makros, Profile und Einstellungen bleiben, wie sie sind, und deine Verknüpfungen bekommen den neuen Namen von selbst.",
-    "Neues Logo und App-Symbol: nur die Krone, ohne Schriftzug.",
-    "Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der Website.",
-    "Neue Website: https://combocrown.pages.dev"
+    "In-Game-Overlay: Eine kleine Leiste über dem Spiel zeigt, ob Alle Makros an (gold) oder aus (grau) ist - auch wenn du sie per Taste umschaltest. Sie erscheint nur, wenn das Spiel im Vordergrund ist, und lässt die Maus durch. Ecke wählen oder ausschalten im Tray-Menü (Rechtsklick auf das Symbol > In-Game-Overlay)."
   ]
 }

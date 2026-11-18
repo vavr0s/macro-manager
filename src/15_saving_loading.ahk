@@ -19,7 +19,7 @@ PressOf(m) {
 PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
 
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame, OverlayPos
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -31,6 +31,9 @@ Load() {
     Get(sec, key, def) => (ini.Has(sec) && ini[sec].Has(key)) ? ini[sec][key] : def
     MasterOn := Get("main", "master", "1") = "1"
     AutoUpd := Get("main", "autoupdate", "1") = "1"
+    OverlayPos := Get("main", "overlay", "tc")
+    if !(OverlayPos ~= "^(off|tl|tc|tr|bl|br)$")
+        OverlayPos := "tc"
     SeenVer := Get("main", "seenver", "")
     DarkOn := Get("main", "dark", "0") = "1"
     MasterKey := Get("main", "masterkey", "")
@@ -100,6 +103,7 @@ Save() {
     t .= "master=" (MasterOn ? 1 : 0) "`r`n"
     t .= "dark=" (DarkOn ? 1 : 0) "`r`n"
     t .= "autoupdate=" (AutoUpd ? 1 : 0) "`r`n"
+    t .= "overlay=" OverlayPos "`r`n"
     t .= "seenver=" SeenVer "`r`n"
     t .= "masterkey=" MasterKey "`r`n"
     t .= "holdms=" HoldMs "`r`n"

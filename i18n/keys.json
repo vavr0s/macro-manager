@@ -9,7 +9,8 @@
  "All macros": {
   "en": "All macros",
   "ctx": [
-   "lbl2 := Main.AddText(\"x600 y18 w105 Right BackgroundTrans\", _T(\"All macros\"))"
+   "lbl2 := Main.AddText(\"x600 y18 w105 Right BackgroundTrans\", _T(\"All macros\"))",
+   "txt := _T(\"All macros\")"
   ],
   "max_chars": 15
  },
@@ -463,10 +464,10 @@
    "ThemedNote(_T(\"Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}\", e.Message), _T(\"ComboCrown setup\"), true)"
   ]
  },
- "Choose where to install ComboCrown.\nA 'MacroManager' folder will be created there.": {
-  "en": "Choose where to install ComboCrown.\nA 'MacroManager' folder will be created there.",
+ "Choose where to install ComboCrown.\nA 'ComboCrown' folder will be created there.": {
+  "en": "Choose where to install ComboCrown.\nA 'ComboCrown' folder will be created there.",
   "ctx": [
-   "dir := DirSelect(\"*\" A_ProgramFiles, 1, _T(\"Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there.\"))"
+   "dir := DirSelect(\"*\" A_ProgramFiles, 1, _T(\"Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there.\"))"
   ]
  },
  "Installation failed:\n{1}": {
@@ -1373,7 +1374,7 @@
   ]
  },
  "hlp_toggle": {
-  "en": "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.\nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.\n\nClick the button, press the key. Esc cancels, Backspace removes the key.\nMacros of other profiles do not react to their toggle keys.",
+  "en": "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.\nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.\n\nClick the button, press the key. Esc cancels, Backspace removes the key.\nMacros of other profiles do not react to their toggle keys.\n\nIn-game overlay - a small bar over the game shows whether All macros is on (gold) or off (grey). It appears only while the game is in front. Right-click the tray icon > In-game overlay to pick its corner or turn it off. Games in exclusive full screen hide it - use windowed or borderless mode.",
   "ctx": [
    "HELP TOPIC TEXT (shown in the Help window, read as a manual)"
   ]
@@ -1957,6 +1958,48 @@
   "en": "Please fill in the name, the game and your nickname.",
   "ctx": [
    "ThemedNote(_T(\"Please fill in the name, the game and your nickname.\"), , true)"
+  ]
+ },
+ "In-game overlay": {
+  "en": "In-game overlay",
+  "ctx": [
+   "A_TrayMenu.Add(_T(\"In-game overlay\"), sub)"
+  ]
+ },
+ "Off": {
+  "en": "Off",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
+  ]
+ },
+ "Top left": {
+  "en": "Top left",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
+  ]
+ },
+ "Top center": {
+  "en": "Top center",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
+  ]
+ },
+ "Top right": {
+  "en": "Top right",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
+  ]
+ },
+ "Bottom left": {
+  "en": "Bottom left",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
+  ]
+ },
+ "Bottom right": {
+  "en": "Bottom right",
+  "ctx": [
+   "OverlayPlaces() => [[\"off\", _T(\"Off\")], [\"tl\", _T(\"Top left\")], [\"tc\", _T(\"Top center\")], [\"tr\", _T(\"Top right\")], [\"bl\", _T(\"Bottom left\")], [\"br\", _T(\"Bottom right\")]]"
   ]
  },
  "Release notes": {

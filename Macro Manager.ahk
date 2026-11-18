@@ -99,7 +99,7 @@ DiscordInvite := "NJUn6AmBSH"    ; ComboCrown community server (help banner: sup
 SwOffFile := AssetsDir "\switch_off.png"
 SwOnFile := AssetsDir "\switch_on.png"
 AssetVersion := "b12"    ; bump when the embedded logo/icon change
-AppVersion := "1.23.4"     ; bump on every release (must match version.json in the GitHub repo)
+AppVersion := "1.24.1"     ; bump on every release (must match version.json in the GitHub repo)
 UpdAvail := false       ; a newer version exists (icon in the banner turns green)
 UpdInfo := Map()
 UpdRepo := "vavr0s/macro-manager"
@@ -109,13 +109,15 @@ UpdEtag := ""            ; GitHub API answers "not modified" for free when nothi
 UpdBody := ""
 ; release notes of THIS version, shown in Help (English + translations below; written by tools/set_notes.py from
 ; tools/notes.json). No double quotes here.
-ReleaseNotes := "BETA build - for testing.`n- Macro Manager is now called ComboCrown. Your macros, profiles and settings stay as they are, and your shortcuts get the new name by themselves.`n- New look of the logo and the app icon: just the crown, without the lettering.`n- The support link in Help is now a Join Discord button, the same as on the website."
+ReleaseNotes := "BETA build - for testing.`n- In-game overlay: a small bar over the game shows whether All macros is on (gold) or off (grey), also when you switch it with its toggle key. It appears only while the game is in front and lets the mouse through. Pick its corner or turn it off in the tray menu (right-click the icon > In-game overlay)."
 ; the same notes in the other languages (keep this on one line - tools/set_notes.py rewrites it)
-ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Macro Manager se teď jmenuje ComboCrown. Makra, profily i nastavení zůstávají, jak jsou, a zástupci dostanou nový název sami.`n- Nový vzhled loga a ikony aplikace: jen koruna, bez nápisu.`n- Odkaz na podporu v Nápovědě je teď tlačítko Přidej se na Discord, stejné jako na webu.", "pl", "Wersja BETA – do testów.`n- Macro Manager nazywa się teraz ComboCrown. Makra, profile i ustawienia zostają bez zmian, a skróty same dostaną nową nazwę.`n- Nowy wygląd logo i ikony aplikacji: sama korona, bez napisu.`n- Link do pomocy w Pomocy to teraz przycisk Dołącz do Discorda, taki sam jak na stronie.", "de", "BETA-Version – zum Testen.`n- Macro Manager heißt jetzt ComboCrown. Deine Makros, Profile und Einstellungen bleiben, wie sie sind, und deine Verknüpfungen bekommen den neuen Namen von selbst.`n- Neues Logo und App-Symbol: nur die Krone, ohne Schriftzug.`n- Der Support-Link in der Hilfe ist jetzt ein Discord-beitreten-Button, genau wie auf der Website.")
+ReleaseNotesL := Map("cs", "BETA verze – k testování.`n- Overlay ve hře: malý pruh nad hrou ukazuje, jestli jsou Všechna makra zapnutá (zlatě), nebo vypnutá (šedě), i když je přepneš klávesou. Zobrazí se jen, když je hra v popředí, a myš jím prochází. Roh nebo vypnutí vybereš v nabídce ikony v oznamovací oblasti (pravé tlačítko > Overlay ve hře).", "pl", "Wersja BETA – do testów.`n- Nakładka w grze: mały pasek nad grą pokazuje, czy Wszystkie makra są włączone (złoty) czy wyłączone (szary), także po przełączeniu klawiszem. Pojawia się tylko, gdy gra jest na pierwszym planie, i nie blokuje myszy. Róg lub wyłączenie wybierzesz w menu ikony w zasobniku (prawy przycisk > Nakładka w grze).", "de", "BETA-Version – zum Testen.`n- In-Game-Overlay: Eine kleine Leiste über dem Spiel zeigt, ob Alle Makros an (gold) oder aus (grau) ist - auch wenn du sie per Taste umschaltest. Sie erscheint nur, wenn das Spiel im Vordergrund ist, und lässt die Maus durch. Ecke wählen oder ausschalten im Tray-Menü (Rechtsklick auf das Symbol > In-Game-Overlay).")
 SeenVer := AppVersion   ; last version whose release notes the user has opened (! shown while different)
 AutoUpd := true         ; check for updates when the app starts
 Macros := []
 MasterOn := true
+OverlayPos := "tc"     ; in-game overlay of the All macros switch: off / tl / tc / tr / bl / br (macros.ini [main] overlay)
+OvGui := 0, OvState := 0, OvMenu := 0
 Registered := []
 Populating := false
 HoverHwnd := 0
@@ -279,6 +281,7 @@ A_TrayMenu.Add(_T("Check for updates..."), OnUpdIcon)
 A_TrayMenu.Add(_T("Check for updates at start"), ToggleAutoUpd)
 if AutoUpd
     A_TrayMenu.Check(_T("Check for updates at start"))
+OvMenu := OverlayMenu()
 A_TrayMenu.Add(_T("Uninstall..."), (*) => UninstallApp())
 A_TrayMenu.Add(_T("Exit"), (*) => ExitApp())
 A_TrayMenu.Default := _T("Open window")
@@ -292,6 +295,7 @@ SetTimer(HoverTick, 40)
 SetTimer(ModWatch, 250)              ; un-sticks Ctrl / Alt / Shift / Win that Windows still thinks are held
 ModHookStart()                       ; ... except those another program holds on purpose
 SetTimer(ScriptWatch, 1000)          ; a script macro whose script has finished is turned off
+OverlayStart()                       ; the All macros switch over the game
 try Hotkey("~*RAlt up", AltGrUp)     ; AltGr released: make sure its Ctrl is released too
 OnMessage(0x18, OnMainShown)         ; WM_SHOWWINDOW: repaint the list when the window appears
 OnMessage(0x3, LibFollow)            ; WM_MOVE: the library panel moves with the main window
@@ -464,6 +468,7 @@ OnMaster(*) {
     swMaster.Value := MasterOn ? SwOnFile : SwOffFile
     Save()
     Apply()
+    OverlayTick()
 }
 
 OnMasterKey() {
@@ -492,6 +497,7 @@ ToggleMaster(*) {
     swMaster.Value := MasterOn ? SwOnFile : SwOffFile
     Save()
     Apply()
+    OverlayTick()
     Toast(_T("All macros: {1}", MasterOn ? _T("ON") : _T("OFF")))
 }
 
@@ -1825,7 +1831,7 @@ PressOf(m) {
 PressShort(p) => p = "tap" ? _T("tap") : (p = "double" ? "2×" : (p = "hold" ? _T("hold") : ""))     ; in the list
 
 Load() {
-    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame
+    global MasterOn, DarkOn, MasterKey, Profiles, CurProfile, AutoUpd, SeenVer, HoldMs, DblMs, LibId, LibAuthor, LibGame, OverlayPos
     if (!FileExist(IniFile) && FileExist(IniFile ".bak"))
         try FileCopy(IniFile ".bak", IniFile)       ; saving was interrupted: take the last good copy
     if !FileExist(IniFile) {
@@ -1837,6 +1843,9 @@ Load() {
     Get(sec, key, def) => (ini.Has(sec) && ini[sec].Has(key)) ? ini[sec][key] : def
     MasterOn := Get("main", "master", "1") = "1"
     AutoUpd := Get("main", "autoupdate", "1") = "1"
+    OverlayPos := Get("main", "overlay", "tc")
+    if !(OverlayPos ~= "^(off|tl|tc|tr|bl|br)$")
+        OverlayPos := "tc"
     SeenVer := Get("main", "seenver", "")
     DarkOn := Get("main", "dark", "0") = "1"
     MasterKey := Get("main", "masterkey", "")
@@ -1906,6 +1915,7 @@ Save() {
     t .= "master=" (MasterOn ? 1 : 0) "`r`n"
     t .= "dark=" (DarkOn ? 1 : 0) "`r`n"
     t .= "autoupdate=" (AutoUpd ? 1 : 0) "`r`n"
+    t .= "overlay=" OverlayPos "`r`n"
     t .= "seenver=" SeenVer "`r`n"
     t .= "masterkey=" MasterKey "`r`n"
     t .= "holdms=" HoldMs "`r`n"
@@ -4397,7 +4407,7 @@ HelpTopics() {
     order.Push("Profiles")
     t["Profiles"] := _TL("hlp_profiles", "Profiles keep different sets of macros apart (for example one per game).`n`n- The profile button in the banner shows the current profile. Click it to switch, or to create / rename / delete a profile.`n- The list shows only the macros of the current profile, and only those are active.`n- In the editor, Profiles lets you choose one or more profiles for the macro. When you change a macro that belongs to several profiles, the app asks: apply the change to all of them, or only to the current profile (the other profiles keep the old version).`n- Tick state of a macro stays the same in every profile; switching profile just changes which macros are in play.`n- Deleting a profile moves macros that belonged only to it to the first remaining profile.")
     order.Push("Toggle keys")
-    t["Toggle keys"] := _TL("hlp_toggle", "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys.")
+    t["Toggle keys"] := _TL("hlp_toggle", "Toggle (in the editor) - a key that switches that single macro on / off, same as ticking it in the list. A small tooltip shows ON / OFF.`nAll macros toggle key (button under the list) - switches the master switch. Works in every profile.`n`nClick the button, press the key. Esc cancels, Backspace removes the key.`nMacros of other profiles do not react to their toggle keys.`n`nIn-game overlay - a small bar over the game shows whether All macros is on (gold) or off (grey). It appears only while the game is in front. Right-click the tray icon > In-game overlay to pick its corner or turn it off. Games in exclusive full screen hide it - use windowed or borderless mode.")
     order.Push("Order, export, backup")
     t["Order, export, backup"] := _TL("hlp_order", "Move up / Move down change the order in the list. Clicking a column header sorts the list (click again to reverse).`n`nExport... saves the selected macro as a standalone AutoHotkey v2 .ahk file that also runs by itself (it asks for admin rights).`nImport... loads one or more .ahk files (or just drag them onto the main window). You can also drag a macro from the list onto the desktop / a folder / a chat window to export it as an .ahk file. The macro is named after the file; files made by ComboCrown come back as editable macros, other scripts become Script macros. Imports go to the current profile and start switched off.`nExport all... writes every macro to a folder, one file each.`n`nBackup... (next to Uninstall) saves everything - macros, profiles, settings and script files - into one .mmbackup file, and restores it on a new PC or after a reinstall. You can also drop the backup file onto the window. Before restoring, the current state is saved as config\backup-before-restore.mmbackup.`n`nUninstall deletes the whole app folder including all macros and settings. It offers to export all macros first.")
     order.Push("Updates")
@@ -6146,6 +6156,205 @@ UriEnc(s) {
     return out
 }
 
+; ============ in-game overlay: state of the All macros switch ============
+; A small bar over the game window: crown, "All macros" and a switch like the one in the banner. It never takes the
+; focus and lets the mouse through (layered + transparent window); it is shown only while the game is in front -
+; a program that an enabled macro of the current profile is limited to ("Only in app"), or any other program when
+; no macro is limited. Exclusive full screen games draw over every window: use windowed / borderless there.
+; Position: tray menu "In-game overlay" (OverlayPos: off / tl / tc / tr / bl / br, saved as overlay=).
+
+OverlayStart() {
+    global OvGui
+    OvGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x080800A8")    ; NOACTIVATE | LAYERED | TRANSPARENT | TOOLWINDOW
+    OvGui.Show("NA x-3000 y-3000 w10 h10")
+    WinSetExStyle("+0x20", OvGui.Hwnd)
+    SetTimer(OverlayTick, 150)
+}
+
+; called by the timer and right after the switch changes
+OverlayTick() {
+    global OvState
+    static shown := false, last := ""
+    if !IsSet(OvGui) || !OvGui
+        return
+    rc := (OverlayPos = "off") ? 0 : OverlayTarget()
+    if !rc {
+        if shown {
+            OvGui.Hide(), shown := false
+        }
+        return
+    }
+    s := A_ScreenDPI / 96
+    key := MasterOn "|" Lang "|" s
+    if (key != last || !IsSet(OvState) || !OvState) {
+        OverlayPaint(s)
+        last := key
+    }
+    m := Round(12 * s), w := OvState.w, h := OvState.h
+    x := InStr(OverlayPos, "l") ? rc.x + m : InStr(OverlayPos, "r") ? rc.x + rc.w - w - m : rc.x + (rc.w - w) // 2
+    y := InStr(OverlayPos, "t") ? rc.y + m : rc.y + rc.h - h - m
+    OverlayBlit(x, y)
+    if !shown {
+        OvGui.Show("NA")
+        shown := true
+    }
+}
+
+; client area of the game window in front (screen coordinates), or 0 when the overlay should not be shown
+OverlayTarget() {
+    try {
+        hwnd := WinExist("A")
+        if (!hwnd || WinGetPID(hwnd) = ProcessExist())                ; our own windows
+            return 0
+        exe := WinGetProcessName(hwnd)
+        if (WinGetClass(hwnd) ~= "^(Progman|WorkerW|Shell_TrayWnd|Shell_SecondaryTrayWnd)$")
+            return 0
+    } catch
+        return 0
+    limited := false, any := false
+    for m in Macros {
+        if (!m["enabled"] || !InProfile(m) || m["type"] = "script")
+            continue
+        any := true
+        if (m["app"] != "") {
+            limited := true
+            if (StrLower(m["app"]) = StrLower(exe))
+                return OverlayClient(hwnd)
+        }
+    }
+    return (any && !limited) ? OverlayClient(hwnd) : 0
+}
+
+OverlayClient(hwnd) {
+    WinGetClientPos(&x, &y, &w, &h, hwnd)
+    return (w < 200 || h < 100) ? 0 : {x: x, y: y, w: w, h: h}
+}
+
+; draws the bar into a 32-bit DIB (premultiplied alpha) kept in OvState
+OverlayPaint(s) {
+    global OvState
+    if (IsSet(OvState) && OvState) {
+        DllCall("SelectObject", "Ptr", OvState.dc, "Ptr", OvState.old, "Ptr")
+        DllCall("DeleteObject", "Ptr", OvState.bmp), DllCall("DeleteDC", "Ptr", OvState.dc)
+    }
+    if !GdipOn()
+        return
+    txt := _T("All macros")
+    fs := 13 * s
+    DllCall("gdiplus\GdipCreateFontFamilyFromName", "WStr", "Segoe UI Semibold", "Ptr", 0, "Ptr*", &fam := 0)
+    if !fam
+        DllCall("gdiplus\GdipCreateFontFamilyFromName", "WStr", "Segoe UI", "Ptr", 0, "Ptr*", &fam := 0)
+    DllCall("gdiplus\GdipCreateFont", "Ptr", fam, "Float", fs, "Int", 0, "Int", 2, "Ptr*", &font := 0)   ; pixels
+    DllCall("gdiplus\GdipCreateStringFormat", "Int", 0x1000, "Int", 0, "Ptr*", &fmt := 0)               ; no wrap
+    ; text width
+    tdc := DllCall("CreateCompatibleDC", "Ptr", 0, "Ptr")
+    DllCall("gdiplus\GdipCreateFromHDC", "Ptr", tdc, "Ptr*", &tg := 0)
+    lay := Buffer(16, 0), box := Buffer(16, 0)
+    NumPut("Float", 0, "Float", 0, "Float", 1000, "Float", 100, lay)
+    DllCall("gdiplus\GdipMeasureString", "Ptr", tg, "WStr", txt, "Int", -1, "Ptr", font, "Ptr", lay, "Ptr", fmt, "Ptr", box, "Ptr", 0, "Ptr", 0)
+    tw := NumGet(box, 8, "Float"), th := NumGet(box, 12, "Float")
+    DllCall("gdiplus\GdipDeleteGraphics", "Ptr", tg), DllCall("DeleteDC", "Ptr", tdc)
+
+    h := Round(32 * s), pad := Round(10 * s), ch := Round(15 * s), cw := Round(ch * 1.3478)
+    swW := Round(34 * s), swH := Round(18 * s), gap := Round(8 * s)
+    w := pad + cw + gap + Ceil(tw) + gap + swW + pad
+    ; 32-bit top-down DIB
+    bi := Buffer(40, 0)
+    NumPut("UInt", 40, "Int", w, "Int", -h, "UShort", 1, "UShort", 32, bi)
+    dc := DllCall("CreateCompatibleDC", "Ptr", 0, "Ptr")
+    bmp := DllCall("CreateDIBSection", "Ptr", dc, "Ptr", bi, "UInt", 0, "Ptr*", 0, "Ptr", 0, "UInt", 0, "Ptr")
+    old := DllCall("SelectObject", "Ptr", dc, "Ptr", bmp, "Ptr")
+    gr := GrOn(dc)
+    DllCall("gdiplus\GdipSetTextRenderingHint", "Ptr", gr, "Int", 4)     ; anti-aliased (ClearType needs a solid background)
+    on := MasterOn
+    FillRoundA(gr, 0, 0, w, h, h, 0xD80B0B0D)                              ; dark bar, slightly see-through
+    FillRoundA(gr, 0.5 * s, 0.5 * s, w - s, h - s, h - s, 0x00000000, on ? 0x90D0AE6B : 0x60595D68)   ; thin outline
+    DrawCrown(gr, pad, (h - ch) / 2, ch, on ? 0xFFD0AE6B : 0xFF6E7380)
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", on ? 0xFFECECEF : 0xFFA9ADB8, "Ptr*", &tb := 0)
+    NumPut("Float", pad + cw + gap, "Float", (h - th) / 2, "Float", tw + 4, "Float", th, lay)
+    DllCall("gdiplus\GdipDrawString", "Ptr", gr, "WStr", txt, "Int", -1, "Ptr", font, "Ptr", lay, "Ptr", fmt, "Ptr", tb)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", tb)
+    ; switch: gold track with the knob right = on, grey with the knob left = off
+    sx := w - pad - swW, sy := (h - swH) / 2, kn := swH - 4 * s
+    FillRoundA(gr, sx, sy, swW, swH, swH, on ? 0xFFD0AE6B : 0xFF3A3E49)
+    FillRoundA(gr, on ? sx + swW - 2 * s - kn : sx + 2 * s, sy + 2 * s, kn, kn, kn, on ? 0xFF141414 : 0xFFA9ADB8)
+    DllCall("gdiplus\GdipDeleteGraphics", "Ptr", gr)
+    DllCall("gdiplus\GdipDeleteStringFormat", "Ptr", fmt), DllCall("gdiplus\GdipDeleteFont", "Ptr", font)
+    DllCall("gdiplus\GdipDeleteFontFamily", "Ptr", fam)
+    OvState := {dc: dc, bmp: bmp, old: old, w: w, h: h}
+}
+
+OverlayBlit(x, y) {
+    pt := Buffer(8), sz := Buffer(8), src := Buffer(8, 0), bl := Buffer(4)
+    NumPut("Int", x, "Int", y, pt), NumPut("Int", OvState.w, "Int", OvState.h, sz)
+    NumPut("UChar", 0, "UChar", 0, "UChar", 255, "UChar", 1, bl)           ; AC_SRC_OVER, alpha 255, AC_SRC_ALPHA
+    DllCall("UpdateLayeredWindow", "Ptr", OvGui.Hwnd, "Ptr", 0, "Ptr", pt, "Ptr", sz, "Ptr", OvState.dc, "Ptr", src, "UInt", 0, "Ptr", bl, "UInt", 2)
+    DllCall("SetWindowPos", "Ptr", OvGui.Hwnd, "Ptr", -1, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)  ; stay on top, no move / size / activate
+}
+
+; rounded rectangle with an ARGB fill and, optionally, an ARGB outline (fill 0 = outline only)
+FillRoundA(gr, x, y, w, h, d, argb, line := 0) {
+    d := Min(d, w, h)
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)
+    x2 := x + w - d, y2 := y + h - d
+    for a in [[x, y, 180], [x2, y, 270], [x2, y2, 0], [x, y2, 90]]
+        DllCall("gdiplus\GdipAddPathArc", "Ptr", pa, "Float", a[1], "Float", a[2], "Float", d, "Float", d, "Float", a[3], "Float", 90)
+    DllCall("gdiplus\GdipClosePathFigure", "Ptr", pa)
+    if (argb >> 24) {
+        DllCall("gdiplus\GdipCreateSolidFill", "UInt", argb, "Ptr*", &fb := 0)
+        DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+        DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    }
+    if line {
+        DllCall("gdiplus\GdipCreatePen1", "UInt", line, "Float", A_ScreenDPI / 96, "Int", 2, "Ptr*", &pn := 0)
+        DllCall("gdiplus\GdipDrawPath", "Ptr", gr, "Ptr", pn, "Ptr", pa)
+        DllCall("gdiplus\GdipDeletePen", "Ptr", pn)
+    }
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+}
+
+; the ComboCrown crown (vector from tools/brand/crown.json, height 1), h pixels tall, top-left at x, y
+DrawCrown(gr, x, y, h, argb) {
+    static shape := [[0.1337, 0.0000, 0.2435, 0.0033, 0.6728, 0.7913, 0.8087, 0.5533, 0.8261, 0.4902, 0.6750, 0.2174, 0.5446, 0.4348, 0.4870, 0.3359, 0.6609, 0.0120, 0.6870, 0.0207, 0.8924, 0.3913, 1.0957, 0.0120, 1.2174, 0.0033, 0.6750, 1.0000, 0.4174, 0.5337, 0.1880, 0.4435, 0.3304, 0.7880, 0.4837, 0.7913, 0.5304, 0.8728, 0.5272, 0.8870, 0.2609, 0.8837, 0.0000, 0.2924, 0.0228, 0.2783, 0.3304, 0.3880],
+        [1.3250, 0.2783, 1.3478, 0.2837, 1.0783, 0.8837, 0.8120, 0.8870, 0.8554, 0.7913, 1.0174, 0.7793, 1.1565, 0.4663, 1.1511, 0.4435, 1.0261, 0.4837, 1.0783, 0.3772, 1.0989, 0.3565]]
+    DllCall("gdiplus\GdipCreatePath", "Int", 0, "Ptr*", &pa := 0)          ; alternate fill: inner holes stay open
+    for sub in shape {
+        pts := Buffer(sub.Length * 4)
+        for i, v in sub
+            NumPut("Float", (i & 1 ? x : y) + v * h, pts, (i - 1) * 4)
+        DllCall("gdiplus\GdipAddPathPolygon", "Ptr", pa, "Ptr", pts, "Int", sub.Length // 2)
+    }
+    DllCall("gdiplus\GdipCreateSolidFill", "UInt", argb, "Ptr*", &fb := 0)
+    DllCall("gdiplus\GdipFillPath", "Ptr", gr, "Ptr", fb, "Ptr", pa)
+    DllCall("gdiplus\GdipDeleteBrush", "Ptr", fb)
+    DllCall("gdiplus\GdipDeletePath", "Ptr", pa)
+}
+
+; ---- tray menu: In-game overlay > Off / Top left / ...
+OverlayMenu() {
+    sub := Menu()
+    for p in OverlayPlaces()
+        sub.Add(p[2], OverlaySet.Bind(p[1]))
+    A_TrayMenu.Add(_T("In-game overlay"), sub)
+    OverlayChecks(sub)
+    return sub
+}
+
+OverlayPlaces() => [["off", _T("Off")], ["tl", _T("Top left")], ["tc", _T("Top center")], ["tr", _T("Top right")], ["bl", _T("Bottom left")], ["br", _T("Bottom right")]]
+
+OverlayChecks(sub) {
+    for p in OverlayPlaces()
+        (p[1] = OverlayPos) ? sub.Check(p[2]) : sub.Uncheck(p[2])
+}
+
+OverlaySet(pos, *) {
+    global OverlayPos
+    OverlayPos := pos
+    OverlayChecks(OvMenu)
+    Save()
+    OverlayTick()
+}
+
 ; ============ embedded images (base64, written to config\assets by EnsureAssets) ============
 IconB64() {
     return "
@@ -7151,7 +7360,7 @@ TrCs() {
     m["Just start"] := "Jen spustit"
     m["Update and start"] := "Aktualizovat a spustit"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nainstalovanou kopii se nepodařilo aktualizovat (neběží?). Spouští se nainstalovaná verze.`n`n{1}"
-    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Vyber, kam se má ComboCrown nainstalovat.`nVytvoří se tam složka 'MacroManager'."
+    m["Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there."] := "Vyber, kam se má ComboCrown nainstalovat.`nVytvoří se tam složka 'ComboCrown'."
     m["Installation failed:`n{1}"] := "Instalace se nezdařila:`n{1}"
     m["Create a Start Menu shortcut?"] := "Vytvořit zástupce v nabídce Start?"
     m["Skip"] := "Přeskočit"
@@ -7287,7 +7496,7 @@ TrCs() {
     m["hlp_script"] := "Pro všechno, co ostatní typy neumí. Vlož nebo napiš vlastní skript AutoHotkey v2.`n`n- Skript běží jako samostatný proces, dokud je makro zaškrtnuté, a po odškrtnutí se zastaví.`n- Musí to být kód AutoHotkey v2 (skripty pro v1 nebudou fungovat).`n- Spouštěcí klávesa a filtr aplikace se nepoužívají, to si řeší tvůj skript sám.`n- Importované soubory .ahk, které nevytvořil ComboCrown, se stanou skriptovými makry.`n- Importovaný skript se před prvním spuštěním zeptá: běží s právy správce, takže ho zapni, jen pokud věříš, odkud pochází. Okno ukáže, co skript dělá (například spouští programy nebo maže soubory), a nabídne zobrazení kódu."
     m["hlp_keys"] := "Názvy kláves odpovídají názvům v AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlávesu lze zapsat i jako scan kód, například sc002 - jde o fyzickou klávesu bez ohledu na rozložení. Klávesy jako čárka, plus, & a | se takto ukládají automaticky.`n`nMyš: spouštěcí klávesa, přepínač i klávesa Všechna makra může být také tlačítko myši: RButton, MButton (klik kolečkem), XButton1 / XButton2 (dvě boční tlačítka) nebo samotné kolečko (WheelUp / WheelDown / WheelLeft / WheelRight). Kolečko nelze držet, proto se makra na kolečku vždy přehrají jednou. Levé tlačítko se nenabízí.`nHerní / MMO myši: Windows zná jen pět tlačítek myši, další boční tlačítka obsluhuje software myši (G HUB, Synapse, iCUE, ...). Nastav jim tam klávesy, nejlépe F13 - F24 (nebo Ctrl+Alt+číslo); ComboCrown je pak vidí jako obyčejné klávesy, takže klikni do pole spouštěcí klávesy a stiskni boční tlačítko.`n`nNahrát (vedle Směrů a Akcí): stiskni Nahrát, mačkej klávesy v požadovaném pořadí a pak stiskni Hotovo. Pole se plní průběžně. Během nahrávání jsou makra pozastavená.`n`nKlávesy současně: klávesy, které držíš zároveň, se uloží jako jeden krok spojený pomocí +, například Shift+4. Při přehrávání se všechny stisknou společně a společně se i uvolní (ne nejdřív Shift a pak 4).`nStejně to funguje i při psaní do polí: a,Shift+4,d"
     m["hlp_profiles"] := "Profily udržují různé sady maker odděleně (například jeden na hru).`n`n- Tlačítko profilu v horní liště ukazuje aktuální profil. Kliknutím přepneš profil nebo vytvoříš / přejmenuješ / smažeš profil.`n- Seznam ukazuje jen makra aktuálního profilu a jen ta jsou aktivní.`n- V editoru můžeš v Profily vybrat pro makro jeden nebo více profilů. Když změníš makro, které patří do více profilů, aplikace se zeptá: použít změnu ve všech, nebo jen v aktuálním profilu (ostatní profily si ponechají starou verzi).`n- Zaškrtnutí makra je ve všech profilech stejné; přepnutím profilu se jen mění, která makra jsou ve hře.`n- Smazáním profilu se makra, která patřila jen jemu, přesunou do prvního zbývajícího profilu."
-    m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují."
+    m["hlp_toggle"] := "Přepínač (v editoru) - klávesa, která zapíná / vypíná jedno konkrétní makro, stejně jako jeho zaškrtnutí v seznamu. Malý tooltip ukáže ZAP / VYP.`nPřepínač všech maker (tlačítko pod seznamem) - přepíná hlavní vypínač. Funguje ve všech profilech.`n`nKlikni na tlačítko a stiskni klávesu. Esc zruší, Backspace klávesu odstraní.`nMakra z jiných profilů na své přepínací klávesy nereagují.`n`nOverlay ve hře - malý pruh nad hrou ukazuje, jestli jsou Všechna makra zapnutá (zlatě), nebo vypnutá (šedě). Zobrazí se jen, když je hra v popředí. Pravým tlačítkem na ikonu v oznamovací oblasti > Overlay ve hře vybereš jeho roh nebo ho vypneš. Hry v exkluzivním režimu celé obrazovky ho skryjí - použij režim v okně nebo bez okrajů."
     m["hlp_order"] := "Nahoru / Dolů mění pořadí v seznamu. Kliknutím na záhlaví sloupce se seznam seřadí (dalším kliknutím se pořadí obrátí).`n`nExportovat... uloží vybrané makro jako samostatný soubor .ahk pro AutoHotkey v2, který běží i sám (požádá o práva správce).`nImportovat... načte jeden nebo více souborů .ahk (nebo je stačí přetáhnout do hlavního okna). Makro můžeš také přetáhnout ze seznamu na plochu / do složky / do okna chatu a exportovat ho tak jako soubor .ahk. Makro se pojmenuje podle souboru; soubory vytvořené aplikací ComboCrown se vrátí jako upravitelná makra, ostatní skripty se stanou skriptovými makry. Importy jdou do aktuálního profilu a začínají vypnuté.`nExportovat vše... zapíše všechna makra do složky, každé do jednoho souboru.`n`nZáloha... (vedle Odinstalovat) uloží všechno – makra, profily, nastavení i soubory skriptů – do jednoho souboru .mmbackup a obnoví ho na novém PC nebo po přeinstalaci. Soubor zálohy můžeš také přetáhnout do okna. Před obnovou se současný stav uloží jako config\backup-before-restore.mmbackup.`n`nOdinstalovat smaže celou složku aplikace včetně všech maker a nastavení. Nejdřív nabídne export všech maker."
     m["hlp_updates"] := "Ikona šipky v horní liště (vedle tlačítka profilu) ukazuje, jestli existuje nová verze: šedá = máš aktuální verzi, zelená = je dostupná nová verze. Po najetí myší uvidíš podrobnosti.`n`nAplikace kontroluje několik sekund po spuštění (lze vypnout v nabídce v oznamovací oblasti: Kontrolovat aktualizace při spuštění). Kliknutím na ikonu můžeš kdykoli zkontrolovat znovu. Nic se nenainstaluje, dokud neklikneš na zelenou ikonu a nepotvrdíš.`n`nPři aktualizaci aplikace stáhne nový soubor, zkontroluje jeho kontrolní součet, starý ponechá jako Macro Manager.ahk.bak a restartuje se. Tvoje makra, profily a nastavení jsou uložené zvlášť ve složce config a zůstanou přesně tak, jak jsou.`n`nKdyž se něco pokazí, zavři aplikaci, smaž Macro Manager.ahk a přejmenuj Macro Manager.ahk.bak zpět na Macro Manager.ahk.`n`nAktualizace potřebuje přístup k internetu (server Macro Hubu nebo github.com)."
     m["hlp_hub"] := "Macro Hub (tlačítko vedle hledání) ukazuje makra, která sdílejí hráči. Otevře se jako panel po straně hlavního okna.`n`n- Makra hráčů: makra ostatních hráčů. Moje makra: makra, která jsi sdílel, s jejich hodnocením a počtem stažení.`n- Hledej slovy z názvu, hry nebo jména autora: musí sedět každé slovo. 4story najde všechna makra pro 4Story, 4story war jen ta pro warriora.`n- Tlačítko hry vyfiltruje jednu hru, tlačítko řazení řadí podle hodnocení, nejnovějších nebo nejstahovanějších.`n- U každého makra je průměrné hodnocení ve hvězdičkách (1 = nejhorší, 5 = nejlepší) s počtem hodnocení v závorce, autor, hra, spouštěcí klávesa a počet stažení. Zlatá fajfka označuje makra zkontrolovaná moderátorem - jsou na začátku.`n- Pole pod seznamem ukazuje popis a co makro dělá (klávesy, prodlevy, sekvenci) - ještě před stažením.`n- Stáhnout (nebo dvojklik) přidá makro do aktuálního profilu jako vypnuté. Zkontroluj klávesu a aplikaci a pak ho zaškrtni.`n- Hodnotit dá 1 až 5 hvězdiček - jedno hodnocení na instalaci, později ho můžeš změnit. Vlastní makra hodnotit nejde.`n- Nahlásit pošle makro ke kontrole, třeba farm / AFK makro, které není povolené. Po několika nahlášeních se makro schová.`n- Smazat (Moje makra) odstraní z Macro Hubu makro, které jsi sdílel; tvoje kopie v seznamu zůstane.`n`nSdílení: klikni na ikonu sdílení na konci řádku v hlavním seznamu a vyplň název, hru, popis a přezdívku. Po sdílení ikona zezlátne. Makra stažená z Macro Hubu mají místo ní šipku stažení a sdílet je jde až po úpravě.`n`nAktualizace: když upravíš makro, které jsi sdílel, aplikace se zeptá, jestli ho aktualizovat v Macro Hubu - hodnocení i počet stažení zůstanou (do té doby má jeho ikona tečku; kliknutím ho aktualizuješ). Když autor aktualizuje makro, které sis stáhl, objeví se upozornění a jeho šipka v seznamu zezelená: klikni na ni, uvidíš, co se změnilo, a převezmeš novou verzi nebo si necháš svou. Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Skript makra sdílet nejde.`n`nMacro Hub potřebuje připojení k internetu. Kdo makro hodnotil nebo nahlásil, nikdo neuvidí. Aby aplikace poznala makra stažená starší verzí, pošle Macro Hubu jednou, co dělají (klávesy, prodlevy, sekvenci - ne jejich názvy); nic z toho se neukládá."
@@ -7382,6 +7591,13 @@ TrCs() {
     m["Your nickname"] := "Tvoje přezdívka"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Sdílí se: klávesy, prodlevy, nastavení Spouštění a Stisku a aplikace. Nesdílí se: přepínací klávesa a tvoje profily. Každý ho uvidí a může si ho stáhnout. Farm / AFK makra nejsou povolená."
     m["Please fill in the name, the game and your nickname."] := "Vyplň prosím název, hru a svou přezdívku."
+    m["In-game overlay"] := "Overlay ve hře"
+    m["Off"] := "Vypnuto"
+    m["Top left"] := "Vlevo nahoře"
+    m["Top center"] := "Nahoře uprostřed"
+    m["Top right"] := "Vpravo nahoře"
+    m["Bottom left"] := "Vlevo dole"
+    m["Bottom right"] := "Vpravo dole"
     m["Release notes"] := "Poznámky k verzi"
     m["Getting started"] := "Začínáme"
     m["Add / edit a macro"] := "Přidání / úprava makra"
@@ -7455,7 +7671,7 @@ TrPl() {
     m["Just start"] := "Tylko uruchom"
     m["Update and start"] := "Zaktualizuj i uruchom"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Nie udało się zaktualizować zainstalowanej kopii (czy jest uruchomiona?). Uruchamiam zainstalowaną wersję.`n`n{1}"
-    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Wybierz, gdzie zainstalować ComboCrown.`nZostanie tam utworzony folder 'MacroManager'."
+    m["Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there."] := "Wybierz, gdzie zainstalować ComboCrown.`nZostanie tam utworzony folder 'ComboCrown'."
     m["Installation failed:`n{1}"] := "Instalacja nie powiodła się:`n{1}"
     m["Create a Start Menu shortcut?"] := "Utworzyć skrót w menu Start?"
     m["Skip"] := "Pomiń"
@@ -7591,7 +7807,7 @@ TrPl() {
     m["hlp_script"] := "Do wszystkiego, czego nie potrafią inne typy. Wklej lub napisz własny skrypt AutoHotkey v2.`n`n- Skrypt działa jako osobny proces, dopóki makro jest zaznaczone, i jest zatrzymywany, gdy je odznaczysz.`n- Musi to być kod AutoHotkey v2 (skrypty v1 nie zadziałają).`n- Klawisz wyzwalający i filtr aplikacji nie są używane, twój skrypt robi to sam.`n- Zaimportowane pliki .ahk, które nie zostały utworzone przez ComboCrown, stają się makrami skryptowymi.`n- Zaimportowany skrypt pyta przed pierwszym uruchomieniem: działa z uprawnieniami administratora, więc włącz go tylko wtedy, gdy ufasz jego źródłu. Okno pokazuje, co robi skrypt (na przykład uruchamia programy lub usuwa pliki), i pozwala obejrzeć kod."
     m["hlp_keys"] := "Nazwy klawiszy to nazwy z AutoHotkey: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nKlawisz można też zapisać jako kod skanowania, na przykład sc002 - to fizyczny klawisz, niezależnie od układu. Klawisze takie jak przecinek, plus, & i | są zapisywane w ten sposób automatycznie.`n`nMysz: klawisz wyzwalający, przełącznik i klawisz Wszystkie makra mogą być też przyciskiem myszy: RButton, MButton (kliknięcie kółkiem), XButton1 / XButton2 (dwa przyciski boczne) lub samo kółko (WheelUp / WheelDown / WheelLeft / WheelRight). Kółko nie ma przytrzymania, więc makra na kółku zawsze odtwarzają się raz. Lewy przycisk nie jest dostępny.`nMyszy dla graczy / MMO: Windows zna tylko pięć przycisków myszy, dodatkowymi przyciskami bocznymi zajmuje się oprogramowanie myszy (G HUB, Synapse, iCUE, ...). Ustaw je tam na klawisze, najlepiej F13 - F24 (lub Ctrl+Alt+cyfra); ComboCrown widzi je wtedy jako zwykłe klawisze, więc kliknij pole klawisza wyzwalającego i naciśnij przycisk boczny.`n`nNagraj (obok Kierunków i Akcji): naciśnij Nagraj, naciskaj klawisze w żądanej kolejności, potem naciśnij Gotowe. Pole wypełnia się na żywo. Podczas nagrywania makra są wstrzymane.`n`nKlawisze jednocześnie: klawisze trzymane razem są zapisywane jako jeden krok połączony znakiem +, na przykład Shift+4. Przy odtwarzaniu makra wszystkie idą w dół razem i są puszczane razem (nie najpierw Shift, a potem 4).`nTo samo działa przy wpisywaniu w polach: a,Shift+4,d"
     m["hlp_profiles"] := "Profile oddzielają od siebie różne zestawy makr (na przykład jeden na grę).`n`n- Przycisk profilu w nagłówku pokazuje bieżący profil. Kliknij go, aby przełączyć profil albo utworzyć / zmienić nazwę / usunąć profil.`n- Lista pokazuje tylko makra bieżącego profilu i tylko one są aktywne.`n- W edytorze Profile pozwalają wybrać jeden lub kilka profili dla makra. Gdy zmieniasz makro należące do kilku profili, aplikacja pyta: zastosować zmianę we wszystkich, czy tylko w bieżącym profilu (pozostałe profile zachowają starą wersję).`n- Stan zaznaczenia makra jest taki sam w każdym profilu; zmiana profilu zmienia tylko to, które makra są w grze.`n- Usunięcie profilu przenosi makra, które należały tylko do niego, do pierwszego pozostałego profilu."
-    m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające."
+    m["hlp_toggle"] := "Przełącznik (w edytorze) - klawisz, który włącza / wyłącza to jedno makro, tak samo jak jego zaznaczenie na liście. Mała podpowiedź pokazuje WŁ. / WYŁ.`nKlawisz przełączania wszystkich makr (przycisk pod listą) - przełącza główny wyłącznik. Działa w każdym profilu.`n`nKliknij przycisk, naciśnij klawisz. Esc anuluje, Backspace usuwa klawisz.`nMakra z innych profili nie reagują na swoje klawisze przełączające.`n`nNakładka w grze - mały pasek nad grą pokazuje, czy Wszystkie makra są włączone (złoty) czy wyłączone (szary). Pojawia się tylko, gdy gra jest na pierwszym planie. Prawy przycisk na ikonie w zasobniku > Nakładka w grze - wybierz róg albo ją wyłącz. Gry w trybie wyłącznego pełnego ekranu ją ukrywają - użyj trybu okna lub okna bez ramki."
     m["hlp_order"] := "W górę / W dół zmieniają kolejność na liście. Kliknięcie nagłówka kolumny sortuje listę (kliknij ponownie, aby odwrócić).`n`nEksportuj... zapisuje zaznaczone makro jako samodzielny plik AutoHotkey v2 .ahk, który działa też sam (poprosi o uprawnienia administratora).`nImportuj... wczytuje jeden lub więcej plików .ahk (albo po prostu przeciągnij je na główne okno). Możesz też przeciągnąć makro z listy na pulpit / do folderu / do okna czatu, aby wyeksportować je jako plik .ahk. Makro dostaje nazwę od pliku; pliki utworzone przez ComboCrown wracają jako edytowalne makra, inne skrypty stają się makrami skryptowymi. Importowane makra trafiają do bieżącego profilu i startują wyłączone.`nEksportuj całość... zapisuje każde makro do folderu, po jednym pliku.`n`nKopia... (obok Odinstaluj) zapisuje wszystko – makra, profile, ustawienia i pliki skryptów – do jednego pliku .mmbackup i przywraca go na nowym komputerze lub po ponownej instalacji. Plik kopii możesz też przeciągnąć na okno. Przed przywróceniem bieżący stan zostaje zapisany jako config\backup-before-restore.mmbackup.`n`nOdinstaluj usuwa cały folder aplikacji razem ze wszystkimi makrami i ustawieniami. Najpierw proponuje wyeksportowanie wszystkich makr."
     m["hlp_updates"] := "Ikona strzałki w nagłówku (obok przycisku profilu) pokazuje, czy jest nowa wersja: szara = masz aktualną wersję, zielona = dostępna jest nowa wersja. Najedź na nią, aby zobaczyć szczegóły.`n`nAplikacja sprawdza aktualizacje kilka sekund po uruchomieniu (można to wyłączyć w menu zasobnika systemowego: Sprawdzaj aktualizacje przy starcie). Kliknij ikonę w dowolnym momencie, aby sprawdzić ponownie. Nic nie zostanie zainstalowane, dopóki nie klikniesz zielonej ikony i nie potwierdzisz.`n`nPodczas aktualizacji aplikacja pobiera nowy plik, sprawdza jego sumę kontrolną, zachowuje stary jako Macro Manager.ahk.bak i uruchamia się ponownie. Twoje makra, profile i ustawienia są przechowywane osobno w folderze config i pozostają dokładnie takie, jakie są.`n`nJeśli coś pójdzie nie tak, zamknij aplikację, usuń Macro Manager.ahk i zmień nazwę Macro Manager.ahk.bak z powrotem na Macro Manager.ahk.`n`nAktualizacja wymaga dostępu do internetu (serwer Macro Hub lub github.com)."
     m["hlp_hub"] := "Macro Hub (przycisk obok wyszukiwania) pokazuje makra udostępnione przez graczy. Otwiera się jako panel z boku głównego okna.`n`n- Makra graczy: makra innych graczy. Moje makra: makra, które udostępniłeś, z ich ocenami i liczbą pobrań.`n- Szukaj słowami z nazwy, gry lub nazwy autora: każde słowo musi pasować. 4story znajdzie wszystkie makra do 4Story, 4story war tylko te dla wojownika.`n- Przycisk gry filtruje jedną grę, przycisk sortowania sortuje według ocen, najnowszych lub najczęściej pobieranych.`n- Każde makro pokazuje średnią ocenę w gwiazdkach (1 = najgorsza, 5 = najlepsza) z liczbą ocen w nawiasie, autora, grę, klawisz wyzwalający i liczbę pobrań. Złoty znaczek oznacza makra sprawdzone przez moderatora - są na początku.`n- Pole pod listą pokazuje opis i co makro robi (klawisze, opóźnienia, sekwencję) - zanim je pobierzesz.`n- Pobierz (lub podwójne kliknięcie) dodaje makro do bieżącego profilu jako wyłączone. Sprawdź jego klawisz i aplikację, a potem je zaznacz.`n- Oceń daje od 1 do 5 gwiazdek - jedna ocena na instalację, możesz ją później zmienić. Własnych makr nie można oceniać.`n- Zgłoś wysyła makro do sprawdzenia, np. makro farm / AFK, które jest niedozwolone. Po kilku zgłoszeniach makro zostaje ukryte.`n- Usuń (Moje makra) usuwa z Macro Hub makro, które udostępniłeś; Twoja kopia na liście zostaje.`n`nUdostępnianie: kliknij ikonę udostępniania na końcu wiersza na głównej liście i wpisz nazwę, grę, opis i swój pseudonim. Po udostępnieniu ikona staje się złota. Makra pobrane z Macro Hub mają zamiast niej strzałkę pobierania i można je udostępnić dopiero po zmianie.`n`nAktualizacje: gdy zmienisz udostępnione przez siebie makro, aplikacja zapyta, czy zaktualizować je w Macro Hub - oceny i liczba pobrań zostają (do tego czasu jego ikona ma kropkę; kliknij, aby zaktualizować). Gdy autor zaktualizuje pobrane przez Ciebie makro, pojawi się powiadomienie, a jego strzałka na liście zrobi się zielona: kliknij ją, aby zobaczyć zmiany i przyjąć nową wersję lub zostawić swoją. Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Makr skryptowych nie można udostępniać.`n`nMacro Hub wymaga dostępu do internetu. Nikt nie widzi, kto ocenił lub zgłosił makro. Aby rozpoznać makra pobrane starszą wersją, aplikacja wysyła raz do Macro Hub, co robią (klawisze, opóźnienia, sekwencję - nie ich nazwy); nic z tego nie jest zapisywane."
@@ -7686,6 +7902,13 @@ TrPl() {
     m["Your nickname"] := "Twój pseudonim"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Udostępniane są: klawisze, opóźnienia, ustawienia Uruchamiania i Naciśnięcia oraz aplikacja. Nie są udostępniane: klawisz przełączania i Twoje profile. Każdy może je zobaczyć i pobrać. Makra farm / AFK są niedozwolone."
     m["Please fill in the name, the game and your nickname."] := "Wpisz nazwę, grę i swój pseudonim."
+    m["In-game overlay"] := "Nakładka w grze"
+    m["Off"] := "Wyłączona"
+    m["Top left"] := "Lewy górny róg"
+    m["Top center"] := "Na górze, pośrodku"
+    m["Top right"] := "Prawy górny róg"
+    m["Bottom left"] := "Lewy dolny róg"
+    m["Bottom right"] := "Prawy dolny róg"
     m["Release notes"] := "Informacje o wersji"
     m["Getting started"] := "Pierwsze kroki"
     m["Add / edit a macro"] := "Dodawanie / edycja makra"
@@ -7759,7 +7982,7 @@ TrDe() {
     m["Just start"] := "Nur starten"
     m["Update and start"] := "Aktualisieren und starten"
     m["Couldn't update the installed copy (is it running?). Starting the installed version.`n`n{1}"] := "Die installierte Kopie konnte nicht aktualisiert werden (läuft sie noch?). Die installierte Version wird gestartet.`n`n{1}"
-    m["Choose where to install ComboCrown.`nA 'MacroManager' folder will be created there."] := "Wähle, wo ComboCrown installiert werden soll.`nDort wird ein Ordner 'MacroManager' angelegt."
+    m["Choose where to install ComboCrown.`nA 'ComboCrown' folder will be created there."] := "Wähle, wo ComboCrown installiert werden soll.`nDort wird ein Ordner 'ComboCrown' angelegt."
     m["Installation failed:`n{1}"] := "Installation fehlgeschlagen:`n{1}"
     m["Create a Start Menu shortcut?"] := "Verknüpfung im Startmenü erstellen?"
     m["Skip"] := "Überspringen"
@@ -7895,7 +8118,7 @@ TrDe() {
     m["hlp_script"] := "Für alles, was die anderen Typen nicht können. Füge ein eigenes AutoHotkey v2 Skript ein oder schreibe eines.`n`n- Das Skript läuft als eigener Prozess, solange das Makro angehakt ist, und wird beendet, wenn du den Haken entfernst.`n- Es muss AutoHotkey v2 Code sein (v1-Skripte funktionieren nicht).`n- Auslösetaste und Anwendungsfilter werden nicht verwendet, das erledigt dein Skript selbst.`n- Importierte .ahk-Dateien, die nicht von ComboCrown erstellt wurden, werden zu Skript-Makros.`n- Ein importiertes Skript fragt vor dem ersten Start nach: Es läuft mit Administratorrechten, schalte es also nur ein, wenn du seiner Herkunft vertraust. Das Fenster zeigt, was das Skript tut (zum Beispiel Programme starten oder Dateien löschen), und bietet an, den Code anzuzeigen."
     m["hlp_keys"] := "Tastennamen sind die AutoHotkey-Namen: a, 1, F7, Space, Enter, Tab, LCtrl, LShift, Numpad1 ...`nEine Taste kann auch als Scancode geschrieben werden, zum Beispiel sc002 - das ist die physische Taste, unabhängig vom Layout. Tasten wie Komma, Plus, & und | werden automatisch so gespeichert.`n`nMaus: Auslöse-, Ein/Aus-Taste und die Taste für Alle Makros können auch eine Maustaste sein: RButton, MButton (Radklick), XButton1 / XButton2 (die zwei Seitentasten) oder das Rad selbst (WheelUp / WheelDown / WheelLeft / WheelRight). Ein Rad kann nicht gehalten werden, daher laufen Rad-Makros immer nur einmal. Die linke Taste steht nicht zur Auswahl.`nGaming- / MMO-Mäuse: Windows kennt nur fünf Maustasten, die zusätzlichen Seitentasten werden von der Maussoftware (G HUB, Synapse, iCUE, ...) verwaltet. Belege sie dort mit Tasten, am besten F13 - F24 (oder Ctrl+Alt+Zahl); ComboCrown sieht sie dann als normale Tasten, klicke also in das Feld Auslösetaste und drücke die Seitentaste.`n`nAufnehmen (neben Richtungen und Aktionen): Drücke Aufnehmen, drücke die Tasten in der gewünschten Reihenfolge und dann Fertig. Das Feld füllt sich live. Makros sind während der Aufnahme pausiert.`n`nTasten gleichzeitig: Tasten, die du zusammen hältst, werden als ein Schritt gespeichert und mit + verbunden, zum Beispiel Shift+4. Beim Abspielen gehen alle zusammen runter und werden zusammen losgelassen (nicht erst Shift und danach 4).`nDasselbe funktioniert durch Eintippen in die Felder: a,Shift+4,d"
     m["hlp_profiles"] := "Profile halten verschiedene Makro-Sets getrennt (zum Beispiel eines pro Spiel).`n`n- Die Profilschaltfläche in der Kopfzeile zeigt das aktuelle Profil. Klicke darauf, um zu wechseln oder ein Profil anzulegen / umzubenennen / zu löschen.`n- Die Liste zeigt nur die Makros des aktuellen Profils, und nur diese sind aktiv.`n- Im Editor kannst du unter Profile ein oder mehrere Profile für das Makro wählen. Wenn du ein Makro änderst, das zu mehreren Profilen gehört, fragt die App: Änderung auf alle anwenden oder nur auf das aktuelle Profil (die anderen Profile behalten die alte Version).`n- Der Haken-Status eines Makros bleibt in jedem Profil gleich; ein Profilwechsel ändert nur, welche Makros im Spiel sind.`n- Beim Löschen eines Profils werden Makros, die nur dazu gehörten, in das erste verbleibende Profil verschoben."
-    m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten."
+    m["hlp_toggle"] := "Ein/Aus-Taste (im Editor) - eine Taste, die genau dieses Makro ein- / ausschaltet, wie das Anhaken in der Liste. Ein kleiner Tooltip zeigt AN / AUS.`nEin/Aus-Taste für alle Makros (Schaltfläche unter der Liste) - schaltet den Hauptschalter. Funktioniert in jedem Profil.`n`nKlicke auf die Schaltfläche, drücke die Taste. Esc bricht ab, Backspace entfernt die Taste.`nMakros anderer Profile reagieren nicht auf ihre Ein/Aus-Tasten.`n`nIn-Game-Overlay - eine kleine Leiste über dem Spiel zeigt, ob Alle Makros an (gold) oder aus (grau) ist. Sie erscheint nur, wenn das Spiel im Vordergrund ist. Rechtsklick auf das Tray-Symbol > In-Game-Overlay: Ecke wählen oder ausschalten. Spiele im exklusiven Vollbild verdecken sie - nutze den Fenster- oder randlosen Modus."
     m["hlp_order"] := "Nach oben / Nach unten ändern die Reihenfolge in der Liste. Ein Klick auf eine Spaltenüberschrift sortiert die Liste (erneut klicken kehrt um).`n`nExportieren... speichert das ausgewählte Makro als eigenständige AutoHotkey v2 .ahk-Datei, die auch allein läuft (sie fragt nach Administratorrechten).`nImportieren... lädt eine oder mehrere .ahk-Dateien (oder zieh sie einfach ins Hauptfenster). Du kannst ein Makro auch aus der Liste auf den Desktop / in einen Ordner / in ein Chatfenster ziehen, um es als .ahk-Datei zu exportieren. Das Makro wird nach der Datei benannt; von ComboCrown erstellte Dateien kommen als bearbeitbare Makros zurück, andere Skripte werden zu Skript-Makros. Importe landen im aktuellen Profil und sind zunächst ausgeschaltet.`nAlle exportieren... schreibt jedes Makro in einen Ordner, je eine Datei.`n`nSicherung... (neben Deinstall.) speichert alles – Makros, Profile, Einstellungen und Skriptdateien – in einer .mmbackup-Datei und stellt sie auf einem neuen PC oder nach einer Neuinstallation wieder her. Du kannst die Sicherungsdatei auch auf das Fenster ziehen. Vor dem Wiederherstellen wird der aktuelle Stand als config\backup-before-restore.mmbackup gespeichert.`n`nDeinstallieren löscht den gesamten App-Ordner einschließlich aller Makros und Einstellungen. Es bietet vorher an, alle Makros zu exportieren."
     m["hlp_updates"] := "Das Pfeilsymbol in der Kopfzeile (neben der Profilschaltfläche) zeigt, ob es eine neue Version gibt: grau = du bist auf dem neuesten Stand, grün = eine neue Version ist verfügbar. Fahre mit der Maus darüber für Details.`n`nDie App prüft einige Sekunden nach dem Start (im Menü des Infobereichs abschaltbar: Beim Start nach Updates suchen). Klicke jederzeit auf das Symbol, um erneut zu prüfen. Es wird nichts installiert, bis du auf das grüne Symbol klickst und bestätigst.`n`nBeim Update lädt die App die neue Datei herunter, prüft ihre Prüfsumme, behält die alte als Macro Manager.ahk.bak und startet neu. Deine Makros, Profile und Einstellungen liegen getrennt im Ordner config und bleiben genau so, wie sie sind.`n`nWenn etwas schiefgeht, schließe die App, lösche Macro Manager.ahk und benenne Macro Manager.ahk.bak wieder in Macro Manager.ahk um.`n`nFür das Update ist Internetzugang nötig (Macro-Hub-Server oder github.com)."
     m["hlp_hub"] := "Der Macro Hub (Schaltfläche neben der Suche) zeigt Makros, die Spieler teilen. Er öffnet sich als Seitenleiste neben dem Hauptfenster.`n`n- Makros der Spieler: Makros anderer Spieler. Meine Makros: die Makros, die du geteilt hast, mit ihren Bewertungen und Downloads.`n- Suche mit Wörtern aus dem Namen, dem Spiel oder dem Autor: jedes Wort muss passen. 4story findet alle 4Story-Makros, 4story war nur die für den Krieger.`n- Die Spiel-Schaltfläche filtert ein Spiel, die Sortier-Schaltfläche sortiert nach Bewertung, Neueste oder Meiste Downloads.`n- Jedes Makro zeigt seine Durchschnittsbewertung in Sternen (1 = am schlechtesten, 5 = am besten) mit der Anzahl der Bewertungen in Klammern, den Autor, das Spiel, die Auslösetaste und wie oft es heruntergeladen wurde. Ein goldener Haken markiert vom Moderator geprüfte Makros - sie stehen oben.`n- Das Feld unter der Liste zeigt die Beschreibung und was das Makro tut (Tasten, Verzögerungen, Sequenz) - noch vor dem Herunterladen.`n- Herunterladen (oder ein Doppelklick) fügt das Makro dem aktuellen Profil hinzu, ausgeschaltet. Prüfe Taste und Anwendung und hake es dann an.`n- Bewerten vergibt 1 bis 5 Sterne - eine Bewertung pro Installation, du kannst sie später ändern. Eigene Makros kann man nicht bewerten.`n- Melden schickt ein Makro zur Prüfung, zum Beispiel ein Farm- / AFK-Makro, das nicht erlaubt ist. Nach mehreren Meldungen wird es ausgeblendet.`n- Löschen (Meine Makros) entfernt ein von dir geteiltes Makro aus dem Macro Hub; deine eigene Kopie in der Liste bleibt.`n`nTeilen: Klicke auf das Teilen-Symbol am Ende einer Zeile in der Hauptliste und gib Name, Spiel, Beschreibung und deinen Spitznamen ein. Das Symbol wird golden, sobald das Makro geteilt ist. Aus dem Macro Hub geladene Makros zeigen stattdessen einen Download-Pfeil und können erst nach einer Änderung geteilt werden.`n`nAktualisierungen: Wenn du ein geteiltes Makro änderst, fragt die App, ob es im Macro Hub aktualisiert werden soll - Bewertungen und Downloads bleiben (bis dahin hat sein Symbol einen Punkt; ein Klick aktualisiert es). Wenn der Autor ein Makro aktualisiert, das du heruntergeladen hast, erscheint ein Hinweis und sein Pfeil in der Liste wird grün: Klicke darauf, um die Änderungen zu sehen und die neue Version zu übernehmen oder deine zu behalten. Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt: die Umschalttaste und deine Profile. Skript-Makros können nicht geteilt werden.`n`nDer Macro Hub braucht eine Internetverbindung. Niemand kann sehen, wer ein Makro bewertet oder gemeldet hat. Um mit einer älteren Version geladene Makros zu erkennen, sendet die App dem Macro Hub einmal, was sie tun (Tasten, Verzögerungen, Sequenz - nicht ihre Namen); davon wird nichts gespeichert."
@@ -7990,6 +8213,13 @@ TrDe() {
     m["Your nickname"] := "Dein Spitzname"
     m["Shared: the keys, delays, Run and Press settings and the application. Not shared: the toggle key and your profiles. Everyone can see and download it. Farm / AFK macros are not allowed."] := "Geteilt werden: Tasten, Verzögerungen, Ausführen- und Drücken-Einstellungen und die Anwendung. Nicht geteilt: die Umschalttaste und deine Profile. Jeder kann es sehen und herunterladen. Farm- / AFK-Makros sind nicht erlaubt."
     m["Please fill in the name, the game and your nickname."] := "Bitte gib Name, Spiel und deinen Spitznamen ein."
+    m["In-game overlay"] := "In-Game-Overlay"
+    m["Off"] := "Aus"
+    m["Top left"] := "Oben links"
+    m["Top center"] := "Oben mittig"
+    m["Top right"] := "Oben rechts"
+    m["Bottom left"] := "Unten links"
+    m["Bottom right"] := "Unten rechts"
     m["Release notes"] := "Versionshinweise"
     m["Getting started"] := "Erste Schritte"
     m["Add / edit a macro"] := "Makro anlegen/ändern"

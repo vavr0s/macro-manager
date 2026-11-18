@@ -136,6 +136,7 @@ OnMaster(*) {
     swMaster.Value := MasterOn ? SwOnFile : SwOffFile
     Save()
     Apply()
+    OverlayTick()
 }
 
 OnMasterKey() {
@@ -164,6 +165,7 @@ ToggleMaster(*) {
     swMaster.Value := MasterOn ? SwOnFile : SwOffFile
     Save()
     Apply()
+    OverlayTick()
     Toast(_T("All macros: {1}", MasterOn ? _T("ON") : _T("OFF")))
 }
 
